@@ -1,0 +1,39 @@
+{
+    "name": "dereuromark/cakephp-test-helper",
+    "description": "TestHelper plugin for CakePHP",
+    "type": "cakephp-plugin",
+	"keywords": ["cakephp", "plugin", "setup", "tests", "coverage", "generate", "development"],
+	"homepage": "https://github.com/dereuromark/cakephp-test-helper",
+    "license": "MIT",
+	"authors": [
+		{
+			"name": "Mark Scherer",
+			"role": "Author",
+			"homepage": "http://www.dereuromark.de"
+		}
+	],
+    "require": {
+        "php": ">=5.6.0",
+        "cakephp/cakephp": "^3.4"
+    },
+    "require-dev": {
+        "fig-r/psr2r-sniffer": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "TestHelper\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "TestHelper\\Test\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "php phpunit.phar",
+        "test-setup": "[ ! -f phpunit.phar ] && wget https://phar.phpunit.de/phpunit-5.7.20.phar && mv phpunit-5.7.20.phar phpunit.phar || true",
+        "cs-check": "phpcs -p -v --standard=vendor/fig-r/psr2r-sniffer/PSR2R/ruleset.xml --extensions=php src tests",
+        "cs-fix": "phpcbf -v --standard=vendor/fig-r/psr2r-sniffer/PSR2R/ruleset.xml src tests"
+    }
+}
+
