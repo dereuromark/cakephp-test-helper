@@ -7,7 +7,8 @@ Router::plugin(
     'TestHelper',
     ['path' => '/test-helper'],
     function (RouteBuilder $routes) {
+		$routes->connect('/', ['controller' => 'TestHelper', 'action' => 'index']);
+
         $routes->fallbacks();
     }
 );
-
