@@ -4,6 +4,7 @@ namespace TestHelper\Controller;
 use App\Controller\AppController;
 use Cake\Core\App;
 use Cake\Core\Plugin;
+use Cake\Event\Event;
 use Cake\Filesystem\Folder;
 use RuntimeException;
 
@@ -18,6 +19,18 @@ class TestCasesController extends AppController {
 	public $components = [
 		'TestHelper.TestRunner',
 	];
+
+	/**
+	 * @param \Cake\Event\Event $event
+	 * @return \Cake\Http\Response|null
+	 */
+	public function beforeFilter(Event $event) {
+		parent::beforeFilter($event);
+
+		if (isset($this->Auth)) {
+			$this->Auth->allow();
+		}
+	}
 
 	/**
 	 * @return void

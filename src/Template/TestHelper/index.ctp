@@ -7,7 +7,9 @@ use Cake\Core\Plugin;
 
 ?>
 
-<h1>Generate tests</h1>
+<h1>Test Helper</h1>
+
+<h2>Test Cases</h2>
 
 <ul>
 	<li><?php echo $this->Html->link('[App]', ['controller' => 'TestCases', 'action' => 'controllers', 'app']); ?></li>
