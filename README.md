@@ -46,10 +46,15 @@ Supported class types:
 Feel free to help out improving and completing this test helper plugin.
 
 
-### Configuration
+## Configuration
 - TestHelper.command: If you need a custom phpunit command to run with. 
 Both `php phpunit.phar` and `vendor/bin/phpunit` work out of the box.
 
 ### Your own template
 The default template ships with bootstrap (3) and fontawesome icons.
 You can switch out the view templates with your own on project level as documented in the CakePHP docs.
+
+
+## Limitations
+Executing the tests and coverage from the web backend usually can not work for long running tests due to the timeout issues.
+Make sure you raise the apache/nginx settings here if you want to use this functionality here.

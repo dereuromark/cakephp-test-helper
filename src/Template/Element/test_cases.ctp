@@ -22,9 +22,7 @@
 			<td>
 				<?php
 				if (!$file['hasTestCase']) {
-					echo '<span class="btn btn-default btn-xs">';
-					echo $this->Form->postLink($this->Format->icon('plus', ['title' => 'Generate test case']), ['action' => 'controllers', $this->request->param('pass')[0]], ['escapeTitle' => false, 'data' => ['name' => $file['name']]]);
-					echo '</span>';
+					echo $this->Form->postLink($this->Format->icon('plus', ['title' => 'Generate test case']), ['action' => 'controllers', $this->request->param('pass')[0]], ['class' => '', 'escapeTitle' => false, 'data' => ['name' => $file['name']]]);
 				} else {
 					?>
 					<?php echo $this->Html->link($this->Format->icon('play', ['title' => 'Run tests']), ['action' => 'run', '?' => ['test' => $file['testCase']]], ['escapeTitle' => false, 'target' => '_blank', 'class' => 'run', 'data-test-case' => $file['testCase']]); ?>

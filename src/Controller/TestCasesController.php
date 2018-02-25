@@ -42,8 +42,9 @@ class TestCasesController extends AppController {
 
 		$name = $this->request->getData('name') ?: $this->request->getQuery('name');
 		$type = $this->request->getData('type') ?: $this->request->getQuery('type');
+		$force = $this->request->getData('force') ?: $this->request->getQuery('force');
 
-		$result = $this->TestRunner->coverage($file, $name, $type);
+		$result = $this->TestRunner->coverage($file, $name, $type, $force);
 
 		$this->set(compact('result'));
 		$this->set('_serialize', 'result');
@@ -101,7 +102,7 @@ class TestCasesController extends AppController {
 	protected function generate($name, $plugin, array $options = []) {
 		$arguments = 'test Controller ' . $name . ' -t Setup -q';
 		if ($plugin) {
-			$arguments .= '-p ' . $plugin;
+			$arguments .= ' -p ' . $plugin;
 		}
 		foreach ($options as $key => $option) {
 			$arguments .= '--' . $key . ' ' . $option;
@@ -111,7 +112,7 @@ class TestCasesController extends AppController {
 		exec($command, $output, $return);
 
 		if ($return !== 0) {
-			$this->Flash->error('Error code ' . $return . ': ' . print_r($output, true));
+			$this->Flash->error('Error code ' . $return . ': ' . print_r($output, true) . ' [' . $command . ']');
 		}
 
 		return $return === 0;

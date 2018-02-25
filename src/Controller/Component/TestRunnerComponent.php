@@ -34,17 +34,20 @@ class TestRunnerComponent extends Component {
 	 * @param string $file
 	 * @param string $name
 	 * @param string $type
+	 * @param bool $force
 	 *
 	 * @return array
 	 */
-	public function coverage($file, $name, $type) {
+	public function coverage($file, $name, $type, $force = false) {
 		$command = $this->getCommand();
 
 		$testFile = ROOT . DS . 'webroot/coverage/src/' . $type . '/' . $name . '.php.html';
 
 		$command .= ' ' . $file;
-		$command .= ' --log-junit webroot/coverage/unitreport.xml --coverage-html webroot/coverage --coverage-clover webroot/coverage/coverage.xml --whitelist src/Controller/AccountController.php';
-		exec('cd ' . ROOT . ' && ' . $command, $output, $res);
+		$command .= ' --log-junit webroot/coverage/unitreport.xml --coverage-html webroot/coverage --coverage-clover webroot/coverage/coverage.xml --whitelist src/' . $type . '/' . $name . '.php';
+		if (!file_exists($testFile) || $force) {
+			exec('cd ' . ROOT . ' && ' . $command, $output, $res);
+		}
 
 		$url = str_replace('\\', '/', '/coverage/src/' . $type . '/' . $name . '.php.html');
 

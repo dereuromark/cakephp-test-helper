@@ -62,7 +62,8 @@ $cache = [
 ];
 
 Cake\Cache\Cache::config($cache);
-//Cake\Core\Plugin::load('Tools', ['path' => ROOT . DS . 'vendor' . DS . 'dereuromark' . DS . 'cakephp-tools' . DS, 'routes' => true]);
+Cake\Core\Plugin::load('TestHelper', ['path' => ROOT . DS, 'autoload' => true, 'routes' => true]);
+Cake\Core\Plugin::load('Tools', ['path' => ROOT . DS . 'vendor' . DS . 'dereuromark' . DS . 'cakephp-tools' . DS, 'routes' => true]);
 
 if (getenv('db_dsn')) {
 	Cake\Datasource\ConnectionManager::config('test', [
