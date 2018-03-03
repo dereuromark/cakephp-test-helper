@@ -32,6 +32,10 @@ class TestHelperHelper extends Helper {
 				continue;
 			}
 			if ($element === '?') {
+				if (empty($url[$element])) {
+					continue;
+				}
+
 				$query = [];
 				foreach ($url[$element] as $k => $v) {
 					$query[] = $this->export($k) . ' => ' . $this->export($v);
