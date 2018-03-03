@@ -14,6 +14,9 @@ This aims to bring back a part of it.
 The CLI also doesn't allow a good overview. Even with auto-complete, you have to type almost everything out.
 With a browser backend generating tests or running them is just a simple mouse click.
 
+### Further useful addons
+- URL array generation from string URLs
+
 ## Installation
 
 You can install this plugin into your CakePHP application using [composer](http://getcomposer.org):
