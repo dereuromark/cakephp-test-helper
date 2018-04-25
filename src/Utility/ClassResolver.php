@@ -22,6 +22,7 @@ class ClassResolver {
 	 */
 	protected static $suffixMap = [
 		'Entity' => '',
+		'ShellHelper' => 'Helper',
 	];
 
 	/**
