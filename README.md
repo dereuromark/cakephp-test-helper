@@ -17,7 +17,7 @@ The CLI also doesn't allow a good overview. Even with auto-complete, you have to
 With a browser backend generating tests or running them is just a simple mouse click.
 
 ### Further useful addons
-- URL array generation from string URLs
+- URL array generation from string URLs (respects routing, so it is basically also a reverse lookup)
 
 ## Installation
 
@@ -46,12 +46,16 @@ You can then with a single click
 Supported class types:
 
 - [x] Controllers
-- [ ] Models (Tables/Entities)
-- [ ] Components
-- [ ] Behavior
-- [ ] Helpers
-- [ ] Shells
-- [ ] Tasks
+- [x] Models (Tables/Entities)
+- [x] Components
+- [x] Behavior
+- [x] Helpers
+- [x] Shells
+- [x] Tasks
+- [ ] Cells
+- [ ] ShellHelpers
+- [ ] Forms
+- [ ] Mailers
 
 Feel free to help out improving and completing this test helper plugin.
 
@@ -68,3 +72,5 @@ You can switch out the view templates with your own on project level as document
 ## Limitations
 Executing the tests and coverage from the web backend usually can not work for long running tests due to the timeout issues.
 Make sure you raise the apache/nginx settings here if you want to use this functionality here.
+
+The focus is on providing an overview and quickly generating the desired classes with a single mouse click.
