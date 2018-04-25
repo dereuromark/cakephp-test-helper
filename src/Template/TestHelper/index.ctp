@@ -29,7 +29,7 @@ use Cake\Core\Plugin;
 		<h2>Test Cases</h2>
 
 		<ul class="inline-list">
-			<li><?php echo $this->Html->link('[App]', []); ?></li>
+			<li><?php echo $this->Html->link('[App]', ['?' => ['plugin' => null]]); ?></li>
 		<?php
 		foreach ($plugins as $plugin) {
 			$path = Plugin::path($plugin);
