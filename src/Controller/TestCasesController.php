@@ -7,6 +7,7 @@ use Cake\Core\Plugin;
 use Cake\Event\Event;
 use Cake\Filesystem\Folder;
 use RuntimeException;
+use TestHelper\Utility\ClassResolver;
 
 /**
  * @property \TestHelper\Controller\Component\TestRunnerComponent $TestRunner
@@ -46,6 +47,7 @@ class TestCasesController extends AppController {
 
 	/**
 	 * @return void
+	 * @throws \RuntimeException
 	 */
 	public function coverage() {
 		$file = $this->request->getData('test') ?: $this->request->getQuery('test');
@@ -64,24 +66,98 @@ class TestCasesController extends AppController {
 	}
 
 	/**
-	 * @param string|null $appOrPlugin
 	 * @return \Cake\Http\Response|null
 	 */
-	public function controllers($appOrPlugin = null) {
+	public function controller() {
+		return $this->handle(ucfirst(__FUNCTION__));
+	}
+
+	/**
+	 * @return \Cake\Http\Response|null
+	 */
+	public function shell() {
+		return $this->handle(ucfirst(__FUNCTION__));
+	}
+
+	/**
+	 * @return \Cake\Http\Response|null
+	 */
+	public function table() {
+		return $this->handle(ucfirst(__FUNCTION__));
+	}
+
+	/**
+	 * @return \Cake\Http\Response|null
+	 */
+	public function entity() {
+		return $this->handle(ucfirst(__FUNCTION__));
+	}
+
+	/**
+	 * @return \Cake\Http\Response|null
+	 */
+	public function behavior() {
+		return $this->handle(ucfirst(__FUNCTION__));
+	}
+
+	/**
+	 * @return \Cake\Http\Response|null
+	 */
+	public function component() {
+		return $this->handle(ucfirst(__FUNCTION__));
+	}
+
+	/**
+	 * @return \Cake\Http\Response|null
+	 */
+	public function helper() {
+		return $this->handle(ucfirst(__FUNCTION__));
+	}
+
+	/**
+	 * @return \Cake\Http\Response|null
+	 */
+	public function task() {
+		return $this->handle(ucfirst(__FUNCTION__));
+	}
+
+	/**
+	 * Bake currently supports types:
+	 * - Entity
+	 * - Table
+	 * - Controller
+	 * - Component
+	 * - Behavior
+	 * - Helper
+	 * - Shell
+	 * - Task
+	 * - ShellHelper
+	 * - Cell
+	 * - Form
+	 * - Mailer
+	 *
+	 * @param string $type
+	 *
+	 * @return \Cake\Http\Response|null
+	 */
+	protected function handle($type) {
+		$appOrPlugin = $this->request->getQuery('namespace');
 		$plugin = $appOrPlugin !== 'app' ? $appOrPlugin : null;
-		$controller = App::path('Controller', $plugin);
-		$files = $this->getFiles($controller);
+		$classType = ClassResolver::type($type);
+		$paths = App::path($classType, $plugin);
+		$files = $this->getFiles($paths);
 
 		if ($this->request->is('post')) {
-			if ($this->generate($this->request->getData('name'), $plugin)) {
+			if ($this->generate($this->request->getData('name'), $type, $plugin)) {
 				$this->Flash->success('Test case generated');
 			}
 
-			return $this->redirect(['action' => 'controllers', $appOrPlugin]);
+			return $this->redirect([$appOrPlugin]);
 		}
 
 		foreach ($files as $key => $name) {
-			if (!preg_match('/\w+Controller$/', $name)) {
+			$suffix = ClassResolver::suffix($type);
+			if ($suffix && !preg_match('/\w+' . $suffix . '$/', $name)) {
 				unset($files[$key]);
 				continue;
 			}
@@ -92,10 +168,11 @@ class TestCasesController extends AppController {
 				$class = $prefix . DS . $class;
 			}
 
-			$testCase = ($plugin ? Plugin::path($plugin) . 'tests' . DS : TESTS) . 'TestCase' . DS . 'Controller' . DS . $class;
+			$folder = str_replace('/', DS, $classType);
+			$testCase = ($plugin ? Plugin::path($plugin) . 'tests' . DS : TESTS) . 'TestCase' . DS . $folder . DS . $class;
 
 			$files[$key] = [
-				'type' => ($plugin ? $plugin . '.' : '') . 'Controller',
+				'type' => ($plugin ? $plugin . '.' : '') . $type,
 				'name' => $name,
 				'testCase' => str_replace(ROOT . DS, '', $testCase),
 				'hasTestCase' => file_exists($testCase),
@@ -103,17 +180,19 @@ class TestCasesController extends AppController {
 		}
 
 		$this->set(compact('files'));
+		$this->render('handle');
 	}
 
 	/**
 	 * @param string $name
+	 * @param string $type
 	 * @param string $plugin
 	 * @param array $options
 	 *
 	 * @return bool
 	 */
-	protected function generate($name, $plugin, array $options = []) {
-		$arguments = 'test Controller ' . $name . ' -q';
+	protected function generate($name, $type, $plugin, array $options = []) {
+		$arguments = 'test ' . $type . ' ' . $name . ' -q';
 		if (Plugin::loaded('Setup')) {
 			$arguments .= ' -t Setup';
 		}
@@ -130,6 +209,8 @@ class TestCasesController extends AppController {
 		if ($return !== 0) {
 			$this->Flash->error('Error code ' . $return . ': ' . print_r($output, true) . ' [' . $command . ']');
 		}
+
+		$this->Flash->info(json_encode($output));
 
 		return $return === 0;
 	}

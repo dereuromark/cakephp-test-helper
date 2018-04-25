@@ -28,17 +28,30 @@ use Cake\Core\Plugin;
 	<div class="col-md-6 col-xs-12">
 		<h2>Test Cases</h2>
 
-		<ul>
-			<li><?php echo $this->Html->link('[App]', ['controller' => 'TestCases', 'action' => 'controllers', 'app']); ?></li>
-			<?php
-			foreach ($plugins as $plugin) {
-				$path = Plugin::path($plugin);
-				$path = str_replace(ROOT . DS, '', $path);
-				?>
-				<li><?php echo $this->Html->link($plugin, ['controller' => 'TestCases', 'action' => 'controllers', $plugin]); ?> (<?php echo h($path); ?>)</li>
-				<?php
-			}
+		<ul class="inline-list">
+			<li><?php echo $this->Html->link('[App]', []); ?></li>
+		<?php
+		foreach ($plugins as $plugin) {
+			$path = Plugin::path($plugin);
+			$path = str_replace(ROOT . DS, '', $path);
 			?>
+			<li><?php echo $this->Html->link($plugin, ['?' => ['plugin' => $plugin]]); ?></li>
+			<?php
+		}
+		?>
+		</ul>
+
+		<h3><?php echo h($namespace ?: '[App]'); ?></h3>
+		<?php
+			$namespace = $namespace ?: 'app';
+		?>
+		<ul>
+			<li><?php echo $this->Html->link('Controllers', ['controller' => 'TestCases', 'action' => 'controller', '?' => ['namespace' => $namespace]]); ?></li>
+			<li><?php echo $this->Html->link('Shells', ['controller' => 'TestCases', 'action' => 'shell', '?' => ['namespace' => $namespace]]); ?></li>
+			<li><?php echo $this->Html->link('Tables', ['controller' => 'TestCases', 'action' => 'table', '?' => ['namespace' => $namespace]]); ?></li>
+			<li><?php echo $this->Html->link('Behaviors', ['controller' => 'TestCases', 'action' => 'behavior', '?' => ['namespace' => $namespace]]); ?></li>
+			<li><?php echo $this->Html->link('Components', ['controller' => 'TestCases', 'action' => 'component', '?' => ['namespace' => $namespace]]); ?></li>
+			<li><?php echo $this->Html->link('Helpers', ['controller' => 'TestCases', 'action' => 'helper', '?' => ['namespace' => $namespace]]); ?></li>
 		</ul>
 
 	</div>

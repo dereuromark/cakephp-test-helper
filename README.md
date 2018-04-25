@@ -5,7 +5,9 @@
 [![Total Downloads](https://poser.pugx.org/dereuromark/cakephp-test-helper/d/total)](https://packagist.org/packages/dereuromark/cakephp-test-helper)
 [![Coding Standards](https://img.shields.io/badge/cs-PSR--2--R-yellow.svg)](https://github.com/php-fig-rectified/fig-rectified-standards)
 
-Browser Addons for your test driven development.
+Browser based Addons for your test driven development.
+
+Note: This branch is for CakePHP 3.5+.
 
 ## Motivation
 After 2.x=>3.x, the "web-tester" has been removed. It was, for certain cases, however, quite useful.

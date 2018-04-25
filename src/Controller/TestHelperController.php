@@ -32,7 +32,7 @@ class TestHelperController extends AppController {
 	 */
 	public function index() {
 		if ($this->request->is('post')) {
-			$url = $this->request->data('url');
+			$url = $this->request->getData('url');
 
 			$url = str_replace(env('HTTP_ORIGIN'), '', $url);
 			$url = Router::parse($url);
@@ -49,7 +49,13 @@ class TestHelperController extends AppController {
 
 		$plugins = Plugin::loaded();
 
-		$this->set(compact('plugins'));
+		$namespace = $this->request->getQuery('plugin');
+		if ($namespace && !in_array($namespace, $plugins)) {
+			$this->Flash->error('Invalid plugin');
+			return $this->redirect([]);
+		}
+
+		$this->set(compact('plugins', 'namespace'));
 	}
 
 }

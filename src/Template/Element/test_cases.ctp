@@ -1,7 +1,6 @@
 <?php
 /**
  * @var \App\View\AppView $this
- * @var \App\Model\Entity\EtchatMessage[]|\Cake\Collection\CollectionInterface $etchatMessages
  */
 ?>
 <table class="table">
@@ -22,7 +21,7 @@
 			<td>
 				<?php
 				if (!$file['hasTestCase']) {
-					echo $this->Form->postLink($this->Format->icon('plus', ['title' => 'Generate test case']), ['action' => 'controllers', $this->request->param('pass')[0]], ['class' => '', 'escapeTitle' => false, 'data' => ['name' => $file['name']]]);
+					echo $this->Form->postLink($this->Format->icon('plus', ['title' => 'Generate test case']), ['action' => $this->request->getParam('action'), $this->request->getQuery('namespace')], ['class' => '', 'escapeTitle' => false, 'data' => ['name' => $file['name']]]);
 				} else {
 					?>
 					<?php echo $this->Html->link($this->Format->icon('play', ['title' => 'Run tests']), ['action' => 'run', '?' => ['test' => $file['testCase']]], ['escapeTitle' => false, 'target' => '_blank', 'class' => 'run', 'data-test-case' => $file['testCase']]); ?>

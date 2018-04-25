@@ -71,12 +71,12 @@ $cache = [
 	]
 ];
 
-Cake\Cache\Cache::config($cache);
+Cake\Cache\Cache::setConfig($cache);
 Cake\Core\Plugin::load('TestHelper', ['path' => ROOT . DS, 'autoload' => true, 'routes' => true]);
 Cake\Core\Plugin::load('Tools', ['path' => ROOT . DS . 'vendor' . DS . 'dereuromark' . DS . 'cakephp-tools' . DS]);
 
 if (getenv('db_dsn')) {
-	Cake\Datasource\ConnectionManager::config('test', [
+	Cake\Datasource\ConnectionManager::setConfig('test', [
 		'className' => 'Cake\Database\Connection',
 		'url' => getenv('db_dsn'),
 		'timezone' => 'UTC',
@@ -92,7 +92,7 @@ if (!getenv('db_class')) {
 	putenv('db_dsn=sqlite:///:memory:');
 }
 
-Cake\Datasource\ConnectionManager::config('test', [
+Cake\Datasource\ConnectionManager::setConfig('test', [
 	'className' => 'Cake\Database\Connection',
 	'url' => getenv('db_dsn'),
 	'driver' => getenv('db_class'),
