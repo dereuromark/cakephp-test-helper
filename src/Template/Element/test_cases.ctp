@@ -19,21 +19,20 @@
 		$('.run').click(function (e) {
 			e.preventDefault();
 
-			var testCase = $(this).data('test-case');
-			var url = '/test-helper/test-cases/run.json';
-			remoteModal(testCase, url);
+			var url = $(this).attr('href');
+			remoteModal(url);
 		});
 
 		$('.coverage').click(function (e) {
 			e.preventDefault();
 
-			var testCase = $(this).data('test-case');
-			var url = '/test-helper/test-cases/coverage.json';
-			remoteModal(testCase, url);
+
+			var url = $(this).attr('href');
+			remoteModal(url);
 		});
 	});
 
-	var remoteModal = function(testCase, url) {
+	var remoteModal = function(url) {
 		// reset modal body with a spinner or empty content
 		var spinner = "<div class='text-center'><i class='fa fa-spinner fa-spin fa-5x fa-fw'></i></div>";
 
@@ -46,7 +45,6 @@
 				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 			},
 			data: {
-				test: testCase
 			},
 			dataType: "json",
 			success: function(response) { //so, if data is retrieved, store it in html
@@ -59,7 +57,7 @@
 				alert("Fehler bei der Anfrage! " + errorText);
 				$("#modal-default .modal-body").html('');
 			}
-		})
+		});
 
 		$("#modal-default").modal("show");
 	};
