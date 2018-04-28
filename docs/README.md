@@ -1,4 +1,4 @@
-# CakePHP TestHelper Documentation
+# TestHelper Plugin Documentation
 
 ## Configuration
 - TestHelper.command: If you need a custom phpunit command to run with. 
