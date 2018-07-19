@@ -26,6 +26,7 @@ class TestCasesController extends AppController {
 	 * @var array
 	 */
 	public $helpers = [
+		'TestHelper.TestHelper',
 		'Tools.Format',
 	];
 
