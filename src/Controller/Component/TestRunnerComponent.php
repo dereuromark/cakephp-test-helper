@@ -44,7 +44,7 @@ class TestRunnerComponent extends Component {
 	public function coverage($file, $name, $type, $force = false) {
 		$command = $this->getCommand();
 
-		$testFile = ROOT . DS . 'webroot/coverage/' . $name . '.php.html';
+		$testFile = ROOT . DS . 'webroot/coverage/src/' . $type . '/' . $name . '.php.html';
 		$testFile = str_replace(['/', '\\'], DS, $testFile);
 
 		$command .= ' ' . $file;
@@ -56,7 +56,7 @@ class TestRunnerComponent extends Component {
 			exec($command, $output, $res);
 		}
 
-		$url = str_replace('\\', '/', '/coverage/' . $name . '.php.html');
+		$url = str_replace('\\', '/', '/coverage/src/' . $type . '/' . $name . '.php.html');
 
 		$output = <<<HTML
 <h2>Coverage-Result</h2>

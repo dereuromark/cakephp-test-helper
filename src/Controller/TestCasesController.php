@@ -18,7 +18,15 @@ class TestCasesController extends AppController {
 	 * @var array
 	 */
 	public $components = [
+		'Flash',
 		'TestHelper.TestRunner',
+	];
+
+	/**
+	 * @var array
+	 */
+	public $helpers = [
+		'Tools.Format',
 	];
 
 	/**
@@ -176,7 +184,7 @@ class TestCasesController extends AppController {
 			$testCase = ($plugin ? Plugin::path($plugin) . 'tests' . DS : TESTS) . 'TestCase' . DS . $folder . DS . $class;
 
 			$files[$key] = [
-				'type' => ($plugin ? $plugin . '.' : '') . $type,
+				'type' => ($plugin ? $plugin . '.' : '') . $classType,
 				'name' => $name,
 				'testCase' => str_replace(ROOT . DS, '', $testCase),
 				'hasTestCase' => file_exists($testCase),

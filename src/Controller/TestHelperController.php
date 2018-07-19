@@ -11,8 +11,16 @@ class TestHelperController extends AppController {
 	/**
 	 * @var array
 	 */
+	public $components = [
+		'Flash',
+	];
+
+	/**
+	 * @var array
+	 */
 	public $helpers = [
 		'TestHelper.TestHelper',
+		'Tools.Format',
 	];
 
 	/**
