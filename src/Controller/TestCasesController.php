@@ -214,7 +214,7 @@ class TestCasesController extends AppController {
 			$this->Flash->error('Error code ' . $return . ': ' . print_r($output, true) . ' [' . $command . ']');
 		}
 
-		$this->Flash->info(json_encode($output));
+		$this->Flash->success(json_encode($output));
 
 		return $return === 0;
 	}
