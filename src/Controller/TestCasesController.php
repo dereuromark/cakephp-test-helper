@@ -28,6 +28,10 @@ class TestCasesController extends AppController {
 	public function beforeFilter(Event $event) {
 		parent::beforeFilter($event);
 
+		if (isset($this->Security)) {
+			$this->Security->setConfig('validatePost', false);
+		}
+
 		if (isset($this->Auth)) {
 			$this->Auth->allow();
 		}
