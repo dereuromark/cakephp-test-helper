@@ -48,7 +48,7 @@ class TestRunnerComponent extends Component {
 		$testFile = str_replace(['/', '\\'], DS, $testFile);
 
 		$command .= ' ' . $file;
-		$command .= ' --log-junit webroot/coverage/unitreport.xml --coverage-html webroot/coverage --coverage-clover webroot/coverage/coverage.xml --whitelist src/' . $type . '/' . $name . '.php';
+		$command .= ' --log-junit webroot/coverage/unitreport.xml --coverage-html webroot/coverage --coverage-clover webroot/coverage/coverage.xml --whitelist src/' . $type . '/';
 		$command = str_replace(['/', '\\'], DS, $command);
 
 		if (!file_exists($testFile) || $force) {
