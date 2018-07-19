@@ -19,7 +19,9 @@ class TestRunnerComponent extends Component {
 
 		$command = $this->getCommand();
 		$command .= ' ' . $file;
-		exec('cd ' . ROOT . ' && ' . $command, $output, $res);
+		$command = str_replace(['/', '\\'], DS, $command);
+		chdir(ROOT);
+		exec($command, $output, $res);
 
 		$result = [
 			'command' => $command,
@@ -42,15 +44,19 @@ class TestRunnerComponent extends Component {
 	public function coverage($file, $name, $type, $force = false) {
 		$command = $this->getCommand();
 
-		$testFile = ROOT . DS . 'webroot/coverage/src/' . $type . '/' . $name . '.php.html';
+		$testFile = ROOT . DS . 'webroot/coverage/' . $name . '.php.html';
+		$testFile = str_replace(['/', '\\'], DS, $testFile);
 
 		$command .= ' ' . $file;
 		$command .= ' --log-junit webroot/coverage/unitreport.xml --coverage-html webroot/coverage --coverage-clover webroot/coverage/coverage.xml --whitelist src/' . $type . '/' . $name . '.php';
+		$command = str_replace(['/', '\\'], DS, $command);
+
 		if (!file_exists($testFile) || $force) {
-			exec('cd ' . ROOT . ' && ' . $command, $output, $res);
+			chdir(ROOT);
+			exec($command, $output, $res);
 		}
 
-		$url = str_replace('\\', '/', '/coverage/src/' . $type . '/' . $name . '.php.html');
+		$url = str_replace('\\', '/', '/coverage/' . $name . '.php.html');
 
 		$output = <<<HTML
 <h2>Coverage-Result</h2>
