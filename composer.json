@@ -14,7 +14,7 @@
 	],
     "require": {
         "php": ">=5.6.0",
-        "cakephp/cakephp": "^3.5",
+        "cakephp/cakephp": "^3.6",
 		"dereuromark/cakephp-tools": "^1.2"
     },
     "require-dev": {
