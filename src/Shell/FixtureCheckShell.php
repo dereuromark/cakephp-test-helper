@@ -189,7 +189,7 @@ class FixtureCheckShell extends Shell {
 		$errors = [];
 		foreach ($fixtureFields as $fieldName => $fixtureField) {
 			if (!isset($liveFields[$fieldName])) {
-				$errors[] = 'Field ' . $fieldName . ' is missing from the live DB!';
+				$errors[] = ' * ' . 'Field ' . $fieldName . ' is missing from the live DB!';
 				continue;
 			}
 
@@ -250,18 +250,18 @@ class FixtureCheckShell extends Shell {
 		$errors = [];
 		foreach ($liveConstraints as $key => $liveConstraint) {
 			if (!isset($fixtureConstraints[$key])) {
-				$errors[] = sprintf('Constraint %s is missing in fixture, but in live DB.', $this->_buildKey($key, $liveConstraint));
+				$errors[] = ' * ' . sprintf('Constraint %s is missing in fixture, but in live DB.', $this->_buildKey($key, $liveConstraint));
 				continue;
 			}
 
 			if ($liveConstraint !== $fixtureConstraints[$key]) {
-				$errors[] = sprintf('Live DB constraint %s is not matching fixture one.', $this->_buildKey($key, $liveConstraint));
+				$errors[] = ' * ' . sprintf('Live DB constraint %s is not matching fixture one.', $this->_buildKey($key, $liveConstraint));
 
 				unset($fixtureConstraints[$key]);
 			}
 		}
 		foreach ($fixtureConstraints as $key => $fixtureConstraint) {
-			$errors[] = sprintf('Constraint %s is in fixture, but not live DB.', $this->_buildKey($key, $fixtureConstraint));
+			$errors[] = ' * ' . sprintf('Constraint %s is in fixture, but not live DB.', $this->_buildKey($key, $fixtureConstraint));
 		}
 
 		$this->warn('The following constraint attributes mismatch:');
@@ -292,18 +292,18 @@ class FixtureCheckShell extends Shell {
 		$errors = [];
 		foreach ($liveIndexes as $key => $liveIndex) {
 			if (!isset($fixtureIndexes[$key])) {
-				$errors[] = sprintf('Index %s is missing in fixture', $this->_buildKey($key, $liveIndex));
+				$errors[] = ' * ' . sprintf('Index %s is missing in fixture', $this->_buildKey($key, $liveIndex));
 				continue;
 			}
 
 			if ($liveIndex !== $fixtureIndexes[$key]) {
-				$errors[] = sprintf('Live DB index %s is not matching fixture one.', $this->_buildKey($key, $liveIndex));
+				$errors[] = ' * ' . sprintf('Live DB index %s is not matching fixture one.', $this->_buildKey($key, $liveIndex));
 
 				unset($liveIndexes[$key]);
 			}
 		}
 		foreach ($fixtureIndexes as $key => $fixtureIndex) {
-			$errors[] = sprintf('Index %s is in fixture, but not live DB.', $this->_buildKey($key, $fixtureIndex));
+			$errors[] = ' * ' . sprintf('Index %s is in fixture, but not live DB.', $this->_buildKey($key, $fixtureIndex));
 		}
 
 		$this->warn('The following index attributes mismatch:');

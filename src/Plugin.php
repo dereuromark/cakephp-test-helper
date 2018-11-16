@@ -4,14 +4,12 @@ namespace TestHelper;
 use Cake\Core\BasePlugin;
 use Cake\Routing\RouteBuilder;
 
-class Plugin extends BasePlugin
-{
+class Plugin extends BasePlugin {
 	/**
 	 * @param \Cake\Routing\RouteBuilder $routes The route builder to update.
 	 * @return void
 	 */
-	public function routes($routes)
-	{
+	public function routes($routes) {
 		$routes->plugin(
 			'TestHelper',
 			['path' => '/test-helper'],
@@ -22,4 +20,5 @@ class Plugin extends BasePlugin
 			}
 		);
 	}
+
 }
