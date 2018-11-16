@@ -7,7 +7,7 @@
 
 Browser based Addons for your test driven development.
 
-Note: This branch is for CakePHP 3.5+.
+Note: This branch is for CakePHP 3.6+.
 
 ## Motivation
 After 2.x=>3.x, the "web-tester" has been removed. It was, for certain cases, however, quite useful.
@@ -31,7 +31,15 @@ Note: This is not meant for production, so make sure you use the `--dev` flag an
 
 ## Setup
 
-Make sure you load the plugin with routes enabled:
+Don't forget to load it under your bootstrap function in `Application.php`:
+```php
+$this->addPlugin('TestHelper');
+```
+
+This will also load the routes.
+
+### Deprecated way
+In older applications you used the bootstrap file:
 ```php
 Plugin::load('TestHelper', ['routes' => true]);
 ```

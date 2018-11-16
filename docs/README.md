@@ -24,3 +24,24 @@ In your /sites-available/ configuration find and remove the following for your l
     }
 
 Afterwards your coverage should be colorful.
+
+
+## Other tools
+
+### URL array generation from string URLs
+Check the backend entry page for the form to make reverse lookups for URL strings.
+
+### Fixture validation tool 
+Compare actual DB with the schema files: fields and attributes, constraints and indexes.
+It will also give you a list of bake commands you need to update the outdated fixtures.
+
+```
+bin/cake fixture_check
+```
+
+Most useful options:
+- 'p': Plugin
+- 't': Type to run: fields, constraints, indexes (none = all).
+- 'c': Connection (you can switch from default DB to also another one)
+- 'f': Specific fixtures to check (comma separated list)
+- 's': Strict mode, includes collation
