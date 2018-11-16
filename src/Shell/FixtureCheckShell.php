@@ -69,6 +69,9 @@ class FixtureCheckShell extends Shell {
 	 */
 	public function diff() {
 		$fixtures = $this->_getFixtures();
+		$this->out(count($fixtures) . ' fixtures found, processing:');
+		$this->out();
+
 		$connection = ConnectionManager::get($this->param('connection'));
 		$namespace = 'App';
 		$plugin = $this->param('plugin');
@@ -107,19 +110,19 @@ class FixtureCheckShell extends Shell {
 				$this->info(sprintf('Comparing `%s` with table `%s`', $fixtureClass, $fixture->table));
 
 				$liveFields = [];
-				$columns = $table->schema()->columns();
+				$columns = $table->getSchema()->columns();
 				foreach ($columns as $column) {
-					$liveFields[$column] = $table->schema()->getColumn($column);
+					$liveFields[$column] = $table->getSchema()->getColumn($column);
 				}
 				$liveIndexes = [];
-				$indexes = $table->schema()->indexes();
+				$indexes = $table->getSchema()->indexes();
 				foreach ($indexes as $index) {
-					$liveIndexes[$index] = $table->schema()->getIndex($index);
+					$liveIndexes[$index] = $table->getSchema()->getIndex($index);
 				}
 				$liveConstraints = [];
-				$constraints = $table->schema()->constraints();
+				$constraints = $table->getSchema()->constraints();
 				foreach ($constraints as $constraint) {
-					$liveConstraints[$constraint] = $table->schema()->getConstraint($constraint);
+					$liveConstraints[$constraint] = $table->getSchema()->getConstraint($constraint);
 				}
 
 				ksort($fixtureFields);
@@ -148,6 +151,7 @@ class FixtureCheckShell extends Shell {
 		}
 
 		if ($this->_issuesFound) {
+			$this->out();
 			if ($this->param('direction') === 'fixture') {
 				$this->warn('Copy-paste the following for fixture updating:');
 				$tables = array_unique($this->_issuesFound);
@@ -155,11 +159,15 @@ class FixtureCheckShell extends Shell {
 					$this->info('bin/cake bake fixture ' . $table . ' -f');
 				}
 			} elseif ($this->param('direction') === 'db') {
-				//TODO
+				$this->warn('Copy-paste the following for migration updating:');
+				$this->warn('... not implemented yet');
 			}
 
 			$this->abort('Differences detected, check your fixtures and DB.');
 		}
+
+		$this->out();
+		$this->success('All fine :)');
 	}
 
 	/**
@@ -194,6 +202,22 @@ class FixtureCheckShell extends Shell {
 			}
 
 			$liveField = $liveFields[$fieldName];
+			if (!$this->param('strict') && $liveField['length'] === 4294967295) {
+				$liveField['length'] = null;
+			}
+			if (!$this->param('strict') && $liveField['length'] === 16777215) {
+				$liveField['length'] = null;
+			}
+			if (!$this->param('strict') && $fixtureField['length'] === 4294967295) {
+				$fixtureField['length'] = null;
+			}
+			if (!$this->param('strict') && $fixtureField['length'] === 16777215) {
+				$fixtureField['length'] = null;
+			}
+
+			if (!$this->param('strict') && $fixtureField['type'] === 'json') {
+				$fixtureField['type'] = 'text';
+			}
 
 			foreach ($fixtureField as $key => $value) {
 				if (!in_array($key, $list)) {
@@ -254,17 +278,20 @@ class FixtureCheckShell extends Shell {
 				continue;
 			}
 
-			if ($liveConstraint !== $fixtureConstraints[$key]) {
-				$errors[] = ' * ' . sprintf('Live DB constraint %s is not matching fixture one.', $this->_buildKey($key, $liveConstraint));
-
+			if ($liveConstraint === $fixtureConstraints[$key]) {
 				unset($fixtureConstraints[$key]);
+				continue;
 			}
+
+			$errors[] = ' * ' . sprintf('Live DB constraint %s is not matching fixture one.', $this->_buildKey($key, $liveConstraint));
+			unset($fixtureConstraints[$key]);
 		}
+
 		foreach ($fixtureConstraints as $key => $fixtureConstraint) {
 			$errors[] = ' * ' . sprintf('Constraint %s is in fixture, but not live DB.', $this->_buildKey($key, $fixtureConstraint));
 		}
 
-		$this->warn('The following constraint attributes mismatch:');
+		$this->warn('The following constraints mismatch:');
 
 		$this->out($errors);
 		$this->_issuesFound[] = $fixtureTable;
@@ -296,12 +323,15 @@ class FixtureCheckShell extends Shell {
 				continue;
 			}
 
-			if ($liveIndex !== $fixtureIndexes[$key]) {
-				$errors[] = ' * ' . sprintf('Live DB index %s is not matching fixture one.', $this->_buildKey($key, $liveIndex));
-
-				unset($liveIndexes[$key]);
+			if ($liveIndex === $fixtureIndexes[$key]) {
+				unset($fixtureIndexes[$key]);
+				continue;
 			}
+
+			$errors[] = ' * ' . sprintf('Live DB index %s is not matching fixture one.', $this->_buildKey($key, $liveIndex));
+			unset($fixtureIndexes[$key]);
 		}
+
 		foreach ($fixtureIndexes as $key => $fixtureIndex) {
 			$errors[] = ' * ' . sprintf('Index %s is in fixture, but not live DB.', $this->_buildKey($key, $fixtureIndex));
 		}
