@@ -18,6 +18,7 @@ With a browser backend generating tests or running them is just a simple mouse c
 
 ### Further useful addons
 - URL array generation from string URLs (respects routing, so it is basically also a reverse lookup)
+- Fixture validation tool (compares actual DB with the schema files: fields and attributes, constraints and indexes)
 
 ## Installation
 
