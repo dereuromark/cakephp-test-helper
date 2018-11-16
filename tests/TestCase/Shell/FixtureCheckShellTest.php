@@ -60,7 +60,7 @@ class FixtureCheckShellTest extends TestCase {
 	 * @return void
 	 */
 	public function testDiff() {
-		$this->FixtureCheckShell->runCommand(['diff', '-p', 'Tools']);
+		$this->FixtureCheckShell->runCommand(['diff', '-p', 'Tools', '-t', 'f,c,i']);
 
 		$output = $this->out->output();
 		$this->assertNotEmpty($output, $output);

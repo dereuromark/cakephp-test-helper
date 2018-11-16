@@ -490,7 +490,7 @@ class FixtureCheckShell extends Shell {
 	 * @param string $string
 	 * @return bool
 	 */
-	protected function _isType(string $string) {
+	protected function _isType($string) {
 		$map = [
 			'f' => 'fields',
 			'c' => 'constraints',
