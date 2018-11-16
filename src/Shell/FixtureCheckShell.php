@@ -291,6 +291,10 @@ class FixtureCheckShell extends Shell {
 			$errors[] = ' * ' . sprintf('Constraint %s is in fixture, but not live DB.', $this->_buildKey($key, $fixtureConstraint));
 		}
 
+		if (!$errors) {
+			return;
+		}
+
 		$this->warn('The following constraints mismatch:');
 
 		$this->out($errors);
@@ -336,7 +340,11 @@ class FixtureCheckShell extends Shell {
 			$errors[] = ' * ' . sprintf('Index %s is in fixture, but not live DB.', $this->_buildKey($key, $fixtureIndex));
 		}
 
-		$this->warn('The following index attributes mismatch:');
+		if (!$errors) {
+			return;
+		}
+
+		$this->warn('The following indexes mismatch:');
 
 		$this->out($errors);
 		$this->_issuesFound[] = $fixtureTable;
@@ -469,7 +477,7 @@ class FixtureCheckShell extends Shell {
 			->addOption('strict', [
 				'short' => 's',
 				'boolean' => true,
-				'help' => 'Strict comparison (including collate).',
+				'help' => 'Strict comparison (including collate and text type/length).',
 			])
 			->addOption('fixtures', [
 				'help' => 'Fixtures to check (comma separated list).',
