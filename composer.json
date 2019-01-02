@@ -1,10 +1,10 @@
 {
-    "name": "dereuromark/cakephp-test-helper",
-    "description": "TestHelper plugin for CakePHP",
-    "type": "cakephp-plugin",
+	"name": "dereuromark/cakephp-test-helper",
+	"description": "TestHelper plugin for CakePHP",
+	"type": "cakephp-plugin",
 	"keywords": ["cakephp", "plugin", "setup", "tests", "coverage", "generate", "development"],
 	"homepage": "https://github.com/dereuromark/cakephp-test-helper",
-    "license": "MIT",
+	"license": "MIT",
 	"authors": [
 		{
 			"name": "Mark Scherer",
@@ -12,31 +12,33 @@
 			"homepage": "http://www.dereuromark.de"
 		}
 	],
-    "require": {
-        "php": ">=5.6.0",
-        "cakephp/cakephp": "^3.6.1",
+	"require": {
+		"php": ">=5.6.0",
+		"cakephp/cakephp": "^3.6.1",
 		"dereuromark/cakephp-tools": "^1.5"
-    },
-    "require-dev": {
-        "fig-r/psr2r-sniffer": "dev-master"
-    },
-    "autoload": {
-        "psr-4": {
-            "TestHelper\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "TestHelper\\Test\\": "tests/",
+	},
+	"require-dev": {
+		"fig-r/psr2r-sniffer": "dev-master"
+	},
+	"autoload": {
+		"psr-4": {
+			"TestHelper\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"TestHelper\\Test\\": "tests/",
 			"App\\": "tests/test_app/src/",
 			"Cake\\Test\\": "vendor/cakephp/cakephp/tests/"
-        }
-    },
-    "scripts": {
-        "test": "php phpunit.phar",
-        "test-setup": "[ ! -f phpunit.phar ] && wget https://phar.phpunit.de/phpunit-6.5.8.phar && mv phpunit-6.5.8.phar phpunit.phar || true",
+		}
+	},
+	"scripts": {
+		"test": "php phpunit.phar",
+		"test-setup": "[ ! -f phpunit.phar ] && wget https://phar.phpunit.de/phpunit-6.5.8.phar && mv phpunit-6.5.8.phar phpunit.phar || true",
 		"test-coverage" : "php phpunit.phar --log-junit tmp/coverage/unitreport.xml --coverage-html tmp/coverage --coverage-clover tmp/coverage/coverage.xml",
-        "cs-check": "phpcs -p -v --standard=vendor/fig-r/psr2r-sniffer/PSR2R/ruleset.xml --extensions=php src tests config",
-        "cs-fix": "phpcbf -v --standard=vendor/fig-r/psr2r-sniffer/PSR2R/ruleset.xml src tests config"
-    }
+		"phpstan": "phpstan analyse -c tests/phpstan.neon -l 4 src/",
+		"phpstan-setup": "cp composer.json composer.backup && composer require --dev phpstan/phpstan && mv composer.backup composer.json",
+		"cs-check": "phpcs -p -v --standard=vendor/fig-r/psr2r-sniffer/PSR2R/ruleset.xml --extensions=php src tests config",
+		"cs-fix": "phpcbf -v --standard=vendor/fig-r/psr2r-sniffer/PSR2R/ruleset.xml src tests config"
+	}
 }

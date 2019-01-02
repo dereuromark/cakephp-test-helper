@@ -416,7 +416,7 @@ class FixtureCheckShell extends Shell {
 			$fixtureFolder = Plugin::path($plugin) . 'tests' . DS . 'Fixture' . DS;
 		}
 
-		$folder = new Folder((string)$fixtureFolder);
+		$folder = new Folder($fixtureFolder);
 		$content = $folder->read();
 
 		$fixtures = [];
