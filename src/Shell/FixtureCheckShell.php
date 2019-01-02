@@ -156,7 +156,12 @@ class FixtureCheckShell extends Shell {
 				$this->warn('Copy-paste the following for fixture updating:');
 				$tables = array_unique($this->_issuesFound);
 				foreach ($tables as $table) {
-					$this->info('bin/cake bake fixture ' . $table . ' -f');
+					$params = '-f';
+					if ($this->param('plugin')) {
+						$params .= ' -p ' . $this->param('plugin');
+					}
+
+					$this->info('bin/cake bake fixture ' . $table . ' ' . $params);
 				}
 			} elseif ($this->param('direction') === 'db') {
 				$this->warn('Copy-paste the following for migration updating:');
