@@ -207,22 +207,9 @@ class FixtureCheckShell extends Shell {
 			}
 
 			$liveField = $liveFields[$fieldName];
-			if (!$this->param('strict') && $liveField['length'] === 4294967295) {
-				$liveField['length'] = null;
-			}
-			if (!$this->param('strict') && $liveField['length'] === 16777215) {
-				$liveField['length'] = null;
-			}
-			if (!$this->param('strict') && $fixtureField['length'] === 4294967295) {
-				$fixtureField['length'] = null;
-			}
-			if (!$this->param('strict') && $fixtureField['length'] === 16777215) {
-				$fixtureField['length'] = null;
-			}
 
-			if (!$this->param('strict') && $fixtureField['type'] === 'json') {
-				$fixtureField['type'] = 'text';
-			}
+			$fixtureField = $this->normalizeField($fixtureField);
+			$liveField = $this->normalizeField($liveField);
 
 			foreach ($fixtureField as $key => $value) {
 				if (!in_array($key, $list)) {
@@ -272,6 +259,9 @@ class FixtureCheckShell extends Shell {
 			return;
 		}
 
+		$fixtureConstraints = $this->normalizeConstraints($fixtureConstraints);
+		$liveConstraints = $this->normalizeConstraints($liveConstraints);
+
 		if ($fixtureConstraints === $liveConstraints) {
 			return;
 		}
@@ -288,7 +278,7 @@ class FixtureCheckShell extends Shell {
 				continue;
 			}
 
-			$errors[] = ' * ' . sprintf('Live DB constraint %s is not matching fixture one.', $this->_buildKey($key, $liveConstraint));
+			$errors[] = ' * ' . sprintf('Live DB constraint %s is not matching fixture one: %s.', $this->_buildKey($key, $liveConstraint), json_encode($fixtureConstraints[$key], true));
 			unset($fixtureConstraints[$key]);
 		}
 
@@ -528,6 +518,48 @@ class FixtureCheckShell extends Shell {
 		$details = json_encode($field);
 
 		return '"' . $key . '" ' . $details . '';
+	}
+
+	/**
+	 * @param array $field
+	 *
+	 * @return array
+	 */
+	protected function normalizeField(array $field) {
+		if ($this->param('strict')) {
+			return $field;
+		}
+
+		if (isset($field['length']) && $field['length'] === 4294967295) {
+			$field['length'] = null;
+		}
+		if (isset($field['length']) && $field['length'] === 16777215) {
+			$field['length'] = null;
+		}
+		if ($field['type'] === 'json') {
+			$field['type'] = 'text';
+		}
+
+		return $field;
+	}
+
+	/**
+	 * @param array $constaints
+	 *
+	 * @return array
+	 */
+	protected function normalizeConstraints(array $constaints) {
+		$defaults = [
+			'length' => [],
+		];
+
+		foreach ($constaints as $key => $constraint) {
+			$constraint += $defaults;
+
+			$constaints[$key] = $constraint;
+		}
+
+		return $constaints;
 	}
 
 }
