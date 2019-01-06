@@ -1,6 +1,6 @@
 # CakePHP TestHelper plugin 
 [![Build Status](https://api.travis-ci.org/dereuromark/cakephp-test-helper.svg?branch=master)](https://travis-ci.org/dereuromark/cakephp-test-helper)
-[![Minimum PHP Version](http://img.shields.io/badge/php-%3E%3D%205.6-8892BF.svg)](https://php.net/)
+[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%205.6-8892BF.svg)](https://php.net/)
 [![License](https://poser.pugx.org/dereuromark/cakephp-test-helper/license)](https://packagist.org/packages/dereuromark/cakephp-test-helper)
 [![Total Downloads](https://poser.pugx.org/dereuromark/cakephp-test-helper/d/total)](https://packagist.org/packages/dereuromark/cakephp-test-helper)
 [![Coding Standards](https://img.shields.io/badge/cs-PSR--2--R-yellow.svg)](https://github.com/php-fig-rectified/fig-rectified-standards)
@@ -22,7 +22,7 @@ With a browser backend generating tests or running them is just a simple mouse c
 
 ## Installation
 
-You can install this plugin into your CakePHP application using [composer](http://getcomposer.org):
+You can install this plugin into your CakePHP application using [composer](https://getcomposer.org):
 ```
 composer require --dev dereuromark/cakephp-test-helper
 ```
