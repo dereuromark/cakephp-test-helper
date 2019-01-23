@@ -58,14 +58,14 @@ class FixtureCheckShell extends Shell {
 	}
 
 	/**
-	 * @return void
+	 * @return bool|int|null
 	 */
 	public function main() {
 		$this->diff();
 	}
 
 	/**
-	 * @return void
+	 * @return bool|int|null
 	 */
 	public function diff() {
 		$fixtures = $this->_getFixtures();
@@ -184,7 +184,7 @@ class FixtureCheckShell extends Shell {
 	 *
 	 * @return void
 	 */
-	public function _compareFields(array $fixtureFields, array $liveFields, $fixtureTable) {
+	protected function _compareFields(array $fixtureFields, array $liveFields, $fixtureTable) {
 		// Warn only about relevant fields
 		$list = [
 			'autoIncrement',
@@ -254,7 +254,7 @@ class FixtureCheckShell extends Shell {
 	 *
 	 * @return void
 	 */
-	public function _compareConstraints(array $fixtureConstraints, array $liveConstraints, $fixtureTable) {
+	protected function _compareConstraints(array $fixtureConstraints, array $liveConstraints, $fixtureTable) {
 		if (!$fixtureConstraints && !$liveConstraints) {
 			return;
 		}
@@ -306,7 +306,7 @@ class FixtureCheckShell extends Shell {
 	 *
 	 * @return void
 	 */
-	public function _compareIndexes(array $fixtureIndexes, array $liveIndexes, $fixtureTable) {
+	protected function _compareIndexes(array $fixtureIndexes, array $liveIndexes, $fixtureTable) {
 		if (!$fixtureIndexes && !$liveIndexes) {
 			return;
 		}
