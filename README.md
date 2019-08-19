@@ -16,6 +16,8 @@ This aims to bring back a part of it.
 The CLI also doesn't allow a good overview. Even with auto-complete, you have to type almost everything out.
 With a browser backend generating tests or running them is just a simple mouse click.
 
+You have an overview of your classes and the test classes to it. If there is one missing, you can easily "bake" it from this web backend. It internally uses [Bake](https://github.com/cakephp/bake/) plugin as well as your preferred theme.
+
 ### Further useful addons
 - URL array generation from string URLs (respects routing, so it is basically also a reverse lookup)
 - Fixture validation tool (compares actual DB with the schema files: fields and attributes, constraints and indexes)
