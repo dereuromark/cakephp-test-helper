@@ -31,6 +31,8 @@ Afterwards your coverage should be colorful.
 ### URL array generation from string URLs
 Check the backend entry page for the form to make reverse lookups for URL strings.
 
+![URL array generation](img/url_array_generation.png) 
+
 ### Fixture validation tool 
 Compare actual DB with the schema files: fields and attributes, constraints and indexes.
 It will also give you a list of bake commands you need to update the outdated fixtures.
