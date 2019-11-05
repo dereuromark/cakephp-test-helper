@@ -165,7 +165,7 @@ class TestCasesController extends AppController {
 				$this->Flash->success('Test case generated');
 			}
 
-			return $this->redirect([$appOrPlugin]);
+			return $this->redirect($this->referer([$type] + ['?' => $this->request->getQuery()], true));
 		}
 
 		foreach ($files as $key => $name) {
@@ -192,7 +192,7 @@ class TestCasesController extends AppController {
 			];
 		}
 
-		$this->set(compact('files'));
+		$this->set(compact('files', 'type'));
 		$this->render('handle');
 	}
 

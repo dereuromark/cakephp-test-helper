@@ -1,10 +1,14 @@
 <?php
 /**
  * @var \App\View\AppView $this
+ * @var string $type
+ * @var array $files
  */
 ?>
 
 <h1><?php echo h($this->request->getQuery('namespace')); ?> tests</h1>
+
+<h2><?php echo h($type); ?></h2>
 
 <table class="table">
 	<?php
@@ -24,7 +28,7 @@
 			<td>
 				<?php
 				if (!$file['hasTestCase']) {
-					echo $this->Form->postLink($this->Format->icon('plus', ['title' => 'Generate test case']), ['action' => $this->request->getParam('action'), $this->request->getQuery('namespace')], ['class' => '', 'escapeTitle' => false, 'data' => ['name' => $file['name']]]);
+					echo $this->Form->postLink($this->Format->icon('plus', ['title' => 'Generate test case']), ['action' => $this->request->getParam('action'), '?' => ['namespace' => $this->request->getQuery('namespace')]], ['class' => '', 'escapeTitle' => false, 'data' => ['name' => $file['name']]]);
 				} else {
 					?>
 					<?php echo $this->Html->link($this->Format->icon('play', ['title' => 'Run tests']), ['action' => 'run', '?' => ['test' => $file['testCase']]], ['escapeTitle' => false, 'target' => '_blank', 'class' => 'run', 'data-test-case' => $file['testCase']]); ?>
