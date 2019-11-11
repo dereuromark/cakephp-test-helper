@@ -72,7 +72,7 @@ class TestCasesController extends AppController {
 		$type = $this->request->getData('type') ?: $this->request->getQuery('type');
 		$force = $this->request->getData('force') ?: $this->request->getQuery('force');
 
-		$result = $this->TestRunner->coverage($file, $name, $type, $force);
+		$result = $this->TestRunner->coverage($file, $name, $type, (bool)$force);
 
 		$this->set(compact('result'));
 		$this->set('_serialize', 'result');

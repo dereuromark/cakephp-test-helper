@@ -227,8 +227,8 @@ class FixtureCheckShell extends Shell {
 					$errors[] = ' * ' . sprintf(
 						'Field attribute `%s` differs from live DB! (`%s` vs `%s` live)',
 						$fieldName . ':' . $key,
-						Debugger::exportVar($value, true),
-						Debugger::exportVar($liveField[$key], true)
+						Debugger::exportVar($value, 5),
+						Debugger::exportVar($liveField[$key], 5)
 					);
 				}
 			}
@@ -278,7 +278,7 @@ class FixtureCheckShell extends Shell {
 				continue;
 			}
 
-			$errors[] = ' * ' . sprintf('Live DB constraint %s is not matching fixture one: %s.', $this->_buildKey($key, $liveConstraint), json_encode($fixtureConstraints[$key], true));
+			$errors[] = ' * ' . sprintf('Live DB constraint %s is not matching fixture one: %s.', $this->_buildKey($key, $liveConstraint), json_encode($fixtureConstraints[$key]));
 			unset($fixtureConstraints[$key]);
 		}
 
