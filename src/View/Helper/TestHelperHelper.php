@@ -1,6 +1,7 @@
 <?php
 namespace TestHelper\View\Helper;
 
+use Cake\Utility\Inflector;
 use Cake\View\Helper;
 
 class TestHelperHelper extends Helper {
@@ -9,9 +10,21 @@ class TestHelperHelper extends Helper {
 	 * @param array $url
 	 * @param bool $verbose
 	 *
+	 * @return string
+	 */
+	public function url(array $url, $verbose = false) {
+		$pieces = $this->prepareUrl($url, $verbose);
+
+		return '[' . PHP_EOL . '    ' . implode(',' . PHP_EOL . '    ', $pieces) . PHP_EOL . ']';
+	}
+
+	/**
+	 * @param array $url
+	 * @param bool $verbose
+	 *
 	 * @return array
 	 */
-	public function prepareUrl(array $url, $verbose = false) {
+	protected function prepareUrl(array $url, $verbose = false) {
 		$output = [];
 		$order = [
 			'prefix' => false,
@@ -62,6 +75,36 @@ class TestHelperHelper extends Helper {
 	}
 
 	/**
+	 * @param array $url
+	 *
+	 * @return string
+	 */
+	public function urlPath(array $url) {
+		$defaults = [
+			'prefix' => false,
+			'plugin' => false,
+			'controller' => true,
+			'action' => true,
+			'pass' => null,
+			'_ext' => null,
+			'?' => null,
+		];
+		$url += $defaults;
+
+		$path = $url['controller'] . '::' . $url['action'];
+		if ($url['prefix']) {
+			$prefix = $this->normalizePrefix($url['prefix']);
+			$path = $prefix . '/' . $path;
+		}
+
+		if ($url['plugin']) {
+			$path = $url['plugin'] . '.' . $path;
+		}
+
+		return $path;
+	}
+
+	/**
 	 * @param mixed $value
 	 *
 	 * @return mixed
@@ -76,6 +119,26 @@ class TestHelperHelper extends Helper {
 		}
 
 		return $value;
+	}
+
+	/**
+	 * @param string $prefix
+	 *
+	 * @return string
+	 */
+	protected function normalizePrefix($prefix) {
+		if (strpos($prefix, '/') === false) {
+			return Inflector::camelize($prefix);
+		}
+
+		$prefixes = array_map(
+			function ($val) {
+				return Inflector::camelize($val);
+			},
+			explode('/', $prefix)
+		);
+
+		return implode('/', $prefixes);
 	}
 
 }

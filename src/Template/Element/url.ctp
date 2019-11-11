@@ -4,12 +4,16 @@
  */
 ?>
 <?php if (isset($url)) {
-	$url  += [
-		'prefix' => null,
-		'plugin' => null,
-	];
-	$output = $this->TestHelper->prepareUrl($url, $this->request->getData('verbose'));
+	echo '<h3>URL array</h3>';
 	echo '<pre>';
-	echo '[' . implode(', ', $output) . ']';
+	echo $this->TestHelper->url($url, $this->request->getData('verbose'));
 	echo '</pre>';
+
+	echo '<h3>URL path</h3>';
+	echo '<p>Note: Path elements only support <code>[Plugin].[Prefix]/[Controller]::[action]</code>. The rest is dropped.';
+
+	echo '<pre>';
+	echo $this->TestHelper->urlPath($url);
+	echo '</pre>';
+
 } ?>

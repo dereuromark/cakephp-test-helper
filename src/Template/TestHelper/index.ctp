@@ -11,7 +11,9 @@ use Cake\Core\Plugin;
 
 <div class="row">
 	<div class="col-md-6 col-xs-12">
-		<h2>Generate URL arrays</h2>
+		<h2>Reverse URLs</h2>
+		<p>This can be useful in test cases and other places you need to refer to URL arrays and paths.</p>
+
 		<?php echo $this->Form->create();?>
 		<fieldset>
 			<legend><?php echo __('Enter any URL from your site');?></legend>
