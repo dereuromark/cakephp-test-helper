@@ -7,7 +7,7 @@
 
 Browser based Addons for your test driven development.
 
-Note: This branch is for CakePHP 3.6+.
+Note: This branch is for **CakePHP 3.6+**. See [version map](https://github.com/dereuromark/cakephp-test-helper/wiki#cakephp-version-map) for details.
 
 ## Motivation
 After 2.x=>3.x, the "web-tester" has been removed. It was, for certain cases, however, quite useful.
