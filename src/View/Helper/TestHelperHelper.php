@@ -1,4 +1,5 @@
 <?php
+
 namespace TestHelper\View\Helper;
 
 use Cake\Utility\Inflector;

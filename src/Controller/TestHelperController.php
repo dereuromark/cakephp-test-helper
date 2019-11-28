@@ -1,4 +1,5 @@
 <?php
+
 namespace TestHelper\Controller;
 
 use App\Controller\AppController;

@@ -1,4 +1,5 @@
 <?php
+
 namespace TestHelper\Shell;
 
 use Cake\Console\Shell;

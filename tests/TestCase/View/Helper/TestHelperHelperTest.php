@@ -1,4 +1,5 @@
 <?php
+
 namespace TestHelper\Test\TestCase\View\Helper;
 
 use Cake\TestSuite\TestCase;

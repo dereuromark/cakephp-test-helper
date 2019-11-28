@@ -1,4 +1,5 @@
 <?php
+
 namespace TestHelper;
 
 use Cake\Core\BasePlugin;

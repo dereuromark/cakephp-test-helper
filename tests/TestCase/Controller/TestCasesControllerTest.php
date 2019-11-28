@@ -1,4 +1,5 @@
 <?php
+
 namespace TestHelper\Test\TestCase\Controller;
 
 use Cake\TestSuite\IntegrationTestCase;
