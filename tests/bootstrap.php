@@ -1,6 +1,5 @@
 <?php
 
-use Cake\Routing\DispatcherFactory;
 
 if (!defined('DS')) {
 	define('DS', DIRECTORY_SEPARATOR);
@@ -36,15 +35,12 @@ Cake\Core\Configure::write('App', [
 	'namespace' => 'App',
 	'encoding' => 'UTF-8',
 	'paths' => [
-		'templates' => [ROOT . DS . 'tests' . DS . 'test_app' . DS . 'src' . DS . 'Template' . DS],
+		'templates' => [ROOT . DS . 'tests' . DS . 'test_app' . DS . 'templates' . DS],
 	],
 ]);
 Cake\Core\Configure::write('debug', true);
 
 mb_internal_encoding('UTF-8');
-
-DispatcherFactory::add('Routing');
-DispatcherFactory::add('ControllerFactory');
 
 $Tmp = new \Cake\Filesystem\Folder(TMP);
 $Tmp->create(TMP . 'cache/models', 0770);
@@ -73,8 +69,8 @@ $cache = [
 ];
 
 Cake\Cache\Cache::setConfig($cache);
-Cake\Core\Plugin::load('TestHelper', ['path' => ROOT . DS, 'autoload' => true, 'routes' => true]);
-Cake\Core\Plugin::load('Tools', ['path' => ROOT . DS . 'vendor' . DS . 'dereuromark' . DS . 'cakephp-tools' . DS]);
+Cake\Core\Plugin::getCollection()->add(new TestHelper\Plugin());
+Cake\Core\Plugin::getCollection()->add(new Tools\Plugin());
 
 if (getenv('db_dsn')) {
 	Cake\Datasource\ConnectionManager::setConfig('test', [

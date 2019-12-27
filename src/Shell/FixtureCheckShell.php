@@ -2,6 +2,7 @@
 
 namespace TestHelper\Shell;
 
+use Cake\Console\ConsoleOptionParser;
 use Cake\Console\Shell;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
@@ -53,7 +54,7 @@ class FixtureCheckShell extends Shell {
 	/**
 	 * @inheritDoc
 	 */
-	public function initialize() {
+	public function initialize(): void {
 		parent::initialize();
 		$this->_config = (array)Configure::read('FixtureCheck') + $this->_config;
 	}
@@ -71,7 +72,7 @@ class FixtureCheckShell extends Shell {
 	public function diff() {
 		$fixtures = $this->_getFixtures();
 		$this->out(count($fixtures) . ' fixtures found, processing:');
-		$this->out();
+		$this->out('');
 
 		$connection = ConnectionManager::get($this->param('connection'));
 		$namespace = 'App';
@@ -152,7 +153,7 @@ class FixtureCheckShell extends Shell {
 		}
 
 		if ($this->_issuesFound) {
-			$this->out();
+			$this->out('');
 			if ($this->param('direction') === 'fixture') {
 				$this->warn('Copy-paste the following for fixture updating:');
 				$tables = array_unique($this->_issuesFound);
@@ -172,7 +173,7 @@ class FixtureCheckShell extends Shell {
 			$this->abort('Differences detected, check your fixtures and DB.');
 		}
 
-		$this->out();
+		$this->out('');
 		$this->success('All fine :)');
 	}
 
@@ -448,7 +449,7 @@ class FixtureCheckShell extends Shell {
 	/**
 	 * @inheritDoc
 	 */
-	public function getOptionParser() {
+	public function getOptionParser(): ConsoleOptionParser {
 		return parent::getOptionParser()
 			->setDescription('Compare DB and fixture schema columns.')
 			->addOption('connection', [

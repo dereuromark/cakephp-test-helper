@@ -11,14 +11,14 @@ class TestHelperHelperTest extends TestCase {
 	/**
 	 * @var \TestHelper\View\Helper\TestHelperHelper
 	 */
-	public $testHelperHelper;
+	protected $testHelperHelper;
 
 	/**
 	 * setUp method
 	 *
 	 * @return void
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$view = new View();
@@ -30,7 +30,7 @@ class TestHelperHelperTest extends TestCase {
 	 *
 	 * @return void
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		unset($this->testHelperHelper);
 
 		parent::tearDown();

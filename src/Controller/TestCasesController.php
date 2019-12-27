@@ -5,7 +5,7 @@ namespace TestHelper\Controller;
 use App\Controller\AppController;
 use Cake\Core\App;
 use Cake\Core\Plugin;
-use Cake\Event\Event;
+use Cake\Event\EventInterface;
 use Cake\Filesystem\Folder;
 use RuntimeException;
 use TestHelper\Utility\ClassResolver;
@@ -16,26 +16,25 @@ use TestHelper\Utility\ClassResolver;
 class TestCasesController extends AppController {
 
 	/**
-	 * @var array
+	 * @return void
 	 */
-	public $components = [
-		'Flash',
-		'TestHelper.TestRunner',
-	];
+	public function initialize(): void {
+		parent::initialize();
 
-	/**
-	 * @var array
-	 */
-	public $helpers = [
-		'TestHelper.TestHelper',
-		'Tools.Format',
-	];
+		$this->loadComponent('Flash');
+		$this->loadComponent('TestHelper.TestRunner');
+
+		$this->viewBuilder()->setHelpers([
+			'TestHelper.TestHelper',
+			'Tools.Format',
+		]);
+	}
 
 	/**
 	 * @param \Cake\Event\Event $event
 	 * @return \Cake\Http\Response|null
 	 */
-	public function beforeFilter(Event $event) {
+	public function beforeFilter(EventInterface $event) {
 		parent::beforeFilter($event);
 
 		if (isset($this->Security)) {
@@ -176,7 +175,7 @@ class TestCasesController extends AppController {
 				continue;
 			}
 
-			list ($prefix, $class) = pluginSplit($name);
+			[$prefix, $class] = pluginSplit($name);
 			$class .= 'Test.php';
 			if ($prefix) {
 				$class = $prefix . DS . $class;

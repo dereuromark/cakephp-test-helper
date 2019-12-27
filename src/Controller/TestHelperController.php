@@ -4,31 +4,30 @@ namespace TestHelper\Controller;
 
 use App\Controller\AppController;
 use Cake\Core\Plugin;
-use Cake\Event\Event;
+use Cake\Event\EventInterface;
 use Cake\Routing\Router;
 
 class TestHelperController extends AppController {
 
 	/**
-	 * @var array
+	 * @return void
 	 */
-	public $components = [
-		'Flash',
-	];
+	public function initialize(): void {
+		parent::initialize();
 
-	/**
-	 * @var array
-	 */
-	public $helpers = [
-		'TestHelper.TestHelper',
-		'Tools.Format',
-	];
+		$this->loadComponent('Flash');
+
+		$this->viewBuilder()->setHelpers([
+			'TestHelper.TestHelper',
+			'Tools.Format',
+		]);
+	}
 
 	/**
 	 * @param \Cake\Event\Event $event
 	 * @return \Cake\Http\Response|null
 	 */
-	public function beforeFilter(Event $event) {
+	public function beforeFilter(EventInterface $event) {
 		parent::beforeFilter($event);
 
 		if (isset($this->Security)) {

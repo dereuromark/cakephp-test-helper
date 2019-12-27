@@ -1,13 +1,13 @@
-# CakePHP TestHelper plugin 
+# CakePHP TestHelper plugin
 [![Build Status](https://api.travis-ci.org/dereuromark/cakephp-test-helper.svg?branch=master)](https://travis-ci.org/dereuromark/cakephp-test-helper)
-[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%205.6-8892BF.svg)](https://php.net/)
+[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.2-8892BF.svg)](https://php.net/)
 [![License](https://poser.pugx.org/dereuromark/cakephp-test-helper/license)](https://packagist.org/packages/dereuromark/cakephp-test-helper)
 [![Total Downloads](https://poser.pugx.org/dereuromark/cakephp-test-helper/d/total)](https://packagist.org/packages/dereuromark/cakephp-test-helper)
 [![Coding Standards](https://img.shields.io/badge/cs-PSR--2--R-yellow.svg)](https://github.com/php-fig-rectified/fig-rectified-standards)
 
-Browser based Addons for your test driven development.
+Browser based addons for your test driven development.
 
-Note: This branch is for **CakePHP 3.6+**. See [version map](https://github.com/dereuromark/cakephp-test-helper/wiki#cakephp-version-map) for details.
+Note: This branch is for **CakePHP 4.0+**. See [version map](https://github.com/dereuromark/cakephp-test-helper/wiki#cakephp-version-map) for details.
 
 ## Motivation
 After 2.x=>3.x, the "web-tester" has been removed. It was, for certain cases, however, quite useful.

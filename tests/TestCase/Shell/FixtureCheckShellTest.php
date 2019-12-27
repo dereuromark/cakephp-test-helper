@@ -13,30 +13,30 @@ class FixtureCheckShellTest extends TestCase {
 	 * @var array
 	 */
 	public $fixtures = [
-		'core.posts',
+		'core.Posts',
 	];
 
 	/**
 	 * @var \Tools\TestSuite\ConsoleOutput
 	 */
-	public $out;
+	protected $out;
 
 	/**
 	 * @var \Tools\TestSuite\ConsoleOutput
 	 */
-	public $err;
+	protected $err;
 
 	/**
 	 * @var \TestHelper\Shell\FixtureCheckShell
 	 */
-	public $FixtureCheckShell;
+	protected $FixtureCheckShell;
 
 	/**
 	 * setUp method
 	 *
 	 * @return void
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->out = new ConsoleOutput();
@@ -51,7 +51,7 @@ class FixtureCheckShellTest extends TestCase {
 	 *
 	 * @return void
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		unset($this->FixtureCheckShell);
 
 		parent::tearDown();

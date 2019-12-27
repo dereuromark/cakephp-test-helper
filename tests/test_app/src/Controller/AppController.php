@@ -7,13 +7,10 @@ use Cake\Controller\Controller;
 class AppController extends Controller {
 
 	/**
-	 * @var array
+	 * @return void
 	 */
-	public $components = ['Flash'];
-
-	/**
-	 * @var array
-	 */
-	public $helpers = [];
+	public function initialize(): void {
+		$this->loadComponent('Flash');
+	}
 
 }
