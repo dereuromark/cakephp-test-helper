@@ -8,24 +8,24 @@ use Cake\View\Helper;
 class TestHelperHelper extends Helper {
 
 	/**
-	 * @param array $url
+	 * @param array $params
 	 * @param bool $verbose
 	 *
 	 * @return string
 	 */
-	public function url(array $url, $verbose = false) {
-		$pieces = $this->prepareUrl($url, $verbose);
+	public function url(array $params, $verbose = false) {
+		$pieces = $this->prepareUrl($params, $verbose);
 
 		return '[' . PHP_EOL . '    ' . implode(',' . PHP_EOL . '    ', $pieces) . PHP_EOL . ']';
 	}
 
 	/**
-	 * @param array $url
+	 * @param array $params
 	 * @param bool $verbose
 	 *
 	 * @return array
 	 */
-	protected function prepareUrl(array $url, $verbose = false) {
+	protected function prepareUrl(array $params, $verbose = false) {
 		$output = [];
 		$order = [
 			'prefix' => false,
@@ -38,20 +38,20 @@ class TestHelperHelper extends Helper {
 		];
 		foreach ($order as $element => $always) {
 			if ($element === 'pass') {
-				if (empty($url[$element])) {
+				if (empty($params[$element])) {
 					continue;
 				}
-				$output[] = "'" . implode("', '", $url[$element]) . "'";
+				$output[] = "'" . implode("', '", $params[$element]) . "'";
 
 				continue;
 			}
 			if ($element === '?') {
-				if (empty($url[$element])) {
+				if (empty($params[$element])) {
 					continue;
 				}
 
 				$query = [];
-				foreach ($url[$element] as $k => $v) {
+				foreach ($params[$element] as $k => $v) {
 					$query[] = $this->export($k) . ' => ' . $this->export($v);
 				}
 				$output[] = "'?' => [" . implode(', ', $query) . ']';
@@ -59,16 +59,16 @@ class TestHelperHelper extends Helper {
 				continue;
 			}
 
-			if (!isset($url[$element]) && !$always && !$verbose) {
+			if (!isset($params[$element]) && !$always && !$verbose) {
 				continue;
 			}
 
-			if (!isset($url[$element])) {
-				$url[$element] = null;
+			if (!isset($params[$element])) {
+				$params[$element] = null;
 			}
 
-			if (isset($url[$element]) || $always || $always === false && $verbose) {
-				$output[] = "'" . $element . "' => " . $this->export($url[$element]);
+			if (isset($params[$element]) || $always || $always === false && $verbose) {
+				$output[] = "'" . $element . "' => " . $this->export($params[$element]);
 			}
 		}
 
@@ -76,11 +76,11 @@ class TestHelperHelper extends Helper {
 	}
 
 	/**
-	 * @param array $url
+	 * @param array $params
 	 *
 	 * @return string
 	 */
-	public function urlPath(array $url) {
+	public function urlPath(array $params) {
 		$defaults = [
 			'prefix' => false,
 			'plugin' => false,
@@ -90,16 +90,16 @@ class TestHelperHelper extends Helper {
 			'_ext' => null,
 			'?' => null,
 		];
-		$url += $defaults;
+		$params += $defaults;
 
-		$path = $url['controller'] . '::' . $url['action'];
-		if ($url['prefix']) {
-			$prefix = $this->normalizePrefix($url['prefix']);
+		$path = $params['controller'] . '::' . $params['action'];
+		if ($params['prefix']) {
+			$prefix = $this->normalizePrefix($params['prefix']);
 			$path = $prefix . '/' . $path;
 		}
 
-		if ($url['plugin']) {
-			$path = $url['plugin'] . '.' . $path;
+		if ($params['plugin']) {
+			$path = $params['plugin'] . '.' . $path;
 		}
 
 		return $path;

@@ -2,7 +2,7 @@
 
 namespace TestHelper\Test\TestCase\Controller;
 
-use Cake\TestSuite\IntegrationTestCase;
+use Shim\TestSuite\IntegrationTestCase;
 
 class TestCasesControllerTest extends IntegrationTestCase {
 

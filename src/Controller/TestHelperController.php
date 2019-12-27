@@ -47,22 +47,16 @@ class TestHelperController extends AppController {
 			$url = $this->request->getData('url');
 
 			$url = str_replace(env('HTTP_ORIGIN'), '', $url);
-			$url = Router::parse($url);
-			/*
-			//TODO add new 3.6 way
-			$request = new ServerRequest($url);
-			$middleware = new RoutingMiddleware();
-			$result = $middleware->__invoke($request, new Response(), function() {});
-			$url = Router::parseRequest($request);
-			*/
 
-			$this->set(compact('url'));
+			$params = Router::getRouteCollection()->parse($url);
+
+			$this->set(compact('params'));
 		}
 
 		$plugins = Plugin::loaded();
 
 		$namespace = $this->request->getQuery('plugin');
-		if ($namespace && !in_array($namespace, $plugins)) {
+		if ($namespace && !in_array($namespace, $plugins, true)) {
 			$this->Flash->error('Invalid plugin');
 			return $this->redirect([]);
 		}

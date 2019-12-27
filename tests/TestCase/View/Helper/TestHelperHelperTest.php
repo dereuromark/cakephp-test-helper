@@ -43,13 +43,13 @@ class TestHelperHelperTest extends TestCase {
 		$array = [
 			'plugin' => 'My/Plugin',
 			'controller' => 'MyController',
-			'prefix' => 'my/nested_prefix',
+			'prefix' => 'My/NestedPrefix',
 			'action' => 'myAction',
 		];
 		$result = $this->testHelperHelper->url($array);
 		$expected = <<<TXT
 [
-    'prefix' => 'my/nested_prefix',
+    'prefix' => 'My/NestedPrefix',
     'plugin' => 'My/Plugin',
     'controller' => 'MyController',
     'action' => 'myAction'
@@ -80,7 +80,7 @@ TXT;
 		$array = [
 			'plugin' => 'My/Plugin',
 			'controller' => 'MyController',
-			'prefix' => 'my/nested_prefix',
+			'prefix' => 'My/NestedPrefix',
 			'action' => 'myAction',
 		];
 		$result = $this->testHelperHelper->urlPath($array);
