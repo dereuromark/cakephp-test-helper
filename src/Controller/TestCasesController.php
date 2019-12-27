@@ -206,7 +206,7 @@ class TestCasesController extends AppController {
 	 */
 	protected function generate($name, $type, $plugin, array $options = []) {
 		$arguments = 'test ' . $type . ' ' . $name . ' -q';
-		if (Plugin::loaded('Setup')) {
+		if (Plugin::isLoaded('Setup')) {
 			$arguments .= ' -t Setup';
 		}
 		if ($plugin) {
