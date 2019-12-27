@@ -2,15 +2,6 @@
 # Set default behavior, in case users don't have core.autocrlf set.
 * text text=auto eol=lf
 
-*.php text
-*.ctp text
-*.md text
-*.js text
-*.css text
-*.ini text
-*.txt text
-*.xml text
-*.yml text
 .jpg binary
 .png binary
 
