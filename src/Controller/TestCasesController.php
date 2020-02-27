@@ -32,7 +32,7 @@ class TestCasesController extends AppController {
 
 	/**
 	 * @param \Cake\Event\Event $event
-	 * @return \Cake\Http\Response|null
+	 * @return \Cake\Http\Response|null|void
 	 */
 	public function beforeFilter(EventInterface $event) {
 		parent::beforeFilter($event);
@@ -151,7 +151,7 @@ class TestCasesController extends AppController {
 	 *
 	 * @param string $type
 	 *
-	 * @return \Cake\Http\Response|null
+	 * @return \Cake\Http\Response|null|void
 	 */
 	protected function handle($type) {
 		$appOrPlugin = $this->request->getQuery('namespace');

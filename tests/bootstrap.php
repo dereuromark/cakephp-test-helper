@@ -91,11 +91,11 @@ if (!getenv('db_class')) {
 
 Cake\Datasource\ConnectionManager::setConfig('test', [
 	'className' => 'Cake\Database\Connection',
-	'url' => getenv('db_dsn'),
-	'driver' => getenv('db_class'),
-	'database' => getenv('db_database'),
-	'username' => getenv('db_username'),
-	'password' => getenv('db_password'),
+	'url' => getenv('db_dsn') ?: null,
+	'driver' => getenv('db_class') ?: null,
+	'database' => getenv('db_database') ?: null,
+	'username' => getenv('db_username') ?: null,
+	'password' => getenv('db_password') ?: null,
 	'timezone' => 'UTC',
 	'quoteIdentifiers' => true,
 	'cacheMetadata' => true,

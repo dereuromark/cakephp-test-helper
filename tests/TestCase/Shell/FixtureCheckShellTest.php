@@ -4,8 +4,8 @@ namespace TestHelper\Test\TestCase\Shell;
 
 use Cake\Console\ConsoleIo;
 use Cake\TestSuite\TestCase;
+use Shim\TestSuite\ConsoleOutput;
 use TestHelper\Shell\FixtureCheckShell;
-use Tools\TestSuite\ConsoleOutput;
 
 class FixtureCheckShellTest extends TestCase {
 
@@ -17,12 +17,12 @@ class FixtureCheckShellTest extends TestCase {
 	];
 
 	/**
-	 * @var \Tools\TestSuite\ConsoleOutput
+	 * @var \Shim\TestSuite\ConsoleOutput
 	 */
 	protected $out;
 
 	/**
-	 * @var \Tools\TestSuite\ConsoleOutput
+	 * @var \Shim\TestSuite\ConsoleOutput
 	 */
 	protected $err;
 
