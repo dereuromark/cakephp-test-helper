@@ -47,3 +47,15 @@ Most useful options:
 - 'c': Connection (you can switch from default DB to also another one)
 - 'f': Specific fixtures to check (comma separated list)
 - 's': Strict mode, includes collation
+
+By default it will only check your app level. You can use a combined composer command for convenience to check also your important plugins as convenience wrapper:
+```json
+"scripts": {
+    ...
+    "fixture_check": [
+        "bin/cake fixture_check",
+        "bin/cake fixture_check -p MyPlugin"
+    ]
+}
+```
+Then run it as `composer fixture_check`.
