@@ -15,4 +15,13 @@ class PluginsControllerTest extends IntegrationTestCase {
 		$this->assertResponseCode(200);
 	}
 
+	/**
+	 * @return void
+	 */
+	public function testRecommended() {
+		$this->get(['plugin' => 'TestHelper', 'controller' => 'Plugins', 'action' => 'recommended', '?' => ['plugin' => 'Tools']]);
+
+		$this->assertResponseCode(200);
+	}
+
 }
