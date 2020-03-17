@@ -16,10 +16,12 @@
 
 <h1>Plugin tooling</h1>
 
+<p>Note: This does not check how your app is loading a plugin, but what the plugin's default config is.</p>
+
 <div class="plugins-overview row">
 	<div class="col-xs-12">
-		<h2>Info / Check availability</h2>
-		<p>Enabled: <?php echo implode(', ', $hooks); ?> ?</p>
+		<h2>Info/Check existence vs disabled</h2>
+		<p>Status: <?php echo implode(', ', $hooks); ?> ?</p>
 
 		<div class="list-inline">
 			<?php foreach ($plugins as $plugin) { ?>

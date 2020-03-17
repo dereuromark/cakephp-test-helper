@@ -18,6 +18,7 @@
 		"dereuromark/cakephp-tools": "^2.0.0"
 	},
 	"require-dev": {
+		"sebastian/diff": "^3.0.0",
 		"fig-r/psr2r-sniffer": "dev-master"
 	},
 	"autoload": {

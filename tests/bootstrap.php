@@ -97,6 +97,6 @@ Cake\Datasource\ConnectionManager::setConfig('test', [
 	'username' => getenv('db_username') ?: null,
 	'password' => getenv('db_password') ?: null,
 	'timezone' => 'UTC',
-	'quoteIdentifiers' => true,
+	'quoteIdentifiers' => false,
 	'cacheMetadata' => true,
 ]);

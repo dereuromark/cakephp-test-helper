@@ -8,14 +8,47 @@
  * @var string $classContentAfter
  */
 
+use SebastianBergmann\Diff\Differ;
+
 ?>
 
 <h1>Plugin class for <?php echo h($plugin); ?></h1>
 
-<p><?php echo $this->Html->link('Back', ['action' => 'index']); ?></p>
+<p>
+	<?php echo $this->Html->link('Back', ['action' => 'index']); ?>
+	|
+	<?php echo $this->Html->link('Raw (PHP to copy and paste)', ['?' => ['raw' => true] + $this->request->getQuery()]); ?>
+</p>
 
 <div>
-	<pre><?php echo h($classContentAfter); ?></pre>
+	<pre><?php
+		if (!$this->request->getQuery('raw') && class_exists(Differ::class)) {
+			$differ = new Differ(null);
+			$array = $differ->diffToArray($classContent, $classContentAfter);
+
+			$count = count($array);
+			for ($i = 0; $i < $count; $i++) {
+				$row = $array[$i];
+
+				$char = ' ';
+				$output = $row[0];
+
+				if ($row[1] === 1) {
+					$char = '+';
+				} elseif ($row[1] === 2) {
+					$char = '-';
+				}
+
+				$array[$i] = $char . $output;
+			}
+
+			echo h(implode('', $array));
+
+		} else {
+			echo h($classContentAfter);
+		}
+
+	?></pre>
 
 
 	<?php echo $this->Form->create(); ?>

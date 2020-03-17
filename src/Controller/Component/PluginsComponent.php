@@ -44,7 +44,6 @@ class PluginsComponent extends Component {
 
 		$configPath = Plugin::configPath($pluginName);
 		$result['bootstrapExists'] = $this->bootstrapExists($configPath);
-		$result['routesExists'] = $this->routesExists($configPath);
 
 		$classPath = Plugin::classPath($pluginName);
 		$result['consoleExists'] = $this->consoleExists($classPath);
@@ -52,6 +51,7 @@ class PluginsComponent extends Component {
 		$pluginClassPath = $classPath . 'Plugin.php';
 		$pluginClassExists = file_exists($pluginClassPath);
 
+		$result['routesExists'] = $this->routesExists($configPath, $pluginClassExists ? $pluginClassPath : null);
 		$result['middlewareExists'] = $pluginClassExists && $this->middlewareExists($pluginClassPath);
 
 		$result['pluginClass'] = $pluginClassPath;
@@ -110,17 +110,32 @@ class PluginsComponent extends Component {
 
 	/**
 	 * @param string $configPath
+	 * @param string|null $classPath
 	 *
 	 * @return bool
 	 */
-	protected function routesExists(string $configPath): bool {
-		if (!file_exists($configPath . 'routes.php')) {
+	protected function routesExists(string $configPath, ?string $classPath): bool {
+		$fileExists = file_exists($configPath . 'routes.php');
+		if (!$fileExists && !$classPath) {
 			return false;
 		}
 
-		$fileContent = file_get_contents($configPath . 'routes.php');
+		if ($fileExists) {
+			$fileContent = file_get_contents($configPath . 'routes.php');
 
-		return trim($fileContent) !== '<?php';
+			if (trim($fileContent) !== '<?php') {
+				return true;
+			}
+		}
+
+		if ($classPath) {
+			$pluginContent = file_get_contents($classPath);
+			if (preg_match('#public function routes\(RouteBuilder \$routes#', $pluginContent)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -224,6 +239,9 @@ TXT;
 			$pos++;
 
 			$add = [
+				'	/**',
+				'	 * @var bool',
+				'	 */',
 				'	protected $' . $part . 'Enabled = ' . ($result[$part . 'Exists'] ? 'true' : 'false') . ';',
 			];
 			if (trim($pieces[$pos + 1]) !== '{') {
