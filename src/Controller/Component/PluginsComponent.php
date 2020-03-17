@@ -173,7 +173,6 @@ class PluginsComponent extends Component {
 namespace $plugin;
 
 use Cake\Core\BasePlugin;
-use Cake\Routing\RouteBuilder;
 
 class Plugin extends BasePlugin {
 }
