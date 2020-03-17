@@ -12,6 +12,8 @@
 
 <h1>Plugin class for <?php echo h($plugin); ?></h1>
 
+<p><?php echo $this->Html->link('Back', ['action' => 'index']); ?></p>
+
 <div>
 	<pre><?php echo h($classContentAfter); ?></pre>
 

@@ -70,13 +70,16 @@ class PluginsComponent extends Component {
 	protected function addPluginConfig(string $pluginClassPath, bool $pluginClassExists): array {
 		$result = [];
 
+		$parts = $this->hooks();
 		if (!$pluginClassExists) {
+			foreach ($parts as $part) {
+				$result[$part . 'Enabled'] = null;
+			}
+
 			return $result;
 		}
 
 		$pluginContent = file_get_contents($pluginClassPath);
-
-		$parts = $this->hooks();
 		foreach ($parts as $part) {
 			preg_match('#protected \$' . $part . 'Enabled\s*=\s*(\w+);#', $pluginContent, $matches);
 			$enabled = null;
