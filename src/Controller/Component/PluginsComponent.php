@@ -54,7 +54,8 @@ class PluginsComponent extends Component {
 
 		$result['middlewareExists'] = $pluginClassExists && $this->middlewareExists($pluginClassPath);
 
-		$result['pluginClass'] = $pluginClassExists;
+		$result['pluginClass'] = $pluginClassPath;
+		$result['pluginClassExists'] = $pluginClassExists;
 		$result += $this->addPluginConfig($pluginClassPath, $pluginClassExists);
 
 		return $result;
@@ -155,6 +156,81 @@ class PluginsComponent extends Component {
 		$pluginContent = file_get_contents($pluginClassPath);
 
 		return (bool)preg_match('#public function middleware\(MiddlewareQueue \$middleware#', $pluginContent);
+	}
+
+	/**
+	 * @param string $plugin
+	 * @param string|null $content
+	 * @param array $result
+	 *
+	 * @return string
+	 */
+	public function adjustPluginClass(string $plugin, ?string $content, array $result): string {
+		if (!$content) {
+			$content = <<<TXT
+<?php
+
+namespace $plugin;
+
+use Cake\Core\BasePlugin;
+
+class Plugin extends BasePlugin {
+}
+
+TXT;
+		}
+
+		$parts = $this->hooks();
+		foreach ($parts as $part) {
+			if ($result[$part . 'Exists'] && $result[$part . 'Enabled'] === false) {
+				$content = preg_replace('#protected \$' . $part . 'Enabled = false;#', 'protected $' . $part . 'Enabled = true;', $content);
+			}
+			if (!$result[$part . 'Exists'] && $result[$part . 'Enabled'] === null) {
+				$content = $this->addProperty($content, $part, $result);
+			}
+		}
+
+		return $content;
+	}
+
+	/**
+	 * @param string $content
+	 * @param string $part
+	 * @param array $result
+	 *
+	 * @return string
+	 */
+	protected function addProperty(string $content, string $part, array $result): string {
+		$pieces = explode(PHP_EOL, $content);
+
+		$pos = null;
+		foreach ($pieces as $i => $piece) {
+			if (strpos($piece, 'class Plugin extends BasePlugin') === false) {
+				continue;
+			}
+
+			$pos = $i;
+		}
+
+		if ($pos) {
+			if (trim($pieces[$pos + 1]) === '{') {
+				$pos++;
+			}
+
+			// Now set pointer to after this class start
+			$pos++;
+
+			$add = [
+				'	protected $' . $part . 'Enabled = ' . ($result[$part . 'Exists'] ? 'true' : 'false') . ';',
+			];
+			if (trim($pieces[$pos + 1]) !== '{') {
+				array_unshift($add, '');
+			}
+
+			array_splice($pieces, $pos, 0, $add);
+		}
+
+		return implode(PHP_EOL, $pieces);
 	}
 
 }
