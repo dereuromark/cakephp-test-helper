@@ -43,7 +43,7 @@
 							<?php echo h($hook); ?>
 						</td>
 						<td>
-							<?php echo $result[$plugin][$hook . 'Exists'] ? 'yes' : 'no' ?>
+							<?php echo $this->Format->yesNo($result[$plugin][$hook . 'Exists']); ?>
 						</td>
 						<td>
 							<?php
