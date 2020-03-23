@@ -26,7 +26,7 @@ class TestHelperController extends AppController {
 
 	/**
 	 * @param \Cake\Event\Event $event
-	 * @return \Cake\Http\Response|null
+	 * @return \Cake\Http\Response|null|void
 	 */
 	public function beforeFilter(Event $event) {
 		parent::beforeFilter($event);
@@ -41,7 +41,7 @@ class TestHelperController extends AppController {
 	}
 
 	/**
-	 * @return \Cake\Http\Response|null
+	 * @return \Cake\Http\Response|null|void
 	 */
 	public function index() {
 		if ($this->request->is('post')) {

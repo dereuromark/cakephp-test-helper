@@ -4,6 +4,9 @@ namespace TestHelper\Test\TestCase\Controller;
 
 use Cake\TestSuite\IntegrationTestCase;
 
+/**
+ * @uses \TestHelper\Controller\TestHelperController
+ */
 class TestHelperControllerTest extends IntegrationTestCase {
 
 	/**

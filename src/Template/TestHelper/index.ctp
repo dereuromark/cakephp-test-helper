@@ -1,6 +1,7 @@
 <?php
 /**
  * @var \App\View\AppView $this
+ * @var string[] $plugins
  */
 
 use Cake\Core\Plugin;

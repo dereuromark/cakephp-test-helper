@@ -6,12 +6,12 @@ use App\Controller\AppController;
 use Cake\Core\App;
 use Cake\Core\Plugin;
 use Cake\Event\Event;
-use Cake\Filesystem\Folder;
 use RuntimeException;
 use TestHelper\Utility\ClassResolver;
 
 /**
  * @property \TestHelper\Controller\Component\TestRunnerComponent $TestRunner
+ * @property \TestHelper\Controller\Component\TestGeneratorComponent $TestGenerator
  */
 class TestCasesController extends AppController {
 
@@ -21,6 +21,7 @@ class TestCasesController extends AppController {
 	public $components = [
 		'Flash',
 		'TestHelper.TestRunner',
+		'TestHelper.TestGenerator',
 	];
 
 	/**
@@ -33,7 +34,7 @@ class TestCasesController extends AppController {
 
 	/**
 	 * @param \Cake\Event\Event $event
-	 * @return \Cake\Http\Response|null
+	 * @return \Cake\Http\Response|null|void
 	 */
 	public function beforeFilter(Event $event) {
 		parent::beforeFilter($event);
@@ -152,18 +153,18 @@ class TestCasesController extends AppController {
 	 *
 	 * @param string $type
 	 *
-	 * @return \Cake\Http\Response|null
+	 * @return \Cake\Http\Response|null|void
 	 */
 	protected function handle($type) {
 		$appOrPlugin = $this->request->getQuery('namespace');
 		$plugin = $appOrPlugin !== 'app' ? $appOrPlugin : null;
 		$classType = ClassResolver::type($type);
 		$paths = App::path($classType, $plugin);
-		$files = $this->getFiles($paths);
+		$files = $this->TestGenerator->getFiles($paths);
 
 		if ($this->request->is('post')) {
-			if ($this->generate($this->request->getData('name'), $type, $plugin)) {
-				$this->Flash->success('Test case generated');
+			if ($this->TestGenerator->generate($this->request->getData('name'), $type, $plugin)) {
+				$this->Flash->success('Test case generated.');
 			}
 
 			return $this->redirect($this->referer([$type] + ['?' => $this->request->getQuery()], true));
@@ -195,66 +196,6 @@ class TestCasesController extends AppController {
 
 		$this->set(compact('files', 'type'));
 		$this->render('handle');
-	}
-
-	/**
-	 * @param string $name
-	 * @param string $type
-	 * @param string $plugin
-	 * @param array $options
-	 *
-	 * @return bool
-	 */
-	protected function generate($name, $type, $plugin, array $options = []) {
-		$arguments = 'test ' . $type . ' ' . $name . ' -q';
-		if (Plugin::loaded('Setup')) {
-			$arguments .= ' -t Setup';
-		}
-		if ($plugin) {
-			$arguments .= ' -p ' . $plugin;
-		}
-		foreach ($options as $key => $option) {
-			$arguments .= '--' . $key . ' ' . $option;
-		}
-
-		$command = 'cd ' . ROOT . ' && php bin/cake.php bake ' . $arguments;
-		exec($command, $output, $return);
-
-		if ($return !== 0) {
-			$this->Flash->error('Error code ' . $return . ': ' . print_r($output, true) . ' [' . $command . ']');
-		}
-
-		$this->Flash->success(json_encode($output));
-
-		return $return === 0;
-	}
-
-	/**
-	 * @param array $folders
-	 *
-	 * @return array
-	 */
-	protected function getFiles(array $folders) {
-		$names = [];
-		foreach ($folders as $folder) {
-			$folderContent = (new Folder($folder))->read(Folder::SORT_NAME, true);
-
-			foreach ($folderContent[1] as $file) {
-				$name = pathinfo($file, PATHINFO_FILENAME);
-				$names[] = $name;
-			}
-
-			foreach ($folderContent[0] as $subFolder) {
-				$folderContent = (new Folder($folder . $subFolder))->read(Folder::SORT_NAME, true);
-
-				foreach ($folderContent[1] as $file) {
-					$name = pathinfo($file, PATHINFO_FILENAME);
-					$names[] = $subFolder . '.' . $name;
-				}
-			}
-		}
-
-		return $names;
 	}
 
 }
