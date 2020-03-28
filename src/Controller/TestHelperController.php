@@ -63,7 +63,7 @@ class TestHelperController extends AppController {
 		$plugins = Plugin::loaded();
 
 		$namespace = $this->request->getQuery('plugin');
-		if ($namespace && !in_array($namespace, $plugins)) {
+		if ($namespace && !in_array($namespace, $plugins, true)) {
 			$this->Flash->error('Invalid plugin');
 			return $this->redirect([]);
 		}
