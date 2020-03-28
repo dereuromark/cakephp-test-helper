@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \Cake\View\View $this
+ * @var string $message
+ */
 use Cake\Core\Configure;
 use Cake\Error\Debugger;
 

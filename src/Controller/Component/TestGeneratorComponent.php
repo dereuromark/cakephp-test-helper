@@ -20,18 +20,13 @@ class TestGeneratorComponent extends Component {
 
 	/**
 	 * @param string $name
-	 * @param string $type
 	 * @param string $plugin
 	 * @param array $options
 	 *
 	 * @return bool
 	 */
-	public function generate($name, $type, $plugin, array $options = []) {
-		if (preg_match("#$type$#", $name, $matches)) {
-			$name = substr($name, 0, -strlen($type));
-		}
-
-		$arguments = 'test ' . $type . ' ' . $name . ' -q';
+	public function generate($name, $plugin, array $options = []) {
+		$arguments = 'fixture ' . $name . ' -q';
 		if (Plugin::isLoaded('Setup')) {
 			$arguments .= ' -t Setup';
 		}
@@ -43,7 +38,12 @@ class TestGeneratorComponent extends Component {
 		}
 
 		$command = 'cd ' . ROOT . ' && php bin/cake.php bake ' . $arguments;
-		exec($command, $output, $return);
+		if (PHP_SAPI !== 'cli') {
+			exec($command, $output, $return);
+		} else {
+			$return = 0;
+			$output = 'CLI dry-run: `' . $command . '`';
+		}
 
 		if ($return !== 0) {
 			$this->Flash->error('Error code ' . $return . ': ' . print_r($output, true) . ' [' . $command . ']');

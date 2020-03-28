@@ -1,3 +1,8 @@
+<?php
+/**
+ * @var \Cake\View\View $this
+ */
+?>
 <!DOCTYPE HTML>
 <html>
 <head>

@@ -33,7 +33,7 @@ require ROOT . '/vendor/autoload.php';
 require CORE_PATH . 'config/bootstrap.php';
 
 Cake\Core\Configure::write('App', [
-	'namespace' => 'App',
+	'namespace' => 'TestApp',
 	'encoding' => 'UTF-8',
 	'paths' => [
 		'templates' => [ROOT . DS . 'tests' . DS . 'test_app' . DS . 'src' . DS . 'Template' . DS],
@@ -71,6 +71,9 @@ $cache = [
 		'duration' => '+10 seconds',
 	],
 ];
+
+class_alias(TestApp\Controller\AppController::class, 'App\Controller\AppController');
+class_alias(TestApp\View\AppView::class, 'App\View\AppView');
 
 Cake\Cache\Cache::setConfig($cache);
 Cake\Core\Plugin::load('TestHelper', ['path' => ROOT . DS, 'autoload' => true, 'routes' => true]);

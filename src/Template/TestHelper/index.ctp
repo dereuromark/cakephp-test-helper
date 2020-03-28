@@ -26,6 +26,15 @@ use Cake\Core\Plugin;
 		<?php echo $this->Form->submit(__('Submit')); echo $this->Form->end();?>
 
 		<?php echo $this->element('url'); ?>
+
+
+		<hr>
+
+		<h2>Fixtures</h2>
+		<ul>
+			<li><?php echo $this->Html->link('Compare Fixtures against Tables', ['controller' => 'TestFixtures']); ?></li>
+		</ul>
+
 	</div>
 
 	<div class="col-md-6 col-xs-12">

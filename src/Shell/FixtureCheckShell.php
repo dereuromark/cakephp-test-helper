@@ -59,14 +59,14 @@ class FixtureCheckShell extends Shell {
 	}
 
 	/**
-	 * @return bool|int|null
+	 * @return bool|int|null|void
 	 */
 	public function main() {
 		$this->diff();
 	}
 
 	/**
-	 * @return bool|int|null
+	 * @return bool|int|null|void
 	 */
 	public function diff() {
 		$fixtures = $this->_getFixtures();

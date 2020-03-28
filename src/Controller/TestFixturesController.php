@@ -3,14 +3,12 @@
 namespace TestHelper\Controller;
 
 use App\Controller\AppController;
-use Cake\Core\App;
 use Cake\Core\Plugin;
 use Cake\Event\Event;
-use RuntimeException;
-use TestHelper\Utility\ClassResolver;
 
 /**
  * @property \TestHelper\Controller\Component\TestGeneratorComponent $TestGenerator
+ * @property \TestHelper\Controller\Component\TestFixturesComponent $TestFixtures
  */
 class TestFixturesController extends AppController {
 
@@ -20,6 +18,7 @@ class TestFixturesController extends AppController {
 	public $components = [
 		'Flash',
 		'TestHelper.TestGenerator',
+		'TestHelper.TestFixtures',
 	];
 
 	/**
@@ -50,7 +49,11 @@ class TestFixturesController extends AppController {
 	 * @return void
 	 */
 	public function index() {
-		$plugins = Plugin::loaded();
+		if ($this->request->getQuery('plugin')) {
+			$plugins = [$this->request->getQuery('plugin')];
+		} else {
+			$plugins = Plugin::loaded();
+		}
 
 		$result = $this->TestFixtures->all($plugins);
 
@@ -63,65 +66,23 @@ class TestFixturesController extends AppController {
 	 */
 
 	/**
-	 * Bake currently supports types:
-	 * - Entity
-	 * - Table
-	 * - Controller
-	 * - Component
-	 * - Behavior
-	 * - Helper
-	 * - Shell
-	 * - Task
-	 * - ShellHelper
-	 * - Cell
-	 * - Form
-	 * - Mailer
-	 *
-	 * @param string $type
+	 * Currently supports types:
+	 * - Fixture
 	 *
 	 * @return \Cake\Http\Response|null|void
 	 */
-	protected function handle($type) {
-		$appOrPlugin = $this->request->getQuery('namespace');
+	public function generate() {
+		$this->request->allowMethod('post');
+
+		$appOrPlugin = $this->request->getData('plugin');
 		$plugin = $appOrPlugin !== 'app' ? $appOrPlugin : null;
-		$classType = ClassResolver::type($type);
-		$paths = App::path($classType, $plugin);
-		$files = $this->TestGenerator->getFiles($paths);
+		$name = $this->request->getData('name');
 
-		if ($this->request->is('post')) {
-			if ($this->TestGenerator->generate($this->request->getData('name'), $type, $plugin)) {
-				$this->Flash->success('Test case generated.');
-			}
-
-			return $this->redirect($this->referer([$type] + ['?' => $this->request->getQuery()], true));
+		if ($this->TestGenerator->generate($name, $plugin)) {
+			$this->Flash->success($name . 'Fixture generated.');
 		}
 
-		foreach ($files as $key => $name) {
-			$suffix = ClassResolver::suffix($type);
-			if ($suffix && !preg_match('/\w+' . $suffix . '$/', $name)) {
-				unset($files[$key]);
-				continue;
-			}
-
-			list ($prefix, $class) = pluginSplit($name);
-			$class .= 'Test.php';
-			if ($prefix) {
-				$class = $prefix . DS . $class;
-			}
-
-			$folder = str_replace('/', DS, $classType);
-			$testCase = ($plugin ? Plugin::path($plugin) . 'tests' . DS : TESTS) . 'TestCase' . DS . $folder . DS . $class;
-
-			$files[$key] = [
-				'type' => ($plugin ? $plugin . '.' : '') . $classType,
-				'name' => $name,
-				'testCase' => str_replace(ROOT . DS, '', $testCase),
-				'hasTestCase' => file_exists($testCase),
-			];
-		}
-
-		$this->set(compact('files', 'type'));
-		$this->render('handle');
+		return $this->redirect($this->referer(['action' => 'index'] + ['?' => $this->request->getQuery()], true));
 	}
 
 }
