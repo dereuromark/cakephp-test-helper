@@ -1,4 +1,5 @@
 parameters:
-    autoload_files:
-        - bootstrap.php
-    ignoreErrors:
+	autoload_files:
+		- bootstrap.php
+	ignoreErrors:
+		- '#Call to an undefined method .+FlashComponent::info\(\)#'

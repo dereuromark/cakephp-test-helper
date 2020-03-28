@@ -12,6 +12,7 @@ use TestHelper\Utility\ClassResolver;
 
 /**
  * @property \TestHelper\Controller\Component\TestRunnerComponent $TestRunner
+ * @property \TestHelper\Controller\Component\TestGeneratorComponent $TestGenerator
  */
 class TestCasesController extends AppController {
 
@@ -23,6 +24,7 @@ class TestCasesController extends AppController {
 
 		$this->loadComponent('Flash');
 		$this->loadComponent('TestHelper.TestRunner');
+		$this->loadComponent('TestHelper.TestGenerator');
 
 		$this->viewBuilder()->setHelpers([
 			'TestHelper.TestHelper',
@@ -31,7 +33,7 @@ class TestCasesController extends AppController {
 	}
 
 	/**
-	 * @param \Cake\Event\Event $event
+	 * @param \Cake\Event\EventInterface $event
 	 * @return \Cake\Http\Response|null|void
 	 */
 	public function beforeFilter(EventInterface $event) {
@@ -158,11 +160,11 @@ class TestCasesController extends AppController {
 		$plugin = $appOrPlugin !== 'app' ? $appOrPlugin : null;
 		$classType = ClassResolver::type($type);
 		$paths = App::path($classType, $plugin);
-		$files = $this->getFiles($paths);
+		$files = $this->TestGenerator->getFiles($paths);
 
 		if ($this->request->is('post')) {
-			if ($this->generate($this->request->getData('name'), $type, $plugin)) {
-				$this->Flash->success('Test case generated');
+			if ($this->TestGenerator->generate($this->request->getData('name'), $type, $plugin)) {
+				$this->Flash->success('Test case generated.');
 			}
 
 			return $this->redirect($this->referer([$type] + ['?' => $this->request->getQuery()], true));

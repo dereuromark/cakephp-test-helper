@@ -26,6 +26,15 @@ use Cake\Core\Plugin;
 		<?php echo $this->Form->submit(__('Submit')); echo $this->Form->end();?>
 
 		<?php echo $this->element('url'); ?>
+
+
+		<hr>
+
+		<h2>Fixtures</h2>
+		<ul>
+			<li><?php echo $this->Html->link('Compare Fixtures against Tables', ['controller' => 'TestFixtures']); ?></li>
+		</ul>
+
 	</div>
 
 	<div class="col-md-6 col-xs-12">
@@ -52,6 +61,7 @@ use Cake\Core\Plugin;
 			<li><?php echo $this->Html->link('Controllers', ['controller' => 'TestCases', 'action' => 'controller', '?' => ['namespace' => $namespace]]); ?></li>
 			<li><?php echo $this->Html->link('Shells', ['controller' => 'TestCases', 'action' => 'shell', '?' => ['namespace' => $namespace]]); ?></li>
 			<li><?php echo $this->Html->link('Tables', ['controller' => 'TestCases', 'action' => 'table', '?' => ['namespace' => $namespace]]); ?></li>
+			<li><?php echo $this->Html->link('Entities', ['controller' => 'TestCases', 'action' => 'entity', '?' => ['namespace' => $namespace]]); ?></li>
 			<li><?php echo $this->Html->link('Behaviors', ['controller' => 'TestCases', 'action' => 'behavior', '?' => ['namespace' => $namespace]]); ?></li>
 			<li><?php echo $this->Html->link('Components', ['controller' => 'TestCases', 'action' => 'component', '?' => ['namespace' => $namespace]]); ?></li>
 			<li><?php echo $this->Html->link('Helpers', ['controller' => 'TestCases', 'action' => 'helper', '?' => ['namespace' => $namespace]]); ?></li>

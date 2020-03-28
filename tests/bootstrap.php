@@ -5,7 +5,7 @@ if (!defined('DS')) {
 	define('DS', DIRECTORY_SEPARATOR);
 }
 if (!defined('WINDOWS')) {
-	if (DS == '\\' || substr(PHP_OS, 0, 3) === 'WIN') {
+	if (DS === '\\' || substr(PHP_OS, 0, 3) === 'WIN') {
 		define('WINDOWS', true);
 	} else {
 		define('WINDOWS', false);
@@ -68,7 +68,8 @@ $cache = [
 	],
 ];
 
-class_alias(Cake\Controller\Controller::class, 'App\Controller\AppController');
+class_alias(TestApp\Controller\AppController::class, 'App\Controller\AppController');
+class_alias(TestApp\View\AppView::class, 'App\View\AppView');
 
 Cake\Cache\Cache::setConfig($cache);
 Cake\Core\Plugin::getCollection()->add(new TestHelper\Plugin());
