@@ -19,8 +19,7 @@ class TestSession {
 	/**
 	 * @param array|null $session
 	 */
-	public function __construct(?array $session)
-	{
+	public function __construct(?array $session) {
 		$this->session = $session;
 	}
 
@@ -30,8 +29,7 @@ class TestSession {
 	 * @param string|null $name Variable name to check for
 	 * @return bool True if variable is there
 	 */
-	public function check(?string $name = null): bool
-	{
+	public function check(?string $name = null): bool {
 		if ($this->session === null) {
 			return false;
 		}
@@ -43,11 +41,10 @@ class TestSession {
 	 * Returns given session variable, or all of them, if no parameters given.
 	 *
 	 * @param string|null $name The name of the session variable (or a path as sent to Hash.extract)
-	 * @return string|array|null The value of the session variable, null if session not available,
+	 * @return mixed The value of the session variable, null if session not available,
 	 *   session not started, or provided name not found in the session.
 	 */
-	public function read(?string $name = null)
-	{
+	public function read(?string $name = null) {
 		if ($this->session === null) {
 			return null;
 		}
@@ -69,16 +66,16 @@ class TestSession {
 	 * ->readOrFail('Name.key'); will return only the value of session Name[key]
 	 * ```
 	 *
-	 * @param string $var Variable to obtain. Use '.' to access array elements.
-	 * @return mixed Value stored in session.
+	 * @param string $name Variable to obtain. Use '.' to access array elements.
+	 *
 	 * @throws \RuntimeException if the requested session is not set.
+	 *@return mixed Value stored in session.
 	 */
-	public function readOrFail($var)
-	{
-		if ($this->check($var) === false) {
-			throw new RuntimeException(sprintf('Expected session key "%s" not found.', $var));
+	public function readOrFail(string $name) {
+		if ($this->check($name) === false) {
+			throw new RuntimeException(sprintf('Expected session key `%s` not found.', $name));
 		}
 
-		return $this->read($var);
+		return $this->read($name);
 	}
 }
