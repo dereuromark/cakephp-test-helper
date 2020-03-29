@@ -2,7 +2,9 @@
 
 namespace TestHelper\Test\TestCase\Controller;
 
+use Cake\Utility\Hash;
 use Shim\TestSuite\IntegrationTestCase;
+use TestApp\TestSuite\TestSession;
 
 /**
  * @uses \TestHelper\Controller\TestHelperController
@@ -36,13 +38,10 @@ class TestFixturesControllerTest extends IntegrationTestCase {
 
 		$this->assertResponseCode(302);
 
-		$flash = $this->_requestSession->read('Flash.flash');
-		//FIXME - why null?
-		/*
+		$flash = (new TestSession($_SESSION))->readOrFail('Flash.flash');
 		$flash = Hash::combine($flash, '{n}.element', '{n}.message');
 		$this->assertTextContains('bake fixture MyCoolRecords -q -p Tools', $flash['flash/info']);
 		$this->assertSame('MyCoolRecordsFixture generated.', $flash['flash/success']);
-		*/
 	}
 
 }
