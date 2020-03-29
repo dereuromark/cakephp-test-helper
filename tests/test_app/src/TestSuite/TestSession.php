@@ -78,4 +78,5 @@ class TestSession {
 
 		return $this->read($name);
 	}
+
 }
