@@ -27,7 +27,6 @@ class TestFixturesControllerTest extends IntegrationTestCase {
 	 */
 	public function testGenerate() {
 		$this->disableErrorHandlerMiddleware();
-		//$this->_retainFlashMessages = true; // Only necessary for rendering involved.
 
 		$data = [
 			'plugin' => 'Tools',
