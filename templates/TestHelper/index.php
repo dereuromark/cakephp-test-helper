@@ -30,6 +30,11 @@ use Cake\Core\Plugin;
 
 		<hr>
 
+		<h2>Plugins</h2>
+		<ul>
+			<li><?php echo $this->Html->link('Check Plugin Hooks', ['controller' => 'Plugins']); ?></li>
+		</ul>
+
 		<h2>Fixtures</h2>
 		<ul>
 			<li><?php echo $this->Html->link('Compare Fixtures against Tables', ['controller' => 'TestFixtures']); ?></li>
