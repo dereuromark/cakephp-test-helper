@@ -23,6 +23,7 @@ You have an overview of your classes and the test classes to it. If there is one
 ### Further useful addons
 - URL array generation from string URLs (respects routing, so it is basically also a reverse lookup)
 - Fixture validation tool (compares actual DB with the schema files: fields and attributes, constraints and indexes)
+- GUI for fixture comparison and generation of missing ones per mouse click.
 
 ## Installation
 
