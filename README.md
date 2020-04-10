@@ -1,5 +1,5 @@
 # CakePHP TestHelper plugin 
-[![Build Status](https://api.travis-ci.com/dereuromark/cakephp-test-helper.svg?branch=cake3)](https://travis-ci.org/dereuromark/cakephp-test-helper)
+[![Build Status](https://api.travis-ci.com/dereuromark/cakephp-test-helper.svg?branch=cake3)](https://travis-ci.com/dereuromark/cakephp-test-helper)
 [![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%205.6-8892BF.svg)](https://php.net/)
 [![License](https://poser.pugx.org/dereuromark/cakephp-test-helper/license)](https://packagist.org/packages/dereuromark/cakephp-test-helper)
 [![Total Downloads](https://poser.pugx.org/dereuromark/cakephp-test-helper/d/total)](https://packagist.org/packages/dereuromark/cakephp-test-helper)
