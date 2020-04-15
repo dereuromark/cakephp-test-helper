@@ -78,7 +78,7 @@ class TestFixturesController extends AppController {
 		$plugin = $appOrPlugin !== 'app' ? $appOrPlugin : null;
 		$name = $this->request->getData('name');
 
-		if ($this->TestGenerator->generate($name, $plugin)) {
+		if ($this->TestGenerator->generateFixture($name, $plugin)) {
 			$this->Flash->success($name . 'Fixture generated.');
 		}
 
