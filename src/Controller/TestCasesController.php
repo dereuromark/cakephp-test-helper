@@ -163,7 +163,7 @@ class TestCasesController extends AppController {
 		$files = $this->TestGenerator->getFiles($paths);
 
 		if ($this->request->is('post')) {
-			if ($this->TestGenerator->generate($this->request->getData('name'), $type, $plugin)) {
+			if ($this->TestGenerator->generate($this->request->getData('name'), $plugin)) {
 				$this->Flash->success('Test case generated.');
 			}
 
