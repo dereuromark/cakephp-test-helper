@@ -58,7 +58,6 @@ class TestGeneratorComponent extends Component {
 
 	/**
 	 * @param string $name
-	 * @param string $type
 	 * @param string $plugin
 	 * @param array $options
 	 *
