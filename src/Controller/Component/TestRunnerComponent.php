@@ -10,8 +10,8 @@ class TestRunnerComponent extends Component {
 
 	/**
 	 * @param string $file
-	 * @return array
 	 * @throws \RuntimeException
+	 * @return array
 	 */
 	public function run($file) {
 		if (!file_exists(ROOT . DS . $file)) {

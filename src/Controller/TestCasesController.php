@@ -61,8 +61,8 @@ class TestCasesController extends AppController {
 	}
 
 	/**
-	 * @return void
 	 * @throws \RuntimeException
+	 * @return void
 	 */
 	public function coverage() {
 		$file = $this->request->getData('test') ?: $this->request->getQuery('test');
@@ -174,6 +174,7 @@ class TestCasesController extends AppController {
 			$suffix = ClassResolver::suffix($type);
 			if ($suffix && !preg_match('/\w+' . $suffix . '$/', $name)) {
 				unset($files[$key]);
+
 				continue;
 			}
 

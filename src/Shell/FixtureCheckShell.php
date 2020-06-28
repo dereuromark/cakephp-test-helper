@@ -85,6 +85,7 @@ class FixtureCheckShell extends Shell {
 			$fixtureClass = $namespace . '\Test\Fixture\\' . $fixture;
 			if (!class_exists($fixtureClass)) {
 				$this->err(sprintf('Fixture %s does not exist.', $fixtureClass));
+
 				continue;
 			}
 
@@ -205,6 +206,7 @@ class FixtureCheckShell extends Shell {
 		foreach ($fixtureFields as $fieldName => $fixtureField) {
 			if (!isset($liveFields[$fieldName])) {
 				$errors[] = ' * ' . 'Field ' . $fieldName . ' is missing from the live DB!';
+
 				continue;
 			}
 
@@ -220,6 +222,7 @@ class FixtureCheckShell extends Shell {
 
 				if (!isset($liveField[$key]) && $value !== null) {
 					$errors[] = ' * ' . sprintf('Field attribute `%s` is missing from the live DB!', $fieldName . ':' . $key);
+
 					continue;
 				}
 				if (!isset($liveField[$key])) {
@@ -272,11 +275,13 @@ class FixtureCheckShell extends Shell {
 		foreach ($liveConstraints as $key => $liveConstraint) {
 			if (!isset($fixtureConstraints[$key])) {
 				$errors[] = ' * ' . sprintf('Constraint %s is missing in fixture, but in live DB.', $this->_buildKey($key, $liveConstraint));
+
 				continue;
 			}
 
 			if ($liveConstraint === $fixtureConstraints[$key]) {
 				unset($fixtureConstraints[$key]);
+
 				continue;
 			}
 
@@ -321,11 +326,13 @@ class FixtureCheckShell extends Shell {
 		foreach ($liveIndexes as $key => $liveIndex) {
 			if (!isset($fixtureIndexes[$key])) {
 				$errors[] = ' * ' . sprintf('Index %s is missing in fixture', $this->_buildKey($key, $liveIndex));
+
 				continue;
 			}
 
 			if ($liveIndex === $fixtureIndexes[$key]) {
 				unset($fixtureIndexes[$key]);
+
 				continue;
 			}
 
@@ -395,6 +402,7 @@ class FixtureCheckShell extends Shell {
 			foreach ($fixtures as $key => $fixture) {
 				$fixtures[$key] = $fixture . 'Fixture';
 			}
+
 			return $fixtures;
 		}
 
