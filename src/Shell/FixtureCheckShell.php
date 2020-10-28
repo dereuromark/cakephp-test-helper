@@ -52,6 +52,11 @@ class FixtureCheckShell extends Shell {
 	protected $_issuesFound = [];
 
 	/**
+	 * @var array
+	 */
+	protected $_missingFields = [];
+
+	/**
 	 * @inheritDoc
 	 */
 	public function initialize(): void {
@@ -204,6 +209,10 @@ class FixtureCheckShell extends Shell {
 
 		$errors = [];
 		foreach ($fixtureFields as $fieldName => $fixtureField) {
+			if (!empty($this->_missingFields[$fixtureTable]) && in_array($fieldName, $this->_missingFields[$fixtureTable], true)) {
+				continue;
+			}
+
 			if (!isset($liveFields[$fieldName])) {
 				$errors[] = ' * ' . 'Field ' . $fieldName . ' is missing from the live DB!';
 
@@ -385,6 +394,7 @@ class FixtureCheckShell extends Shell {
 		if (!empty($diff)) {
 			$this->warn(sprintf($message, $fixtureClass));
 			foreach ($diff as $missingField => $type) {
+				$this->_missingFields[$fixtureTable][] = $missingField;
 				$this->out(' * ' . $missingField);
 			}
 			$this->out($this->nl(0));
