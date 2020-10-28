@@ -102,7 +102,7 @@ class TestFixturesComponent extends Component {
 
 		$iterator = new DirectoryIterator($path);
 		foreach ($iterator as $file) {
-			if ($file->isDot()) {
+			if ($file->isDot() || !preg_match('/.+Table.php$/', (string)$file)) {
 				continue;
 			}
 
