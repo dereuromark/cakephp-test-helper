@@ -269,7 +269,7 @@ TXT;
 		$indentation = '    ';
 
 		foreach ($pieces as $piece) {
-			if (!$piece || !preg_match('/^(\s+)/', $piece, $matches)) {
+			if (!$piece || !preg_match('/^(\s+)\b/', $piece, $matches)) {
 				continue;
 			}
 
