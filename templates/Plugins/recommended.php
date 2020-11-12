@@ -24,7 +24,7 @@ use SebastianBergmann\Diff\Differ;
 	<pre><?php
 		if (!$this->request->getQuery('raw') && class_exists(Differ::class)) {
 			$differ = new Differ(null);
-			$array = $differ->diffToArray($classContent, $classContentAfter);
+			$array = $differ->diffToArray((string)$classContent, $classContentAfter);
 
 			$count = count($array);
 			for ($i = 0; $i < $count; $i++) {

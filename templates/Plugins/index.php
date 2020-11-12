@@ -20,7 +20,7 @@
 
 <div class="plugins-overview row">
 	<div class="col-xs-12">
-		<h2>Info/Check existence vs disabled</h2>
+		<h2>Info/Check existence vs enabled/disabled</h2>
 		<p>Status: <?php echo implode(', ', $hooks); ?> ?</p>
 
 		<div class="list-inline">
@@ -48,7 +48,10 @@
 							<?php echo h($hook); ?>
 						</td>
 						<td>
-							<?php echo $this->Format->yesNo($result[$plugin][$hook . 'Exists']); ?>
+							<?php echo $this->Format->yesNo((bool)$result[$plugin][$hook]); ?>
+							<?php if ($result[$plugin][$hook]) {
+								echo implode(', ', $result[$plugin][$hook]);
+							} ?>
 						</td>
 						<td>
 							<?php
@@ -56,13 +59,17 @@
 
 							if ($enabled !== null) {
 								$text = $enabled ? 'yes' : 'no';
-								if (!$enabled && $result[$plugin][$hook . 'Exists']) {
+								$exists = !empty($result[$plugin][$hook]);
+
+								if (!$enabled && $exists) {
 									$text = '<span class="warning">' . $text . '</span>';
 									$recommendedChanges = true;
 								}
 							} else {
 								$text = '<i>auto-detect</i>';
-								if (!$result[$plugin][$hook . 'Exists']) {
+								$couldBeManuallyDisabled = empty($result[$plugin][$hook]);
+
+								if ($couldBeManuallyDisabled) {
 									$text = '<span class="warning">' . $text . '</span>';
 									$recommendedChanges = true;
 								}

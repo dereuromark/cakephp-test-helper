@@ -48,15 +48,26 @@ class PluginsComponent extends Component {
 		$classPath = Plugin::classPath($pluginName);
 		$result['consoleExists'] = $this->consoleExists($classPath);
 
+		$result['routesExists'] = $this->routesExists($configPath);
+		$result['middlewareExists'] = null;
+
 		$pluginClassPath = $classPath . 'Plugin.php';
 		$pluginClassExists = file_exists($pluginClassPath);
-
-		$result['routesExists'] = $this->routesExists($configPath, $pluginClassExists ? $pluginClassPath : null);
-		$result['middlewareExists'] = $pluginClassExists && $this->middlewareExists($pluginClassPath);
-
 		$result['pluginClass'] = $pluginClassPath;
 		$result['pluginClassExists'] = $pluginClassExists;
+
 		$result += $this->addPluginConfig($pluginClassPath, $pluginClassExists);
+
+		foreach ($this->hooks() as $hook) {
+			$existing = [];
+			if (!empty($result[$hook . 'Exists'])) {
+				$existing[] = 'file';
+			}
+			if (!empty($result[$hook . 'Hook'])) {
+				$existing[] = 'callback';
+			}
+			$result[$hook] = $existing ?: null;
+		}
 
 		return $result;
 	}
@@ -90,10 +101,17 @@ class PluginsComponent extends Component {
 			$result[$part . 'Enabled'] = $enabled;
 		}
 
+		foreach ($parts as $part) {
+			$exists = (bool)preg_match('#public function ' . $part . '\(#', $pluginContent, $matches);
+			$result[$part . 'Hook'] = $exists;
+		}
+
 		return $result;
 	}
 
 	/**
+	 * Only check file.
+	 *
 	 * @param string $configPath
 	 *
 	 * @return bool
@@ -109,14 +127,15 @@ class PluginsComponent extends Component {
 	}
 
 	/**
+	 * Only check file.
+	 *
 	 * @param string $configPath
-	 * @param string|null $classPath
 	 *
 	 * @return bool
 	 */
-	protected function routesExists(string $configPath, ?string $classPath): bool {
+	protected function routesExists(string $configPath): bool {
 		$fileExists = file_exists($configPath . 'routes.php');
-		if (!$fileExists && !$classPath) {
+		if (!$fileExists) {
 			return false;
 		}
 
@@ -128,17 +147,12 @@ class PluginsComponent extends Component {
 			}
 		}
 
-		if ($classPath) {
-			$pluginContent = file_get_contents($classPath);
-			if (preg_match('#public function routes\(RouteBuilder \$routes#', $pluginContent)) {
-				return true;
-			}
-		}
-
 		return false;
 	}
 
 	/**
+	 * Only check files.
+	 *
 	 * @param string $classPath
 	 *
 	 * @return bool
@@ -163,17 +177,6 @@ class PluginsComponent extends Component {
 		}
 
 		return false;
-	}
-
-	/**
-	 * @param string $pluginClassPath
-	 *
-	 * @return bool
-	 */
-	protected function middlewareExists(string $pluginClassPath): bool {
-		$pluginContent = file_get_contents($pluginClassPath);
-
-		return (bool)preg_match('#public function middleware\(MiddlewareQueue \$middleware#', $pluginContent);
 	}
 
 	/**
@@ -203,7 +206,7 @@ TXT;
 			if ($result[$part . 'Exists'] && $result[$part . 'Enabled'] === false) {
 				$content = preg_replace('#protected \$' . $part . 'Enabled = false;#', 'protected $' . $part . 'Enabled = true;', $content);
 			}
-			if (!$result[$part . 'Exists'] && $result[$part . 'Enabled'] === null) {
+			if (empty($result[$part]) && $result[$part . 'Enabled'] === null) {
 				$content = $this->addProperty($content, $part, $result);
 			}
 		}
@@ -220,8 +223,10 @@ TXT;
 	 */
 	protected function addProperty(string $content, string $part, array $result): string {
 		$pieces = explode(PHP_EOL, $content);
+		$indentation = $this->detectIndentation($pieces);
 
 		$pos = null;
+		$count = 0;
 		foreach ($pieces as $i => $piece) {
 			if (strpos($piece, 'class Plugin extends BasePlugin') === false) {
 				continue;
@@ -239,19 +244,39 @@ TXT;
 			$pos++;
 
 			$add = [
-				'	/**',
-				'	 * @var bool',
-				'	 */',
-				'	protected $' . $part . 'Enabled = ' . ($result[$part . 'Exists'] ? 'true' : 'false') . ';',
+				$indentation . '/**',
+				$indentation . ' * @var bool',
+				$indentation . ' */',
+				$indentation . 'protected $' . $part . 'Enabled = ' . ($result[$part . 'Exists'] ? 'true' : 'false') . ';',
 			];
-			if (trim($pieces[$pos + 1]) !== '{') {
+			if ($count === 0 && trim($pieces[$pos + 1]) !== '{') {
 				array_unshift($add, '');
 			}
 
 			array_splice($pieces, $pos, 0, $add);
+			$count++;
 		}
 
 		return implode(PHP_EOL, $pieces);
+	}
+
+	/**
+	 * @param array $pieces
+	 *
+	 * @return string
+	 */
+	protected function detectIndentation(array $pieces): string {
+		$indentation = '    ';
+
+		foreach ($pieces as $piece) {
+			if (!$piece || !preg_match('/^(\s+)/', $piece, $matches)) {
+				continue;
+			}
+
+			return $matches[1];
+		}
+
+		return $indentation;
 	}
 
 }
