@@ -139,12 +139,10 @@ class PluginsComponent extends Component {
 			return false;
 		}
 
-		if ($fileExists) {
-			$fileContent = file_get_contents($configPath . 'routes.php');
+		$fileContent = file_get_contents($configPath . 'routes.php');
 
-			if (trim($fileContent) !== '<?php') {
-				return true;
-			}
+		if ($fileContent && trim($fileContent) !== '<?php') {
+			return true;
 		}
 
 		return false;
