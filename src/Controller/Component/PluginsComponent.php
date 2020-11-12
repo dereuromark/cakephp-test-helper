@@ -269,11 +269,15 @@ TXT;
 		$indentation = '    ';
 
 		foreach ($pieces as $piece) {
-			if (!$piece || !preg_match('/^(\s+)\b/', $piece, $matches)) {
+			if (!$piece || !preg_match('/^(\s+)/', $piece, $matches)) {
 				continue;
 			}
 
-			return $matches[1];
+			if (substr($matches[1], 0, 1) !== "\t") {
+				continue;
+			}
+
+			return "\t";
 		}
 
 		return $indentation;
