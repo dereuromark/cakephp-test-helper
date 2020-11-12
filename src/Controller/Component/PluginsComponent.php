@@ -204,7 +204,7 @@ TXT;
 			if ($result[$part . 'Exists'] && $result[$part . 'Enabled'] === false) {
 				$content = preg_replace('#protected \$' . $part . 'Enabled = false;#', 'protected $' . $part . 'Enabled = true;', $content);
 			}
-			if (empty($result[$part]) && $result[$part . 'Enabled'] === null) {
+			if (empty($result[$part]) && $result[$part . 'Enabled'] === null && $part !== 'middleware') {
 				$content = $this->addProperty($content, $part, $result);
 			}
 		}

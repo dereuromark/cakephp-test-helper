@@ -67,7 +67,7 @@
 								}
 							} else {
 								$text = '<i>auto-detect</i>';
-								$couldBeManuallyDisabled = empty($result[$plugin][$hook]);
+								$couldBeManuallyDisabled = empty($result[$plugin][$hook]) && $hook !== 'middleware';
 
 								if ($couldBeManuallyDisabled) {
 									$text = '<span class="warning">' . $text . '</span>';
