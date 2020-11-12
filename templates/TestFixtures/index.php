@@ -21,6 +21,10 @@
 
 
 	<?php foreach ($result as $plugin => $pluginResult) { ?>
+		<?php if ($plugin === 'app' && $this->request->getQuery('plugin')) {
+			continue;
+		} ?>
+
 		<h3><?php echo ($plugin); ?></h3>
 		<table class="list">
 			<tr>

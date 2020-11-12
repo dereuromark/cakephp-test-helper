@@ -26,6 +26,13 @@ class TestFixturesComponent extends Component {
 	 */
 	public function all(array $plugins): array {
 		$result = [];
+
+		$fixturePath = ROOT . DS . 'tests' . DS . 'Fixture' . DS;
+		$tablePath = ROOT . DS . 'src' . DS . 'Model' . DS . 'Table' . DS;
+		$fixtures = $this->fixtures('', $fixturePath);
+		$tables = $this->tables('', $tablePath);
+		$result['app'] = $this->result($fixtures, $tables);
+
 		foreach ($plugins as $plugin) {
 			if (in_array($plugin, $this->getConfig('blacklist'), true)) {
 				continue;
