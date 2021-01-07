@@ -13,10 +13,21 @@ use RegexIterator;
 class PluginsComponent extends Component {
 
 	/**
+	 * @var string[]
+	 */
+	protected $irrelevant = [
+		'middleware',
+		'services',
+	];
+
+	/**
 	 * @return string[]
 	 */
 	public function hooks(): array {
-		return PluginInterface::VALID_HOOKS;
+		$hooks = PluginInterface::VALID_HOOKS;
+		sort($hooks);
+
+		return $hooks;
 	}
 
 	/**
@@ -50,6 +61,7 @@ class PluginsComponent extends Component {
 
 		$result['routesExists'] = $this->routesExists($configPath);
 		$result['middlewareExists'] = null;
+		$result['servicesExists'] = null;
 
 		$pluginClassPath = $classPath . 'Plugin.php';
 		$pluginClassExists = file_exists($pluginClassPath);
@@ -200,11 +212,13 @@ TXT;
 		}
 
 		$parts = $this->hooks();
+		rsort($parts);
+
 		foreach ($parts as $part) {
 			if ($result[$part . 'Exists'] && $result[$part . 'Enabled'] === false) {
 				$content = preg_replace('#protected \$' . $part . 'Enabled = false;#', 'protected $' . $part . 'Enabled = true;', $content);
 			}
-			if (empty($result[$part]) && $result[$part . 'Enabled'] === null && $part !== 'middleware') {
+			if (empty($result[$part]) && $result[$part . 'Enabled'] === null && !in_array($part, $this->irrelevant, true)) {
 				$content = $this->addProperty($content, $part, $result);
 			}
 		}

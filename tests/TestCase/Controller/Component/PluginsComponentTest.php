@@ -56,12 +56,12 @@ class Plugin extends BasePlugin {
 	/**
 	 * @var bool
 	 */
-	protected \$consoleEnabled = false;
+	protected \$bootstrapEnabled = false;
 
 	/**
 	 * @var bool
 	 */
-	protected \$bootstrapEnabled = false;
+	protected \$consoleEnabled = false;
 
 	/**
 	 * @var bool
