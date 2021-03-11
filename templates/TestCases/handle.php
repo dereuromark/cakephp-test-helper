@@ -33,7 +33,7 @@
 					?>
 					<?php echo $this->Html->link($this->Format->icon('play', ['title' => 'Run tests']), ['action' => 'run', '?' => ['test' => $file['testCase']]], ['escapeTitle' => false, 'target' => '_blank', 'class' => 'run', 'data-test-case' => $file['testCase']]); ?>
 
-					<?php echo $this->Html->link($this->Format->icon('bar-chart', ['title' => 'Coverage']), ['action' => 'coverage', '?' => ['test' => $file['testCase'], 'name' => $file['name'], 'type' => $file['type']]], ['escapeTitle' => false, 'target' => '_blank', 'class' => 'coverage', 'data-test-case' => $file['testCase'], 'data-name' => $file['name'], 'data-type' => $file['type']]); ?>
+					<?php echo $this->Html->link($this->Format->icon('chart-bar', ['title' => 'Coverage']), ['action' => 'coverage', '?' => ['test' => $file['testCase'], 'name' => $file['name'], 'type' => $file['type']]], ['escapeTitle' => false, 'target' => '_blank', 'class' => 'coverage', 'data-test-case' => $file['testCase'], 'data-name' => $file['name'], 'data-type' => $file['type']]); ?>
 				<?php } ?>
 			</td>
 			<td>
