@@ -90,6 +90,13 @@ class TestCasesController extends AppController {
 	/**
 	 * @return \Cake\Http\Response|null
 	 */
+	public function command() {
+		return $this->handle(ucfirst(__FUNCTION__));
+	}
+
+	/**
+	 * @return \Cake\Http\Response|null
+	 */
 	public function shell() {
 		return $this->handle(ucfirst(__FUNCTION__));
 	}
