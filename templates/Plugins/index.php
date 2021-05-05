@@ -23,9 +23,9 @@
 		<h2>Info/Check existence vs enabled/disabled</h2>
 		<p>Status: <?php echo implode(', ', $hooks); ?> ?</p>
 
-		<div class="list-inline">
+		<ul class="list-inline list-inline">
 			<?php foreach ($plugins as $plugin) { ?>
-			<div class="box col-md-6 col-xs-12">
+			<li class="box list-inline-item col-12 col-md-3">
 				<h3><?php echo h($plugin); ?></h3>
 				<?php
 				$recommendedChanges = false;
@@ -86,15 +86,17 @@
 						echo '<b>Plugin class missing</b> | ';
 					}
 
+					echo '<p>';
 					if ($recommendedChanges) {
 						echo $this->Html->link('Recommended changes', ['action' => 'recommended', '?' => ['plugin' => $plugin]]);
 					} else {
 						echo '<i>nothing to change</i>';
 					}
+					echo '</p>';
 				?>
-			</div>
+			</li>
 			<?php } ?>
-		</div>
+		</ul>
 
 	</div>
 </div>
