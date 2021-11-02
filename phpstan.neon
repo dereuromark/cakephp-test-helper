@@ -1,5 +1,10 @@
 parameters:
+	level: 6
+	paths:
+		- src/
 	bootstrapFiles:
-		- bootstrap.php
+		- tests/bootstrap.php
 	ignoreErrors:
 		- '#Call to an undefined method .+FlashComponent::info\(\)#'
+
+	checkMissingIterableValueType: false

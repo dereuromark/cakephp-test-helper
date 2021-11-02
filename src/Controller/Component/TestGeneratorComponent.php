@@ -95,9 +95,9 @@ class TestGeneratorComponent extends Component {
 	}
 
 	/**
-	 * @param string[] $folders
+	 * @param array<string> $folders
 	 *
-	 * @return string[]
+	 * @return array<string>
 	 */
 	public function getFiles(array $folders) {
 		$names = [];

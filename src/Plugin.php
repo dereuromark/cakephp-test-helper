@@ -29,7 +29,7 @@ class Plugin extends BasePlugin {
 				$routes->connect('/', ['controller' => 'TestHelper', 'action' => 'index']);
 
 				$routes->fallbacks();
-			}
+			},
 		);
 	}
 

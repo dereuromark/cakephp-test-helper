@@ -13,7 +13,7 @@ use RegexIterator;
 class PluginsComponent extends Component {
 
 	/**
-	 * @var string[]
+	 * @var array<string>
 	 */
 	protected $irrelevant = [
 		'middleware',
@@ -21,7 +21,7 @@ class PluginsComponent extends Component {
 	];
 
 	/**
-	 * @return string[]
+	 * @return array<string>
 	 */
 	public function hooks(): array {
 		$hooks = PluginInterface::VALID_HOOKS;
@@ -31,7 +31,7 @@ class PluginsComponent extends Component {
 	}
 
 	/**
-	 * @param string[] $pluginNames
+	 * @param array<string> $pluginNames
 	 * @return array
 	 */
 	public function check(array $pluginNames): array {

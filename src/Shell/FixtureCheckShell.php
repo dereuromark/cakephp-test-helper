@@ -65,14 +65,14 @@ class FixtureCheckShell extends Shell {
 	}
 
 	/**
-	 * @return bool|int|null|void
+	 * @return int|bool|null|void
 	 */
 	public function main() {
 		$this->diff();
 	}
 
 	/**
-	 * @return bool|int|null|void
+	 * @return int|bool|null|void
 	 */
 	public function diff() {
 		$fixtures = $this->_getFixtures();
@@ -98,15 +98,16 @@ class FixtureCheckShell extends Shell {
 				continue;
 			}
 
+			/** @var \Cake\TestSuite\Fixture\TestFixture $fixture */
 			$fixture = new $fixtureClass();
 			$fixtureFields = $fixture->fields;
-			$fixtureConstraints = isset($fixtureFields['_constraints']) ? $fixtureFields['_constraints'] : [];
-			$fixtureIndexes = isset($fixtureFields['_indexes']) ? $fixtureFields['_indexes'] : [];
+			$fixtureConstraints = $fixtureFields['_constraints'] ?? [];
+			$fixtureIndexes = $fixtureFields['_indexes'] ?? [];
 
 			unset(
 				$fixtureFields['_options'],
 				$fixtureFields['_constraints'],
-				$fixtureFields['_indexes']
+				$fixtureFields['_indexes'],
 			);
 
 			try {
@@ -242,7 +243,7 @@ class FixtureCheckShell extends Shell {
 						'Field attribute `%s` differs from live DB! (`%s` vs `%s` live)',
 						$fieldName . ':' . $key,
 						Debugger::exportVar($value, 5),
-						Debugger::exportVar($liveField[$key], 5)
+						Debugger::exportVar($liveField[$key], 5),
 					);
 				}
 			}
@@ -522,7 +523,7 @@ class FixtureCheckShell extends Shell {
 			if (!isset($map[$type]) && !in_array($type, $map, true)) {
 				continue;
 			}
-			$whitelist[] = isset($map[$type]) ? $map[$type] : $type;
+			$whitelist[] = $map[$type] ?? $type;
 		}
 
 		return in_array($string, $whitelist, true);

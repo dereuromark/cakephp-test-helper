@@ -136,7 +136,7 @@ class TestHelperHelper extends Helper {
 			function ($val) {
 				return Inflector::camelize($val);
 			},
-			explode('/', $prefix)
+			explode('/', $prefix),
 		);
 
 		return implode('/', $prefixes);

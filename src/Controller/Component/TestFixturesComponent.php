@@ -12,7 +12,7 @@ use Throwable;
 class TestFixturesComponent extends Component {
 
 	/**
-	 * @var array
+	 * @var array<string, mixed>
 	 */
 	protected $_defaultConfig = [
 		'blacklist' => [
@@ -21,7 +21,7 @@ class TestFixturesComponent extends Component {
 	];
 
 	/**
-	 * @param string[] $plugins
+	 * @param array<string> $plugins
 	 * @return array
 	 */
 	public function all(array $plugins): array {
@@ -132,8 +132,8 @@ class TestFixturesComponent extends Component {
 	}
 
 	/**
-	 * @param string[] $fixtures
-	 * @param string[] $tables
+	 * @param array<string> $fixtures
+	 * @param array<string> $tables
 	 *
 	 * @return array
 	 */

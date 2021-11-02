@@ -16,5 +16,5 @@ Router::plugin(
 		$routes->connect('/', ['controller' => 'TestHelper', 'action' => 'index']);
 
 		$routes->fallbacks();
-	}
+	},
 );
