@@ -46,7 +46,10 @@ class TestHelperController extends AppController {
 		if ($this->request->is('post')) {
 			$url = $this->request->getData('url');
 
-			$url = str_replace(env('HTTP_ORIGIN'), '', $url);
+			$origin = env('HTTP_ORIGIN');
+			if ($origin) {
+				$url = str_replace($origin, '', $url);
+			}
 
 			$params = Router::getRouteCollection()->parse($url);
 
