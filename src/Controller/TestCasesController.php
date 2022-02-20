@@ -210,7 +210,7 @@ class TestCasesController extends AppController {
 	 * @param string $name
 	 * @param string $type
 	 * @param string $plugin
-	 * @param array $options
+	 * @param array<string, mixed> $options
 	 *
 	 * @return bool
 	 */

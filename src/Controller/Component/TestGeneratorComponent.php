@@ -22,7 +22,7 @@ class TestGeneratorComponent extends Component {
 	 * @param string $name
 	 * @param string $type
 	 * @param string $plugin
-	 * @param array $options
+	 * @param array<string, mixed> $options
 	 *
 	 * @return bool
 	 */
@@ -59,7 +59,7 @@ class TestGeneratorComponent extends Component {
 	/**
 	 * @param string $name
 	 * @param string $plugin
-	 * @param array $options
+	 * @param array<string, mixed> $options
 	 *
 	 * @return bool
 	 */
