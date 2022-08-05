@@ -5,8 +5,8 @@ namespace TestHelper\Shell;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Console\Shell;
 use Cake\Core\Configure;
+use Cake\Core\Exception\CakeException;
 use Cake\Core\Plugin;
-use Cake\Database\Exception;
 use Cake\Datasource\ConnectionManager;
 use Cake\Error\Debugger;
 use Cake\Filesystem\Folder;
@@ -38,7 +38,7 @@ class FixtureCheckShell extends Shell {
 	/**
 	 * Configuration read from Configure
 	 *
-	 * @var array
+	 * @var array<string, mixed>
 	 */
 	protected $_config = [
 		'ignoreClasses' => [],
@@ -147,7 +147,7 @@ class FixtureCheckShell extends Shell {
 				if ($this->_isType('indexes')) {
 					$this->_compareIndexes($fixtureIndexes, $liveIndexes, $fixture->table);
 				}
-			} catch (Exception $e) {
+			} catch (CakeException $e) {
 				$this->err($e->getMessage());
 			}
 		}
