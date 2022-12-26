@@ -6,4 +6,5 @@ parameters:
 		- tests/bootstrap.php
 	ignoreErrors:
 
+	checkGenericClassInNonGenericObjectType: false
 	checkMissingIterableValueType: false
