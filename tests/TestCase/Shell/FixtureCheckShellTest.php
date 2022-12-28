@@ -10,9 +10,9 @@ use TestHelper\Shell\FixtureCheckShell;
 class FixtureCheckShellTest extends TestCase {
 
 	/**
-	 * @var array
+	 * @var array<string>
 	 */
-	public $fixtures = [
+	protected $fixtures = [
 		'core.Posts',
 	];
 
