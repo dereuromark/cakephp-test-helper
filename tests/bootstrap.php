@@ -1,5 +1,6 @@
 <?php
 
+use Cake\Filesystem\Folder;
 
 if (!defined('DS')) {
 	define('DS', DIRECTORY_SEPARATOR);
@@ -42,7 +43,7 @@ Cake\Core\Configure::write('debug', true);
 
 mb_internal_encoding('UTF-8');
 
-$Tmp = new \Cake\Filesystem\Folder(TMP);
+$Tmp = new Folder(TMP);
 $Tmp->create(TMP . 'cache/models', 0770);
 $Tmp->create(TMP . 'cache/persistent', 0770);
 $Tmp->create(TMP . 'cache/views', 0770);
