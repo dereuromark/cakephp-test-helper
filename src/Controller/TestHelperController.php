@@ -44,9 +44,9 @@ class TestHelperController extends AppController {
 	 */
 	public function index() {
 		if ($this->request->is('post')) {
-			$url = $this->request->getData('url');
+			$url = (string)$this->request->getData('url');
 
-			$origin = env('HTTP_ORIGIN');
+			$origin = (string)env('HTTP_ORIGIN');
 			if ($origin) {
 				$url = str_replace($origin, '', $url);
 			}

@@ -56,6 +56,7 @@ class PluginsController extends AppController {
 	 * @return \Cake\Http\Response|null|void
 	 */
 	public function recommended() {
+		/** @var string $plugin */
 		$plugin = $this->request->getQuery('plugin');
 
 		$hooks = $this->Plugins->hooks();
@@ -63,7 +64,7 @@ class PluginsController extends AppController {
 		$result = $result[$plugin];
 
 		$class = $result['pluginClassExists'] ? $result['pluginClass'] : null;
-		$classContent = $class ? file_get_contents($class) : null;
+		$classContent = $class ? (string)file_get_contents($class) : null;
 		$classContentAfter = $this->Plugins->adjustPluginClass($plugin, $classContent, $result);
 
 		if ($this->request->is('post')) {

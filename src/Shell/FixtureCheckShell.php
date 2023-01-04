@@ -79,8 +79,9 @@ class FixtureCheckShell extends Shell {
 		$this->out(count($fixtures) . ' fixtures found, processing:');
 		$this->out('');
 
-		$connection = ConnectionManager::get($this->param('connection'));
+		$connection = ConnectionManager::get((string)$this->param('connection'));
 		$namespace = 'App';
+		/** @var string|null $plugin */
 		$plugin = $this->param('plugin');
 		if ($plugin) {
 			$namespace = str_replace('/', '\\', $plugin);
@@ -404,11 +405,12 @@ class FixtureCheckShell extends Shell {
 	}
 
 	/**
-	 * @return array|bool
+	 * @return array|null
 	 */
 	protected function _getFixturesFromOptions() {
+		/** @var string|null $fixtureString */
 		$fixtureString = $this->param('fixtures');
-		if (!empty($fixtureString)) {
+		if ($fixtureString) {
 			$fixtures = explode(',', $fixtureString);
 			foreach ($fixtures as $key => $fixture) {
 				$fixtures[$key] = $fixture . 'Fixture';
@@ -417,7 +419,7 @@ class FixtureCheckShell extends Shell {
 			return $fixtures;
 		}
 
-		return false;
+		return null;
 	}
 
 	/**
@@ -427,6 +429,7 @@ class FixtureCheckShell extends Shell {
 	 */
 	protected function _getFixtureFiles() {
 		$fixtureFolder = TESTS . 'Fixture' . DS;
+		/** @var string|null $plugin */
 		$plugin = $this->param('plugin');
 		if ($plugin) {
 			$fixtureFolder = Plugin::path($plugin) . 'tests' . DS . 'Fixture' . DS;
@@ -516,7 +519,7 @@ class FixtureCheckShell extends Shell {
 			return true;
 		}
 
-		$types = explode(',', $this->param('type'));
+		$types = explode(',', (string)$this->param('type'));
 
 		$whitelist = [];
 		foreach ($types as $type) {

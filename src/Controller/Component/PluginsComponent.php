@@ -9,6 +9,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
 use RegexIterator;
+use RuntimeException;
 
 class PluginsComponent extends Component {
 
@@ -103,6 +104,10 @@ class PluginsComponent extends Component {
 		}
 
 		$pluginContent = file_get_contents($pluginClassPath);
+		if ($pluginContent === false) {
+			throw new RuntimeException('Cannot read file: ' . $pluginClassPath);
+		}
+
 		foreach ($parts as $part) {
 			preg_match('#protected \$' . $part . 'Enabled\s*=\s*(\w+);#', $pluginContent, $matches);
 			$enabled = null;
@@ -129,11 +134,15 @@ class PluginsComponent extends Component {
 	 * @return bool
 	 */
 	protected function bootstrapExists(string $configPath): bool {
-		if (!file_exists($configPath . 'bootstrap.php')) {
+		$filePath = $configPath . 'bootstrap.php';
+		if (!file_exists($filePath)) {
 			return false;
 		}
 
-		$fileContent = file_get_contents($configPath . 'bootstrap.php');
+		$fileContent = file_get_contents($filePath);
+		if ($fileContent === false) {
+			throw new RuntimeException('Cannot read file: ' . $filePath);
+		}
 
 		return trim($fileContent) !== '<?php';
 	}
@@ -197,7 +206,7 @@ class PluginsComponent extends Component {
 	 * @return string
 	 */
 	public function adjustPluginClass(string $plugin, ?string $content, array $result): string {
-		if (!$content) {
+		if ($content === null) {
 			$content = <<<TXT
 <?php
 

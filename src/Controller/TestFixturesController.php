@@ -49,6 +49,7 @@ class TestFixturesController extends AppController {
 	 */
 	public function index() {
 		if ($this->request->getQuery('plugin')) {
+			/** @var array<string> $plugins */
 			$plugins = [$this->request->getQuery('plugin')];
 		} else {
 			$plugins = Plugin::loaded();

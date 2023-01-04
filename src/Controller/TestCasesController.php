@@ -160,9 +160,10 @@ class TestCasesController extends AppController {
 	 *
 	 * @param string $type
 	 *
-	 * @return \Cake\Http\Response|null|void
+	 * @return \Cake\Http\Response|null
 	 */
 	protected function handle($type) {
+		/** @var string|null $appOrPlugin */
 		$appOrPlugin = $this->request->getQuery('namespace');
 		$plugin = $appOrPlugin !== 'app' ? $appOrPlugin : null;
 		$classType = ClassResolver::type($type);
@@ -177,6 +178,7 @@ class TestCasesController extends AppController {
 			return $this->redirect($this->referer([$type] + ['?' => $this->request->getQuery()], true));
 		}
 
+		/** @phpstan-var string $name */
 		foreach ($files as $key => $name) {
 			$suffix = ClassResolver::suffix($type);
 			if ($suffix && !preg_match('/\w+' . $suffix . '$/', $name)) {
@@ -203,7 +205,8 @@ class TestCasesController extends AppController {
 		}
 
 		$this->set(compact('files', 'type'));
-		$this->render('handle');
+
+		return $this->render('handle');
 	}
 
 	/**
@@ -233,7 +236,7 @@ class TestCasesController extends AppController {
 			$this->Flash->error('Error code ' . $return . ': ' . print_r($output, true) . ' [' . $command . ']');
 		}
 
-		$this->Flash->success(json_encode($output));
+		$this->Flash->success((string)json_encode($output));
 
 		return $return === 0;
 	}

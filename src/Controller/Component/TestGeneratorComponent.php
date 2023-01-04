@@ -21,12 +21,12 @@ class TestGeneratorComponent extends Component {
 	/**
 	 * @param string $name
 	 * @param string $type
-	 * @param string $plugin
+	 * @param string|null $plugin
 	 * @param array<string, mixed> $options
 	 *
 	 * @return bool
 	 */
-	public function generate($name, $type, $plugin, array $options = []) {
+	public function generate(string $name, string $type, ?string $plugin, array $options = []) {
 		if (preg_match("#$type$#", $name, $matches)) {
 			$name = substr($name, 0, -strlen($type));
 		}
@@ -51,7 +51,7 @@ class TestGeneratorComponent extends Component {
 			return false;
 		}
 
-		$this->Flash->info(json_encode($output));
+		$this->Flash->info((string)json_encode($output));
 
 		return true;
 	}
@@ -89,7 +89,7 @@ class TestGeneratorComponent extends Component {
 			return false;
 		}
 
-		$this->Flash->info(json_encode($output));
+		$this->Flash->info((string)json_encode($output));
 
 		return true;
 	}
