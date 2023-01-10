@@ -2,14 +2,14 @@
 
 namespace TestHelper\Test\TestCase\Controller;
 
+use Cake\TestSuite\TestCase;
 use Cake\Utility\Hash;
-use Shim\TestSuite\IntegrationTestCase;
 use TestApp\TestSuite\TestSession;
 
 /**
  * @uses \TestHelper\Controller\TestHelperController
  */
-class TestFixturesControllerTest extends IntegrationTestCase {
+class TestFixturesControllerTest extends TestCase {
 
 	/**
 	 * @return void

@@ -9,8 +9,8 @@ use Cake\Core\Exception\CakeException;
 use Cake\Core\Plugin;
 use Cake\Datasource\ConnectionManager;
 use Cake\Error\Debugger;
-use Cake\Filesystem\Folder;
 use Cake\ORM\Table;
+use Shim\Filesystem\Folder;
 
 if (!defined('TESTS')) {
 	define('TESTS', ROOT . DS . 'tests' . DS);
@@ -40,7 +40,7 @@ class FixtureCheckShell extends Shell {
 	 *
 	 * @var array<string, mixed>
 	 */
-	protected $_config = [
+	protected array $_config = [
 		'ignoreClasses' => [],
 	];
 
@@ -49,12 +49,12 @@ class FixtureCheckShell extends Shell {
 	 *
 	 * @var array
 	 */
-	protected $_issuesFound = [];
+	protected array $_issuesFound = [];
 
 	/**
 	 * @var array
 	 */
-	protected $_missingFields = [];
+	protected array $_missingFields = [];
 
 	/**
 	 * @inheritDoc

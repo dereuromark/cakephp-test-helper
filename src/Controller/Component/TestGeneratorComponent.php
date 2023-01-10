@@ -4,17 +4,14 @@ namespace TestHelper\Controller\Component;
 
 use Cake\Controller\Component;
 use Cake\Core\Plugin;
-use Cake\Filesystem\Folder;
+use Shim\Filesystem\Folder;
 
 /**
  * @property \Cake\Controller\Component\FlashComponent $Flash
  */
 class TestGeneratorComponent extends Component {
 
-	/**
-	 * @var array
-	 */
-	public $components = [
+	public array $components = [
 		'Flash',
 	];
 

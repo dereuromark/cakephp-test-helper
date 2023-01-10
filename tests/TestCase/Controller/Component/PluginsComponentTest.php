@@ -3,16 +3,18 @@
 namespace TestHelper\Test\TestCase\Controller;
 
 use Cake\Controller\ComponentRegistry;
-use Shim\TestSuite\IntegrationTestCase;
+use Cake\Controller\Controller;
+use Cake\Http\ServerRequest;
+use Cake\TestSuite\TestCase;
 use TestHelper\Controller\Component\PluginsComponent;
 
-class PluginsComponentTest extends IntegrationTestCase {
+class PluginsComponentTest extends TestCase {
 
 	/**
 	 * @return void
 	 */
 	public function testAdjustPluginClass() {
-		$component = new PluginsComponent(new ComponentRegistry());
+		$component = new PluginsComponent(new ComponentRegistry(new Controller(new ServerRequest())));
 
 		$parts = $component->hooks();
 

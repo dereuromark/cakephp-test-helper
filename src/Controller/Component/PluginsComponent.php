@@ -16,7 +16,7 @@ class PluginsComponent extends Component {
 	/**
 	 * @var array<string>
 	 */
-	protected $irrelevant = [
+	protected array $irrelevant = [
 		'middleware',
 		'services',
 	];

@@ -2,12 +2,10 @@
 
 namespace TestHelper\Test\TestCase\Controller;
 
-use Shim\TestSuite\IntegrationTestCase;
-
 /**
  * @uses \TestHelper\Controller\TestCasesController
  */
-class TestCasesControllerTest extends IntegrationTestCase {
+class TestCasesControllerTest extends TestCase {
 
 	/**
 	 * @return void

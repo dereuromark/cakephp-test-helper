@@ -2,9 +2,7 @@
 
 namespace TestHelper\Test\TestCase\Controller;
 
-use Shim\TestSuite\IntegrationTestCase;
-
-class PluginsControllerTest extends IntegrationTestCase {
+class PluginsControllerTest extends TestCase {
 
 	/**
 	 * @return void

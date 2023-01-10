@@ -6,8 +6,8 @@ use App\Controller\AppController;
 use Cake\Core\App;
 use Cake\Core\Plugin;
 use Cake\Event\EventInterface;
-use Cake\Filesystem\Folder;
 use RuntimeException;
+use Shim\Filesystem\Folder;
 use TestHelper\Utility\ClassResolver;
 
 /**

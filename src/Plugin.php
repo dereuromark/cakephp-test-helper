@@ -10,12 +10,12 @@ class Plugin extends BasePlugin {
 	/**
 	 * @var bool
 	 */
-	protected $middlewareEnabled = false;
+	protected bool $middlewareEnabled = false;
 
 	/**
 	 * @var bool
 	 */
-	protected $bootstrapEnabled = false;
+	protected bool $bootstrapEnabled = false;
 
 	/**
 	 * @param \Cake\Routing\RouteBuilder $routes The route builder to update.
@@ -25,7 +25,7 @@ class Plugin extends BasePlugin {
 		$routes->plugin(
 			'TestHelper',
 			['path' => '/test-helper'],
-			function (RouteBuilder $routes) {
+			function (RouteBuilder $routes): void {
 				$routes->connect('/', ['controller' => 'TestHelper', 'action' => 'index']);
 
 				$routes->fallbacks();

@@ -12,24 +12,15 @@ class FixtureCheckShellTest extends TestCase {
 	/**
 	 * @var array<string>
 	 */
-	protected $fixtures = [
+	protected array $fixtures = [
 		'core.Posts',
 	];
 
-	/**
-	 * @var \Shim\TestSuite\ConsoleOutput
-	 */
-	protected $out;
+	protected ConsoleOutput $out;
 
-	/**
-	 * @var \Shim\TestSuite\ConsoleOutput
-	 */
-	protected $err;
+	protected ConsoleOutput $err;
 
-	/**
-	 * @var \TestHelper\Shell\FixtureCheckShell
-	 */
-	protected $FixtureCheckShell;
+	protected FixtureCheckShell $FixtureCheckShell;
 
 	/**
 	 * setUp method

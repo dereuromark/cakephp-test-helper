@@ -8,10 +8,7 @@ use TestHelper\View\Helper\TestHelperHelper;
 
 class TestHelperHelperTest extends TestCase {
 
-	/**
-	 * @var \TestHelper\View\Helper\TestHelperHelper
-	 */
-	protected $testHelperHelper;
+	protected TestHelperHelper $testHelperHelper;
 
 	/**
 	 * setUp method

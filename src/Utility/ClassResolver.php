@@ -4,10 +4,7 @@ namespace TestHelper\Utility;
 
 class ClassResolver {
 
-	/**
-	 * @var array
-	 */
-	protected static $typeMap = [
+	protected static array $typeMap = [
 		'Table' => 'Model/Table',
 		'Entity' => 'Model/Entity',
 		'Behavior' => 'Model/Behavior',
@@ -17,10 +14,7 @@ class ClassResolver {
 		'ShellHelper' => 'Shell/Helper',
 	];
 
-	/**
-	 * @var array
-	 */
-	protected static $suffixMap = [
+	protected static array $suffixMap = [
 		'Entity' => '',
 		'ShellHelper' => 'Helper',
 	];

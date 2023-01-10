@@ -11,10 +11,7 @@ use RuntimeException;
  */
 class TestSession {
 
-	/**
-	 * @var array|null
-	 */
-	protected $session;
+	protected ?array $session;
 
 	/**
 	 * @param array|null $session
