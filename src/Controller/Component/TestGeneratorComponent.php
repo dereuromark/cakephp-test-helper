@@ -114,7 +114,7 @@ class TestGeneratorComponent extends Component {
 
 				foreach ($folderContent[1] as $file) {
 					$name = pathinfo($file, PATHINFO_FILENAME);
-					$names[] = $subFolder . '.' . $name;
+					$names[] = $subFolder . '/' . $name;
 				}
 			}
 		}
