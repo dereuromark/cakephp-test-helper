@@ -27,6 +27,11 @@ class TestGeneratorComponent extends Component {
 	 * @return bool
 	 */
 	public function generate(string $name, string $type, ?string $plugin, array $options = []) {
+		$prefix = null;
+		if (strpos($name, '/') !== false) {
+			[$prefix, $name] = explode('/', $name, 2);
+		}
+
 		if (preg_match("#$type$#", $name, $matches)) {
 			$name = substr($name, 0, -strlen($type));
 		}
@@ -37,6 +42,9 @@ class TestGeneratorComponent extends Component {
 		}
 		if ($plugin) {
 			$arguments .= ' -p ' . $plugin;
+		}
+		if ($prefix) {
+			$arguments .= ' --prefix=' . $prefix;
 		}
 		foreach ($options as $key => $option) {
 			$arguments .= '--' . $key . ' ' . $option;
