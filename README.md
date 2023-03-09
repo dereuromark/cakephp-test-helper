@@ -38,16 +38,20 @@ Note: This is not meant for production, so make sure you use the `--dev` flag an
 
 Don't forget to load it under your bootstrap function in `Application.php`:
 ```php
-$this->addPlugin('TestHelper');
+if (Configure::read('debug')) {
+    $this->addPlugin('TestHelper');
+}
 ```
 
 This will also load the routes.
 
-### Deprecated way
-In older applications you used the bootstrap file:
+### non-dev mode
+In certain apps it can be useful to have some of the helper functionality available also for staging and prod.
+Here you must make sure then to not load the routes, though:
 ```php
-Plugin::load('TestHelper', ['routes' => true]);
+$this->addPlugin('TestHelper', ['routes' => Configure::read('debug')]);
 ```
+And here you must use `composer require` without `--dev` flag then.
 
 ## Usage
 Navigate to `/test-helper` backend and select the app or plugin you want to check.
