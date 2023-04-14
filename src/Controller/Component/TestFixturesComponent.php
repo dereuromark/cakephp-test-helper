@@ -163,7 +163,7 @@ class TestFixturesComponent extends Component {
 			];
 		}
 
-        ksort($result);
+		ksort($result);
 
 		return $result;
 	}
