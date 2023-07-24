@@ -7,6 +7,8 @@ use Cake\Datasource\ConnectionManager;
 use Cake\Filesystem\Folder;
 use TestApp\Controller\AppController;
 use TestApp\View\AppView;
+use TestHelper\Plugin as TestHelperPlugin;
+use Tools\Plugin as ToolsPlugin;
 
 if (!defined('DS')) {
 	define('DS', DIRECTORY_SEPARATOR);
@@ -79,8 +81,8 @@ class_alias(AppController::class, 'App\Controller\AppController');
 class_alias(AppView::class, 'App\View\AppView');
 
 Cache::setConfig($cache);
-Plugin::getCollection()->add(new TestHelper\Plugin());
-Plugin::getCollection()->add(new Tools\Plugin());
+Plugin::getCollection()->add(new TestHelperPlugin());
+Plugin::getCollection()->add(new ToolsPlugin());
 
 if (getenv('db_dsn')) {
 	ConnectionManager::setConfig('test', [
