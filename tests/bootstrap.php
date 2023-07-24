@@ -1,6 +1,12 @@
 <?php
 
+use Cake\Cache\Cache;
+use Cake\Core\Configure;
+use Cake\Core\Plugin;
+use Cake\Datasource\ConnectionManager;
 use Cake\Filesystem\Folder;
+use TestApp\Controller\AppController;
+use TestApp\View\AppView;
 
 if (!defined('DS')) {
 	define('DS', DIRECTORY_SEPARATOR);
@@ -32,14 +38,14 @@ ini_set('intl.default_locale', 'de-DE');
 require ROOT . '/vendor/autoload.php';
 require CORE_PATH . 'config/bootstrap.php';
 
-Cake\Core\Configure::write('App', [
+Configure::write('App', [
 	'namespace' => 'TestApp',
 	'encoding' => 'UTF-8',
 	'paths' => [
 		'templates' => [ROOT . DS . 'tests' . DS . 'test_app' . DS . 'templates' . DS],
 	],
 ]);
-Cake\Core\Configure::write('debug', true);
+Configure::write('debug', true);
 
 mb_internal_encoding('UTF-8');
 
@@ -69,15 +75,15 @@ $cache = [
 	],
 ];
 
-class_alias(TestApp\Controller\AppController::class, 'App\Controller\AppController');
-class_alias(TestApp\View\AppView::class, 'App\View\AppView');
+class_alias(AppController::class, 'App\Controller\AppController');
+class_alias(AppView::class, 'App\View\AppView');
 
-Cake\Cache\Cache::setConfig($cache);
-Cake\Core\Plugin::getCollection()->add(new TestHelper\Plugin());
-Cake\Core\Plugin::getCollection()->add(new Tools\Plugin());
+Cache::setConfig($cache);
+Plugin::getCollection()->add(new TestHelper\Plugin());
+Plugin::getCollection()->add(new Tools\Plugin());
 
 if (getenv('db_dsn')) {
-	Cake\Datasource\ConnectionManager::setConfig('test', [
+	ConnectionManager::setConfig('test', [
 		'className' => 'Cake\Database\Connection',
 		'url' => getenv('db_dsn'),
 		'timezone' => 'UTC',
@@ -94,7 +100,7 @@ if (!getenv('db_class')) {
 	putenv('db_dsn=sqlite:///:memory:');
 }
 
-Cake\Datasource\ConnectionManager::setConfig('test', [
+ConnectionManager::setConfig('test', [
 	'className' => 'Cake\Database\Connection',
 	'url' => getenv('db_dsn') ?: null,
 	'driver' => getenv('db_class') ?: null,
