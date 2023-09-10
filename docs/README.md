@@ -25,6 +25,9 @@ In your /sites-available/ configuration find and remove the following for your l
 
 Afterwards your coverage should be colorful.
 
+### Missing CSRF Token Cookie 
+If you are using the CsrfProtectionMiddleware or alike, make sure to deactivate for such admin backends, as those are not supposed to be part of it.
+They also should only be accessible locally, anyway.
 
 ## Other tools
 
