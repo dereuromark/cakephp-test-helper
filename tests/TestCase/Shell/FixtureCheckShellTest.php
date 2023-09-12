@@ -13,7 +13,7 @@ class FixtureCheckShellTest extends TestCase {
 	 * @var array<string>
 	 */
 	protected array $fixtures = [
-		'core.Posts',
+		'plugin.TestHelper.Posts',
 	];
 
 	protected ConsoleOutput $out;

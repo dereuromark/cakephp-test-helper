@@ -4,11 +4,13 @@ use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
 use Cake\Datasource\ConnectionManager;
-use Cake\Filesystem\Folder;
+use Cake\TestSuite\Fixture\SchemaLoader;
+use Shim\Filesystem\Folder;
 use TestApp\Controller\AppController;
 use TestApp\View\AppView;
-use TestHelper\Plugin as TestHelperPlugin;
-use Tools\Plugin as ToolsPlugin;
+use TestHelper\TestHelperPlugin;
+use Tools\ToolsPlugin;
+use Tools\View\Icon\FontAwesome4Icon;
 
 if (!defined('DS')) {
 	define('DS', DIRECTORY_SEPARATOR);
@@ -39,6 +41,7 @@ ini_set('intl.default_locale', 'de-DE');
 
 require ROOT . '/vendor/autoload.php';
 require CORE_PATH . 'config/bootstrap.php';
+require CAKE . 'functions.php';
 
 Configure::write('App', [
 	'namespace' => 'TestApp',
@@ -114,7 +117,15 @@ ConnectionManager::setConfig('test', [
 	'cacheMetadata' => true,
 ]);
 
+Configure::write('Icon', [
+	'sets' => [
+		'fas' => [
+			'class' => FontAwesome4Icon::class,
+		],
+	],
+]);
+
 if (env('FIXTURE_SCHEMA_METADATA')) {
-	$loader = new Cake\TestSuite\Fixture\SchemaLoader();
+	$loader = new SchemaLoader();
 	$loader->loadInternalFile(env('FIXTURE_SCHEMA_METADATA'));
 }

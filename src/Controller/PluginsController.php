@@ -11,6 +11,8 @@ use Cake\Event\EventInterface;
  */
 class PluginsController extends AppController {
 
+	protected ?string $defaultTable = '';
+
 	/**
 	 * @return void
 	 */

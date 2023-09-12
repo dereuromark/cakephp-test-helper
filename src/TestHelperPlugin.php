@@ -5,7 +5,7 @@ namespace TestHelper;
 use Cake\Core\BasePlugin;
 use Cake\Routing\RouteBuilder;
 
-class Plugin extends BasePlugin {
+class TestHelperPlugin extends BasePlugin {
 
 	/**
 	 * @var bool

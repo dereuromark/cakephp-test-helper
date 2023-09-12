@@ -2,10 +2,15 @@
 
 namespace TestHelper\Test\TestCase\Controller;
 
+use Cake\TestSuite\IntegrationTestTrait;
+use Cake\TestSuite\TestCase;
+
 /**
  * @uses \TestHelper\Controller\TestHelperController
  */
 class TestHelperControllerTest extends TestCase {
+
+	use IntegrationTestTrait;
 
 	/**
 	 * @return void

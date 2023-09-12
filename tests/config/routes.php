@@ -2,14 +2,16 @@
 
 use Cake\Routing\Route\DashedRoute;
 use Cake\Routing\RouteBuilder;
-use Cake\Routing\Router;
 
-Router::defaultRouteClass(DashedRoute::class);
-Router::scope('/', function(RouteBuilder $routes) {
+/**
+ * @var \Cake\Routing\RouteBuilder $routes
+ */
+$routes->setRouteClass(DashedRoute::class);
+$routes->scope('/', function(RouteBuilder $routes) {
 	$routes->fallbacks();
 });
 
-Router::plugin(
+$routes->plugin(
 	'TestHelper',
 	['path' => '/test-helper'],
 	function (RouteBuilder $routes) {

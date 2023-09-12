@@ -5,6 +5,8 @@ namespace TestHelper\Controller;
 use App\Controller\AppController;
 use Cake\Core\Plugin;
 use Cake\Event\EventInterface;
+use Cake\Http\ServerRequest;
+use Cake\Http\UriFactory;
 use Cake\Routing\Router;
 
 class TestHelperController extends AppController {
@@ -51,7 +53,8 @@ class TestHelperController extends AppController {
 				$url = str_replace($origin, '', $url);
 			}
 
-			$params = Router::getRouteCollection()->parse($url);
+			$request = (new ServerRequest())->withUri((new UriFactory())->createUri($url));
+			$params = Router::getRouteCollection()->parseRequest($request);
 
 			$this->set(compact('params'));
 		}

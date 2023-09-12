@@ -12,6 +12,8 @@ use Cake\Event\EventInterface;
  */
 class TestFixturesController extends AppController {
 
+	protected ?string $defaultTable = '';
+
 	/**
 	 * @return void
 	 */

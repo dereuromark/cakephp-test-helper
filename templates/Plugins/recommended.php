@@ -23,7 +23,7 @@ use SebastianBergmann\Diff\Differ;
 <div>
 	<pre><?php
 		if (!$this->request->getQuery('raw') && class_exists(Differ::class)) {
-			$differ = new Differ(null);
+			$differ = new Differ(new \SebastianBergmann\Diff\Output\DiffOnlyOutputBuilder());
 			$array = $differ->diffToArray((string)$classContent, $classContentAfter);
 
 			$count = count($array);
