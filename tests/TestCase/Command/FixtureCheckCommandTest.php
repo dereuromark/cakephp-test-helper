@@ -1,13 +1,16 @@
 <?php
 
-namespace TestHelper\Test\TestCase\Shell;
+namespace TestHelper\Test\TestCase\Command;
 
 use Cake\Console\ConsoleIo;
+use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 use Shim\TestSuite\ConsoleOutput;
-use TestHelper\Shell\FixtureCheckShell;
+use TestHelper\Command\FixtureCheckCommand;
 
-class FixtureCheckShellTest extends TestCase {
+class FixtureCheckCommandTest extends TestCase {
+
+	use ConsoleIntegrationTestTrait;
 
 	/**
 	 * @var array<string>
@@ -20,7 +23,7 @@ class FixtureCheckShellTest extends TestCase {
 
 	protected ConsoleOutput $err;
 
-	protected FixtureCheckShell $FixtureCheckShell;
+	protected FixtureCheckCommand $FixtureCheckCommand;
 
 	/**
 	 * setUp method
@@ -32,9 +35,7 @@ class FixtureCheckShellTest extends TestCase {
 
 		$this->out = new ConsoleOutput();
 		$this->err = new ConsoleOutput();
-		$io = new ConsoleIo($this->out, $this->err);
-
-		$this->FixtureCheckShell = new FixtureCheckShell($io);
+		$this->FixtureCheckCommand = new FixtureCheckCommand();
 	}
 
 	/**
@@ -43,7 +44,7 @@ class FixtureCheckShellTest extends TestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset($this->FixtureCheckShell);
+		unset($this->FixtureCheckCommand);
 
 		parent::tearDown();
 	}
@@ -52,7 +53,8 @@ class FixtureCheckShellTest extends TestCase {
 	 * @return void
 	 */
 	public function testDiff() {
-		$this->FixtureCheckShell->runCommand(['diff', '-p', 'Tools', '-t', 'f,c,i']);
+		$io = new ConsoleIo($this->out, $this->err);
+		$this->FixtureCheckCommand->run(['diff', '-p', 'Tools', '-t', 'f,c,i'], $io);
 
 		$output = $this->out->output();
 		$this->assertNotEmpty($output, $output);

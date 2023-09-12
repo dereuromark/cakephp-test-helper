@@ -1,9 +1,9 @@
 <?php
 
-namespace TestHelper\Shell;
+namespace TestHelper\Command;
 
+use Cake\Command\Command;
 use Cake\Console\ConsoleOptionParser;
-use Cake\Console\Shell;
 use Cake\Core\Configure;
 use Cake\Core\Exception\CakeException;
 use Cake\Core\Plugin;
@@ -33,7 +33,7 @@ if (!defined('TESTS')) {
  * @copyright PSA Publishers Ltd
  * @license MIT
  */
-class FixtureCheckShell extends Shell {
+class FixtureCheckCommand extends Command {
 
 	/**
 	 * Configuration read from Configure
