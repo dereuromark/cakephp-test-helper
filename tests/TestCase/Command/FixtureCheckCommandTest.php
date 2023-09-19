@@ -2,6 +2,7 @@
 
 namespace TestHelper\Test\TestCase\Command;
 
+use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
@@ -54,7 +55,8 @@ class FixtureCheckCommandTest extends TestCase {
 	 */
 	public function testDiff() {
 		$io = new ConsoleIo($this->out, $this->err);
-		$this->FixtureCheckCommand->run(['diff', '-p', 'Tools', '-t', 'f,c,i'], $io);
+		$args = new Arguments([], [], []);
+		$this->FixtureCheckCommand->execute($args, $io);
 
 		$output = $this->out->output();
 		$this->assertNotEmpty($output, $output);

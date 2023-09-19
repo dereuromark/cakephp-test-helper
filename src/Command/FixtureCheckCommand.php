@@ -2,7 +2,8 @@
 
 namespace TestHelper\Command;
 
-use Cake\Command\Command;
+use Cake\Console\Arguments;
+use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
 use Cake\Core\Exception\CakeException;
@@ -10,6 +11,7 @@ use Cake\Core\Plugin;
 use Cake\Datasource\ConnectionManager;
 use Cake\Error\Debugger;
 use Cake\ORM\Table;
+use Shim\Command\Command;
 use Shim\Filesystem\Folder;
 
 if (!defined('TESTS')) {
@@ -63,26 +65,25 @@ class FixtureCheckCommand extends Command {
 		parent::initialize();
 		$this->_config = (array)Configure::read('FixtureCheck') + $this->_config;
 	}
-
 	/**
-	 * @return int|bool|null|void
+	 * Implement this method with your command's logic.
+	 *
+	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingNativeTypeHint
+	 * @param \Cake\Console\Arguments $args The command arguments.
+	 * @param \Cake\Console\ConsoleIo $io The console io
+	 * @return int|null|void The exit code or null for success
 	 */
-	public function main() {
-		$this->diff();
-	}
+	public function execute(Arguments $args, ConsoleIo $io) {
+		parent::execute($args, $io);
 
-	/**
-	 * @return int|bool|null|void
-	 */
-	public function diff() {
 		$fixtures = $this->_getFixtures();
-		$this->out(count($fixtures) . ' fixtures found, processing:');
-		$this->out('');
+		$this->io->out(count($fixtures) . ' fixtures found, processing:');
+		$this->io->out('');
 
-		$connection = ConnectionManager::get((string)$this->param('connection'));
+		$connection = ConnectionManager::get((string)$this->args->getOption('connection'));
 		$namespace = 'App';
 		/** @var string|null $plugin */
-		$plugin = $this->param('plugin');
+		$plugin = $this->args->getOption('plugin');
 		if ($plugin) {
 			$namespace = str_replace('/', '\\', $plugin);
 		}
@@ -90,7 +91,7 @@ class FixtureCheckCommand extends Command {
 		foreach ($fixtures as $fixture) {
 			$fixtureClass = $namespace . '\Test\Fixture\\' . $fixture;
 			if (!class_exists($fixtureClass)) {
-				$this->err(sprintf('Fixture %s does not exist.', $fixtureClass));
+				$this->io->err(sprintf('Fixture %s does not exist.', $fixtureClass));
 
 				continue;
 			}
@@ -117,7 +118,7 @@ class FixtureCheckCommand extends Command {
 					'connection' => $connection,
 				]);
 
-				$this->info(sprintf('Comparing `%s` with table `%s`', $fixtureClass, $fixture->table));
+				$this->io->info(sprintf('Comparing `%s` with table `%s`', $fixtureClass, $fixture->table));
 
 				$liveFields = [];
 				$columns = $table->getSchema()->columns();
@@ -149,40 +150,40 @@ class FixtureCheckCommand extends Command {
 					$this->_compareIndexes($fixtureIndexes, $liveIndexes, $fixture->table);
 				}
 			} catch (CakeException $e) {
-				$this->err($e->getMessage());
+				$this->io->err($e->getMessage());
 			}
 		}
 
 		if (!empty($this->_config['ignoreClasses'])) {
-			$this->info('Ignored fixture classes:');
+			$this->io->info('Ignored fixture classes:');
 			foreach ($this->_config['ignoreClasses'] as $ignoredFixture) {
-				$this->out(' * ' . $ignoredFixture);
+				$this->io->out(' * ' . $ignoredFixture);
 			}
 		}
 
 		if ($this->_issuesFound) {
-			$this->out('');
-			if ($this->param('direction') === 'fixture') {
-				$this->warn('Copy-paste the following for fixture updating:');
+			$this->io->out('');
+			if ($this->args->getOption('direction') === 'fixture') {
+				$this->io->warning('Copy-paste the following for fixture updating:');
 				$tables = array_unique($this->_issuesFound);
 				foreach ($tables as $table) {
 					$params = '-f';
-					if ($this->param('plugin')) {
-						$params .= ' -p ' . $this->param('plugin');
+					if ($this->args->getOption('plugin')) {
+						$params .= ' -p ' . $this->args->getOption('plugin');
 					}
 
-					$this->info('bin/cake bake fixture ' . $table . ' ' . $params);
+					$this->io->info('bin/cake bake fixture ' . $table . ' ' . $params);
 				}
-			} elseif ($this->param('direction') === 'db') {
-				$this->warn('Copy-paste the following for migration updating:');
-				$this->warn('... not implemented yet');
+			} elseif ($this->args->getOption('direction') === 'db') {
+				$this->io->warning('Copy-paste the following for migration updating:');
+				$this->io->warning('... not implemented yet');
 			}
 
-			$this->abort('Differences detected, check your fixtures and DB.');
+			$this->io->abort('Differences detected, check your fixtures and DB.');
 		}
 
-		$this->out('');
-		$this->success('All fine :)');
+		$this->io->out('');
+		$this->io->success('All fine :)');
 	}
 
 	/**
@@ -205,7 +206,7 @@ class FixtureCheckCommand extends Command {
 			'type',
 			'unsigned',
 		];
-		if ($this->param('strict')) {
+		if ($this->args->getOption('strict')) {
 			$list[] = 'collate';
 		}
 
@@ -254,11 +255,11 @@ class FixtureCheckCommand extends Command {
 			return;
 		}
 
-		$this->warn('The following field attributes mismatch:');
+		$this->io->warning('The following field attributes mismatch:');
 
-		$this->out($errors);
+		$this->io->out($errors);
 		$this->_issuesFound[] = $fixtureTable;
-		$this->out($this->nl(0));
+		$this->io->out($this->io->nl(0));
 	}
 
 	/**
@@ -308,11 +309,11 @@ class FixtureCheckCommand extends Command {
 			return;
 		}
 
-		$this->warn('The following constraints mismatch:');
+		$this->io->warning('The following constraints mismatch:');
 
-		$this->out($errors);
+		$this->io->out($errors);
 		$this->_issuesFound[] = $fixtureTable;
-		$this->out($this->nl(0));
+		$this->io->out($this->io->nl(0));
 	}
 
 	/**
@@ -359,11 +360,11 @@ class FixtureCheckCommand extends Command {
 			return;
 		}
 
-		$this->warn('The following indexes mismatch:');
+		$this->io->warning('The following indexes mismatch:');
 
-		$this->out($errors);
+		$this->io->out($errors);
 		$this->_issuesFound[] = $fixtureTable;
-		$this->out($this->nl(0));
+		$this->io->out($this->io->nl(0));
 	}
 
 	/**
@@ -394,12 +395,12 @@ class FixtureCheckCommand extends Command {
 	protected function _doCompareFieldPresence($one, $two, $fixtureClass, $message, $fixtureTable) {
 		$diff = array_diff_key($one, $two);
 		if (!empty($diff)) {
-			$this->warn(sprintf($message, $fixtureClass));
+			$this->io->warning(sprintf($message, $fixtureClass));
 			foreach ($diff as $missingField => $type) {
 				$this->_missingFields[$fixtureTable][] = $missingField;
-				$this->out(' * ' . $missingField);
+				$this->io->out(' * ' . $missingField);
 			}
-			$this->out($this->nl(0));
+			$this->io->out($this->io->nl(0));
 			$this->_issuesFound[] = $fixtureTable;
 		}
 	}
@@ -409,7 +410,7 @@ class FixtureCheckCommand extends Command {
 	 */
 	protected function _getFixturesFromOptions() {
 		/** @var string|null $fixtureString */
-		$fixtureString = $this->param('fixtures');
+		$fixtureString = $this->args->getOption('fixtures');
 		if ($fixtureString) {
 			$fixtures = explode(',', $fixtureString);
 			foreach ($fixtures as $key => $fixture) {
@@ -430,7 +431,7 @@ class FixtureCheckCommand extends Command {
 	protected function _getFixtureFiles() {
 		$fixtureFolder = TESTS . 'Fixture' . DS;
 		/** @var string|null $plugin */
-		$plugin = $this->param('plugin');
+		$plugin = $this->args->getOption('plugin');
 		if ($plugin) {
 			$fixtureFolder = Plugin::path($plugin) . 'tests' . DS . 'Fixture' . DS;
 		}
@@ -515,11 +516,11 @@ class FixtureCheckCommand extends Command {
 			'c' => 'constraints',
 			'i' => 'indexes',
 		];
-		if (!$this->param('type')) {
+		if (!$this->args->getOption('type')) {
 			return true;
 		}
 
-		$types = explode(',', (string)$this->param('type'));
+		$types = explode(',', (string)$this->args->getOption('type'));
 
 		$whitelist = [];
 		foreach ($types as $type) {
@@ -550,7 +551,7 @@ class FixtureCheckCommand extends Command {
 	 * @return array
 	 */
 	protected function normalizeField(array $field) {
-		if ($this->param('strict')) {
+		if ($this->args->getOption('strict')) {
 			return $field;
 		}
 
