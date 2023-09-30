@@ -37,12 +37,14 @@ class TestFixturesController extends AppController {
 	public function beforeFilter(EventInterface $event) {
 		parent::beforeFilter($event);
 
-		if (isset($this->Security)) {
-			$this->Security->setConfig('validatePost', false);
+		if ($this->components()->has('Security')) {
+			$this->components()->get('Security')->setConfig('validatePost', false);
 		}
 
-		if (isset($this->Auth)) {
-			$this->Auth->allow();
+		if ($this->components()->has('Auth') && method_exists($this->components()->get('Auth'), 'allow')) {
+			$this->components()->get('Auth')->allow();
+		} elseif ($this->components()->has('Authentication') && method_exists($this->components()->get('Authentication'), 'addUnauthenticatedActions')) {
+			$this->components()->get('Authentication')->addUnauthenticatedActions(['index', 'generate']);
 		}
 	}
 
