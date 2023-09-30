@@ -102,7 +102,10 @@ class FixtureCheckCommand extends Command {
 
 			/** @var \Cake\TestSuite\Fixture\TestFixture $fixture */
 			$fixture = new $fixtureClass();
-			$fixtureFields = $fixture->fields;
+			$fixtureFields = [];
+			if (property_exists($fixture, 'fields')) {
+				$fixtureFields = $fixture->fields;
+			}
 			$fixtureConstraints = $fixtureFields['_constraints'] ?? [];
 			$fixtureIndexes = $fixtureFields['_indexes'] ?? [];
 
@@ -573,7 +576,7 @@ class FixtureCheckCommand extends Command {
 	 *
 	 * @return array
 	 */
-	protected function normalizeConstraints(array $constaints) {
+	protected function normalizeConstraints(array $constaints): array {
 		$defaults = [
 			'length' => [],
 		];

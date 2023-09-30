@@ -225,7 +225,7 @@ TXT;
 
 		foreach ($parts as $part) {
 			if ($result[$part . 'Exists'] && $result[$part . 'Enabled'] === false) {
-				$content = preg_replace('#protected \$' . $part . 'Enabled = false;#', 'protected $' . $part . 'Enabled = true;', $content);
+				$content = (string)preg_replace('#protected \$' . $part . 'Enabled = false;#', 'protected $' . $part . 'Enabled = true;', $content);
 			}
 			if (empty($result[$part]) && $result[$part . 'Enabled'] === null && !in_array($part, $this->irrelevant, true)) {
 				$content = $this->addProperty($content, $part, $result);
