@@ -80,7 +80,7 @@ class FixtureCheckCommand extends Command {
 		$this->io->out(count($fixtures) . ' fixtures found, processing:');
 		$this->io->out('');
 
-		$connection = ConnectionManager::get((string)$this->args->getOption('connection'));
+		$connection = ConnectionManager::get((string)$this->args->getOption('connection') ?: 'default');
 		$namespace = 'App';
 		/** @var string|null $plugin */
 		$plugin = $this->args->getOption('plugin');
