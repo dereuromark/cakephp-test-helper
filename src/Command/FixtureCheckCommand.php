@@ -63,11 +63,11 @@ class FixtureCheckCommand extends Command {
 	 */
 	public function initialize(): void {
 		parent::initialize();
+
 		$this->_config = (array)Configure::read('FixtureCheck') + $this->_config;
 	}
+
 	/**
-	 * Implement this method with your command's logic.
-	 *
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingNativeTypeHint
 	 * @param \Cake\Console\Arguments $args The command arguments.
 	 * @param \Cake\Console\ConsoleIo $io The console io
