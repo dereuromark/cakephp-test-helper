@@ -86,7 +86,7 @@ class TestFixturesController extends AppController {
 			$this->Flash->success($name . 'Fixture generated.');
 		}
 
-		return $this->redirect($this->referer(['action' => 'index'] + ['?' => $this->request->getQuery()], true));
+		return $this->redirect($this->referer(['action' => 'index'] + ['?' => $this->request->getQuery()]));
 	}
 
 }

@@ -6,6 +6,7 @@ use App\Controller\AppController;
 use Cake\Core\App;
 use Cake\Core\Plugin;
 use Cake\Event\EventInterface;
+use Cake\Http\Response;
 use RuntimeException;
 use Shim\Filesystem\Folder;
 use TestHelper\Utility\ClassResolver;
@@ -163,12 +164,12 @@ class TestCasesController extends AppController {
 	 *
 	 * @return \Cake\Http\Response|null
 	 */
-	protected function handle($type) {
+	protected function handle(string $type): ?Response {
 		/** @var string|null $appOrPlugin */
 		$appOrPlugin = $this->request->getQuery('namespace');
 		$plugin = $appOrPlugin !== 'app' ? $appOrPlugin : null;
 		$classType = ClassResolver::type($type);
-		$paths = App::path($classType, $plugin);
+		$paths = App::classPath($classType, $plugin);
 		$files = $this->TestGenerator->getFiles($paths);
 
 		if ($this->request->is('post')) {
@@ -176,7 +177,7 @@ class TestCasesController extends AppController {
 				$this->Flash->success('Test case generated.');
 			}
 
-			return $this->redirect($this->referer([$type] + ['?' => $this->request->getQuery()], true));
+			return $this->redirect($this->referer([$type] + ['?' => $this->request->getQuery()]));
 		}
 
 		/** @phpstan-var string $name */
