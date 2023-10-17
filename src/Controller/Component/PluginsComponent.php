@@ -7,7 +7,6 @@ use Cake\Core\Plugin;
 use Cake\Core\PluginInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use RecursiveRegexIterator;
 use RegexIterator;
 use RuntimeException;
 
@@ -188,7 +187,7 @@ class PluginsComponent extends Component {
 
 			$directoryIterator = new RecursiveDirectoryIterator($classPath . $dir);
 			$recursiveIterator = new RecursiveIteratorIterator($directoryIterator);
-			$regexIterator = new RegexIterator($recursiveIterator, '/\.php$/i', RecursiveRegexIterator::GET_MATCH);
+			$regexIterator = new RegexIterator($recursiveIterator, '/\.php$/i', RegexIterator::GET_MATCH);
 
 			foreach ($regexIterator as $match) {
 				return true;
