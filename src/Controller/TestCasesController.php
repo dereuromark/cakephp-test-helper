@@ -151,6 +151,7 @@ class TestCasesController extends AppController {
 	 * - Component
 	 * - Behavior
 	 * - Helper
+	 * - Command
 	 * - Shell
 	 * - Task
 	 * - ShellHelper
