@@ -68,10 +68,10 @@ Supported class types:
 - [x] Components
 - [x] Behavior
 - [x] Helpers
-- [x] Shells
+- [x] Commands
 - [x] Tasks
 - [ ] Cells
-- [ ] ShellHelpers
+- [ ] CommandHelpers
 - [ ] Forms
 - [ ] Mailers
 
@@ -80,7 +80,7 @@ Feel free to help out improving and completing this test helper plugin.
 - [Full Documentation](docs/README.md)
 
 ## Limitations
-Executing the tests and coverage from the web backend usually can not work for long running tests due to the timeout issues.
+Executing the tests and coverage from the web backend usually can not work for long-running tests due to the timeout issues.
 Make sure you raise the apache/nginx settings here if you want to use this functionality here.
 
 The focus is on providing an overview and quickly generating the desired classes with a single mouse click.

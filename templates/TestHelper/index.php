@@ -65,7 +65,6 @@ use Cake\Core\Plugin;
 		<ul>
 			<li><?php echo $this->Html->link('Controllers', ['controller' => 'TestCases', 'action' => 'controller', '?' => ['namespace' => $namespace]]); ?></li>
 			<li><?php echo $this->Html->link('Commands', ['controller' => 'TestCases', 'action' => 'command', '?' => ['namespace' => $namespace]]); ?></li>
-			<li><?php echo $this->Html->link('Shells', ['controller' => 'TestCases', 'action' => 'shell', '?' => ['namespace' => $namespace]]); ?></li>
 			<li><?php echo $this->Html->link('Tables', ['controller' => 'TestCases', 'action' => 'table', '?' => ['namespace' => $namespace]]); ?></li>
 			<li><?php echo $this->Html->link('Entities', ['controller' => 'TestCases', 'action' => 'entity', '?' => ['namespace' => $namespace]]); ?></li>
 			<li><?php echo $this->Html->link('Behaviors', ['controller' => 'TestCases', 'action' => 'behavior', '?' => ['namespace' => $namespace]]); ?></li>

@@ -58,7 +58,8 @@ class TestCasesController extends AppController {
 		$result = $this->TestRunner->run($file);
 
 		$this->set(compact('result'));
-		$this->set('_serialize', 'result');
+		$serialize = 'result';
+		$this->viewBuilder()->setOptions(compact('serialize'));
 	}
 
 	/**
@@ -78,7 +79,8 @@ class TestCasesController extends AppController {
 		$result = $this->TestRunner->coverage($file, $name, $type, (bool)$force);
 
 		$this->set(compact('result'));
-		$this->set('_serialize', 'result');
+		$serialize = 'result';
+		$this->viewBuilder()->setOptions(compact('serialize'));
 	}
 
 	/**
@@ -92,13 +94,6 @@ class TestCasesController extends AppController {
 	 * @return \Cake\Http\Response|null
 	 */
 	public function command() {
-		return $this->handle(ucfirst(__FUNCTION__));
-	}
-
-	/**
-	 * @return \Cake\Http\Response|null
-	 */
-	public function shell() {
 		return $this->handle(ucfirst(__FUNCTION__));
 	}
 
@@ -153,9 +148,8 @@ class TestCasesController extends AppController {
 	 * - Behavior
 	 * - Helper
 	 * - Command
-	 * - Shell
 	 * - Task
-	 * - ShellHelper
+	 * - CommandHelper
 	 * - Cell
 	 * - Form
 	 * - Mailer

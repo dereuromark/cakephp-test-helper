@@ -8,15 +8,15 @@ class ClassResolver {
 		'Table' => 'Model/Table',
 		'Entity' => 'Model/Entity',
 		'Behavior' => 'Model/Behavior',
-		'Task' => 'Shell/Task',
+		'Task' => 'Command/Task',
 		'Component' => 'Controller/Component',
 		'Helper' => 'View/Helper',
-		'ShellHelper' => 'Shell/Helper',
+		'CommandHelper' => 'Command/Helper',
 	];
 
 	protected static array $suffixMap = [
 		'Entity' => '',
-		'ShellHelper' => 'Helper',
+		'CommandHelper' => 'Helper',
 	];
 
 	/**

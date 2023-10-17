@@ -178,7 +178,6 @@ class PluginsComponent extends Component {
 	protected function consoleExists(string $classPath): bool {
 		$dirs = [
 			'Command',
-			'Shell',
 		];
 		foreach ($dirs as $dir) {
 			if (!is_dir($classPath . $dir)) {
