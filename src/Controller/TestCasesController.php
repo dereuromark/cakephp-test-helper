@@ -30,6 +30,7 @@ class TestCasesController extends AppController {
 		$this->viewBuilder()->setHelpers([
 			'TestHelper.TestHelper',
 			'Tools.Format',
+			'Tools.Icon',
 		]);
 	}
 
