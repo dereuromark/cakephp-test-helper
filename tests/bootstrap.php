@@ -87,10 +87,10 @@ Cache::setConfig($cache);
 Plugin::getCollection()->add(new TestHelperPlugin());
 Plugin::getCollection()->add(new ToolsPlugin());
 
-if (getenv('db_dsn')) {
+if (getenv('DB_URL')) {
 	ConnectionManager::setConfig('test', [
 		'className' => 'Cake\Database\Connection',
-		'url' => getenv('db_dsn'),
+		'url' => getenv('DB_URL'),
 		'timezone' => 'UTC',
 		'quoteIdentifiers' => true,
 		'cacheMetadata' => true,
@@ -100,18 +100,13 @@ if (getenv('db_dsn')) {
 }
 
 // Ensure default test connection is defined
-if (!getenv('db_class')) {
-	putenv('db_class=Cake\Database\Driver\Sqlite');
-	putenv('db_dsn=sqlite:///:memory:');
+if (!getenv('DB_URL')) {
+	putenv('DB_URL=sqlite:///:memory:');
 }
 
 ConnectionManager::setConfig('test', [
 	'className' => 'Cake\Database\Connection',
-	'url' => getenv('db_dsn') ?: null,
-	'driver' => getenv('db_class') ?: null,
-	'database' => getenv('db_database') ?: null,
-	'username' => getenv('db_username') ?: null,
-	'password' => getenv('db_password') ?: null,
+	'url' => getenv('DB_URL') ?: null,
 	'timezone' => 'UTC',
 	'quoteIdentifiers' => false,
 	'cacheMetadata' => true,
