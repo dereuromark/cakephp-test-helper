@@ -1,6 +1,7 @@
 {
 	"name": "dereuromark/cakephp-test-helper",
 	"description": "TestHelper plugin for CakePHP",
+	"license": "MIT",
 	"type": "cakephp-plugin",
 	"keywords": [
 		"cakephp",
@@ -11,25 +12,26 @@
 		"generate",
 		"development"
 	],
-	"homepage": "https://github.com/dereuromark/cakephp-test-helper",
-	"license": "MIT",
 	"authors": [
 		{
 			"name": "Mark Scherer",
-			"role": "Author",
-			"homepage": "https://www.dereuromark.de"
+			"homepage": "https://www.dereuromark.de",
+			"role": "Author"
 		}
 	],
+	"homepage": "https://github.com/dereuromark/cakephp-test-helper",
 	"require": {
 		"php": ">=8.1",
 		"cakephp/cakephp": "^5.0.0",
 		"dereuromark/cakephp-tools": "^3.0.0"
 	},
 	"require-dev": {
-		"sebastian/diff": "^5.0.0",
 		"fig-r/psr2r-sniffer": "dev-next",
-		"phpunit/phpunit": "^10.2"
+		"phpunit/phpunit": "^10.2",
+		"sebastian/diff": "^5.0.0"
 	},
+	"minimum-stability": "RC",
+	"prefer-stable": true,
 	"autoload": {
 		"psr-4": {
 			"TestHelper\\": "src/"
@@ -37,24 +39,22 @@
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"TestHelper\\Test\\": "tests/",
+			"Cake\\Test\\": "vendor/cakephp/cakephp/tests/",
 			"TestApp\\": "tests/test_app/src/",
-			"Cake\\Test\\": "vendor/cakephp/cakephp/tests/"
+			"TestHelper\\Test\\": "tests/"
 		}
-	},
-	"prefer-stable": true,
-	"minimum-stability": "RC",
-	"scripts": {
-		"test": "phpunit",
-		"test-coverage": "phpunit --log-junit tmp/coverage/unitreport.xml --coverage-html tmp/coverage --coverage-clover tmp/coverage/coverage.xml",
-		"stan": "phpstan analyse",
-		"stan-setup": "cp composer.json composer.backup && composer require --dev phpstan/phpstan:^1.0.0 && mv composer.backup composer.json",
-		"cs-check": "phpcs --extensions=php",
-		"cs-fix": "phpcbf --extensions=php"
 	},
 	"config": {
 		"allow-plugins": {
 			"dealerdirect/phpcodesniffer-composer-installer": true
 		}
+	},
+	"scripts": {
+		"cs-check": "phpcs --extensions=php",
+		"cs-fix": "phpcbf --extensions=php",
+		"stan": "phpstan analyse",
+		"stan-setup": "cp composer.json composer.backup && composer require --dev phpstan/phpstan:^1.0.0 && mv composer.backup composer.json",
+		"test": "phpunit",
+		"test-coverage": "phpunit --log-junit tmp/coverage/unitreport.xml --coverage-html tmp/coverage --coverage-clover tmp/coverage/coverage.xml"
 	}
 }
