@@ -30,7 +30,7 @@
 		"phpunit/phpunit": "^10.2",
 		"sebastian/diff": "^5.0.0"
 	},
-	"minimum-stability": "RC",
+	"minimum-stability": "stable",
 	"prefer-stable": true,
 	"autoload": {
 		"psr-4": {
