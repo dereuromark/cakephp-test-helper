@@ -5,6 +5,7 @@ namespace TestHelper\Controller;
 use App\Controller\AppController;
 use Cake\Core\Plugin;
 use Cake\Event\EventInterface;
+use Templating\View\Helper\IconHelper;
 
 /**
  * @property \TestHelper\Controller\Component\TestGeneratorComponent $TestGenerator
@@ -27,7 +28,7 @@ class TestFixturesController extends AppController {
 		$this->viewBuilder()->setHelpers([
 			'TestHelper.TestHelper',
 			'Tools.Format',
-			'Tools.Icon',
+			class_exists(IconHelper::class) ? 'Templating.Icon' : 'Tools.Icon',
 		]);
 	}
 

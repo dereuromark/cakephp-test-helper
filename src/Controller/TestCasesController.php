@@ -9,6 +9,7 @@ use Cake\Event\EventInterface;
 use Cake\Http\Response;
 use RuntimeException;
 use Shim\Filesystem\Folder;
+use Templating\View\Helper\IconHelper;
 use TestHelper\Utility\ClassResolver;
 
 /**
@@ -30,7 +31,7 @@ class TestCasesController extends AppController {
 		$this->viewBuilder()->setHelpers([
 			'TestHelper.TestHelper',
 			'Tools.Format',
-			'Tools.Icon',
+			class_exists(IconHelper::class) ? 'Templating.Icon' : 'Tools.Icon',
 		]);
 	}
 
