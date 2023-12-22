@@ -27,7 +27,7 @@ class TestRunnerComponent extends Component {
 		$result = [
 			'command' => $command,
 			'content' => $output,
-			'output' => implode('<br>', $output),
+			'output' => '<h2>Result</h2>' . implode('<br>', $output),
 			'code' => $res,
 		];
 
@@ -42,14 +42,14 @@ class TestRunnerComponent extends Component {
 	 *
 	 * @return array
 	 */
-	public function coverage($file, $name, $type, $force = false) {
+	public function coverage(string $file, string $name, string $type, bool $force = false): array {
 		$command = $this->getCommand();
 
 		$testFile = ROOT . DS . 'webroot/coverage/src/' . $type . '/' . $name . '.php.html';
 		$testFile = str_replace(['/', '\\'], DS, $testFile);
 
 		$command .= ' ' . $file;
-		$command .= ' --log-junit webroot/coverage/unitreport.xml --coverage-html webroot/coverage --coverage-clover webroot/coverage/coverage.xml --whitelist src/' . $type . '/';
+		$command .= ' --log-junit webroot/coverage/unitreport.xml --coverage-html webroot/coverage --coverage-clover webroot/coverage/coverage.xml --include src/' . $type . '/';
 		$command = str_replace(['/', '\\'], DS, $command);
 
 		if (!file_exists($testFile) || $force) {
@@ -59,17 +59,22 @@ class TestRunnerComponent extends Component {
 
 		$url = str_replace('\\', '/', '/coverage/src/' . $type . '/' . $name . '.php.html');
 
-		$output = <<<HTML
-<h2>Coverage-Result</h2>
+		$fileExists = file_exists($testFile);
+		if ($fileExists) {
+			$output = <<<HTML
 <a href="$url" target="_blank">$file</a>
 HTML;
+		} else {
+			$output = '<i>Coverage file could not be created, coverage driver issues?</i>';
+		}
 
 		$result = [
 			'command' => $command,
 			'file' => $file,
 			'url' => $url,
-			'content' => file_get_contents($testFile),
-			'output' => $output,
+			'testFileExists' => $fileExists,
+			'content' => $fileExists ? file_get_contents($testFile) : null,
+			'output' => '<h2>Coverage-Result</h2>' . $output,
 		];
 
 		return $result;

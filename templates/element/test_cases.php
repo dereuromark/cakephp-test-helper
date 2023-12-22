@@ -49,7 +49,11 @@
 			},
 			dataType: "json",
 			success: function(response) { //so, if data is retrieved, store it in html
-				$("#modal-default .modal-body").html(response.output);
+				var output = response.output;
+				var button = '<div><a href="' + url + '" target="blank" class="btn btn-primary">Details</a></div>';
+
+				$("#modal-default .modal-body").html(output);
+				$("#modal-default .modal-footer .buttons").html(button);
 				$("#modal-default .btn-primary").show();
 			},
 			error: function(e) {
@@ -69,18 +73,21 @@
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
 			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				<button type="button" class="close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span></button>
 				<h4 class="modal-title">Running test suite</h4>
 			</div>
 			<div class="modal-body">
-				<p>One fine body&hellip;</p>
+				<p>&hellip;</p>
 			</div>
 			<div class="modal-footer">
+				<div class="buttons">
+
+				</div>
 				<?php if (false) { ?>
 					<button type="button" class="btn btn-primary pull-left" style="display: none"><i class="fa fa-repeat"></i> Re-Run</button>
 				<?php } ?>
-				<button type="button" class="btn btn-default " data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">Close</button>
 			</div>
 		</div>
 	</div>

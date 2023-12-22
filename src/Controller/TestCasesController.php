@@ -62,6 +62,10 @@ class TestCasesController extends AppController {
 		$this->set(compact('result'));
 		$serialize = 'result';
 		$this->viewBuilder()->setOptions(compact('serialize'));
+
+		if ($this->request->is('ajax')) {
+			$this->viewBuilder()->setClassName('Json');
+		}
 	}
 
 	/**
@@ -83,6 +87,9 @@ class TestCasesController extends AppController {
 		$this->set(compact('result'));
 		$serialize = 'result';
 		$this->viewBuilder()->setOptions(compact('serialize'));
+		if ($this->request->is('ajax')) {
+			$this->viewBuilder()->setClassName('Json');
+		}
 	}
 
 	/**

@@ -18,4 +18,8 @@ Coverage-Result of <?php echo h($result['file']); ?>
 
 <h2>Details</h2>
 
+<?php if ($result['testFileExists']) { ?>
 <iframe src="<?php echo $result['url']; ?>" style="width: 98%; height: 800px;"></iframe>
+<?php } else { ?>
+<i>Coverage file could not be created, coverage driver issues?</i>
+<?php } ?>
