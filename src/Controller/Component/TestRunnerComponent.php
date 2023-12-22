@@ -48,6 +48,10 @@ class TestRunnerComponent extends Component {
 		$testFile = ROOT . DS . 'webroot/coverage/src/' . $type . '/' . $name . '.php.html';
 		$testFile = str_replace(['/', '\\'], DS, $testFile);
 
+		if (Configure::read('TestHelper.coverage') !== 'xdebug') {
+			$command = 'XDEBUG_MODE=coverage php -d ' . ROOT . ' ' . $command;
+		}
+
 		$command .= ' ' . $file;
 		$command .= ' --log-junit webroot/coverage/unitreport.xml --coverage-html webroot/coverage --coverage-clover webroot/coverage/coverage.xml --include src/' . $type . '/';
 		$command = str_replace(['/', '\\'], DS, $command);
