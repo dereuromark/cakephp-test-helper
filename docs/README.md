@@ -1,11 +1,19 @@
 # TestHelper Plugin Documentation
 
+Browse `/test-helper` to see all functionality available.
+- URL generation and reverse lookup
+- Check plugin hooks
+- Check fixtures against tables (+ bake missing ones via click)
+- Check tests per file available (+ bake missing ones via click)
+- Run tests and display results or coverage in backend.
+
 ## Configuration
 - TestHelper.command: If you need a custom phpunit command to run with.
 Both `php phpunit.phar` and `vendor/bin/phpunit` work out of the box.
+- TestHelper.coverage: Set to `xdebug` if you have this enabled, it otherwise uses pcov by default.
 
 ### Your own template
-The default template ships with bootstrap (3) and fontawesome icons.
+The default template ships with bootstrap (5) and fontawesome icons.
 You can switch out the view templates with your own on project level as documented in the CakePHP docs.
 
 Overwrite the `test_cases` element if you want to support e.g. foundation and their modals.
