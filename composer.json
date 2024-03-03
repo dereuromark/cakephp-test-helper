@@ -10,7 +10,7 @@
 		"tests",
 		"coverage",
 		"generate",
-		"development"
+		"dev"
 	],
 	"authors": [
 		{
