@@ -11,7 +11,7 @@ use Shim\Filesystem\Folder;
  */
 class TestGeneratorComponent extends Component {
 
-	public array $components = [
+	protected array $components = [
 		'Flash',
 	];
 
