@@ -27,7 +27,7 @@
 	},
 	"require-dev": {
 		"sebastian/diff": "^4.0.0",
-		"fig-r/psr2r-sniffer": "dev-master",
+		"fig-r/psr2r-sniffer": "^1.5.1",
 		"phpunit/phpunit": "^9.5"
 	},
 	"autoload": {
