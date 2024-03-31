@@ -1,6 +1,6 @@
 <?php
 
-namespace TestHelper\Test\TestCase\Controller;
+namespace TestHelper\Test\TestCase\Controller\Component;
 
 use Cake\Controller\ComponentRegistry;
 use Cake\Controller\Controller;
