@@ -68,6 +68,11 @@ class Plugin extends BasePlugin {
 	/**
 	 * @var bool
 	 */
+	protected \$eventsEnabled = false;
+
+	/**
+	 * @var bool
+	 */
 	protected \$routesEnabled = false;
 
 	/**
