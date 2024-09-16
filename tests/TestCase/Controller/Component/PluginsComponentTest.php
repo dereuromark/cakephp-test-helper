@@ -4,6 +4,7 @@ namespace TestHelper\Test\TestCase\Controller\Component;
 
 use Cake\Controller\ComponentRegistry;
 use Cake\Controller\Controller;
+use Cake\Core\Configure;
 use Cake\Http\ServerRequest;
 use Cake\TestSuite\TestCase;
 use TestHelper\Controller\Component\PluginsComponent;
@@ -14,6 +15,8 @@ class PluginsComponentTest extends TestCase {
 	 * @return void
 	 */
 	public function testAdjustPluginClass() {
+		$this->skipIf(version_compare(Configure::version(), '5.1', '<'));
+
 		$component = new PluginsComponent(new ComponentRegistry(new Controller(new ServerRequest())));
 
 		$parts = $component->hooks();
