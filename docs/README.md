@@ -44,6 +44,16 @@ Check the backend entry page for the form to make reverse lookups for URL string
 
 ![URL array generation](img/url_array_generation.png)
 
+### Plugin info/check
+Check your own plugins on hooks and more.
+It can also auto suggest you some improvements here.
+
+Navigate to
+```
+/test-helper/plugins
+```
+for details.
+
 ### Fixture validation tool
 Compare actual DB with the schema files: fields and attributes, constraints and indexes.
 It will also give you a list of bake commands you need to update the outdated fixtures.
@@ -70,13 +80,3 @@ By default it will only check your app level. You can use a combined composer co
 }
 ```
 Then run it as `composer fixture_check`.
-
-### Plugin info/check
-Check your own plugins on hooks and more.
-It can also auto suggest you some improvements here.
-
-Navigate to
-```
-/test-helper/plugins
-```
-for details.
