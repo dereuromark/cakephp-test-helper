@@ -8,7 +8,7 @@ use Cake\View\Helper;
 class TestHelperHelper extends Helper {
 
 	/**
-	 * @param array $params
+	 * @param array<string, mixed> $params
 	 * @param bool $verbose
 	 *
 	 * @return string
@@ -20,7 +20,7 @@ class TestHelperHelper extends Helper {
 	}
 
 	/**
-	 * @param array $params
+	 * @param array<string, mixed> $params
 	 * @param bool $verbose
 	 *
 	 * @return array<string>
@@ -76,7 +76,7 @@ class TestHelperHelper extends Helper {
 	}
 
 	/**
-	 * @param array $params
+	 * @param array<string, mixed> $params
 	 *
 	 * @return string
 	 */
@@ -127,8 +127,7 @@ class TestHelperHelper extends Helper {
 	 *
 	 * @return string
 	 */
-	protected function normalizePrefix(string $prefix): string
-	{
+	protected function normalizePrefix(string $prefix): string {
 		if (!str_contains($prefix, '/')) {
 			return Inflector::camelize($prefix);
 		}
