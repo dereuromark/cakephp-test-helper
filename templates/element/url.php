@@ -7,7 +7,7 @@
 <?php if (isset($params)) {
 	echo '<h3>URL array</h3>';
 	echo '<pre>';
-	echo $this->TestHelper->url($params, $this->request->getData('verbose'));
+	echo $this->TestHelper->url($params, (bool)$this->request->getData('verbose'));
 	echo '</pre>';
 
 	echo '<h3>URL path</h3>';
