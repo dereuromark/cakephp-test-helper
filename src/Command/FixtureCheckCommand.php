@@ -192,8 +192,8 @@ class FixtureCheckCommand extends Command {
 	/**
 	 * Compare the fields present.
 	 *
-	 * @param array $fixtureFields The fixtures fields array.
-	 * @param array $liveFields The live DB fields
+	 * @param array<string, mixed> $fixtureFields The fixtures fields array.
+	 * @param array<string, mixed> $liveFields The live DB fields
 	 * @param string $fixtureTable
 	 *
 	 * @return void

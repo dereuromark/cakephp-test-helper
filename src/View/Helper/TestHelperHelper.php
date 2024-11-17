@@ -13,7 +13,7 @@ class TestHelperHelper extends Helper {
 	 *
 	 * @return string
 	 */
-	public function url(array $params, $verbose = false) {
+	public function url(array $params, bool $verbose = false) {
 		$pieces = $this->prepareUrl($params, $verbose);
 
 		return '[' . PHP_EOL . '    ' . implode(',' . PHP_EOL . '    ', $pieces) . PHP_EOL . ']';
@@ -23,9 +23,9 @@ class TestHelperHelper extends Helper {
 	 * @param array $params
 	 * @param bool $verbose
 	 *
-	 * @return array
+	 * @return array<string>
 	 */
-	protected function prepareUrl(array $params, $verbose = false) {
+	protected function prepareUrl(array $params, bool $verbose = false): array {
 		$output = [];
 		$order = [
 			'prefix' => false,
@@ -80,7 +80,7 @@ class TestHelperHelper extends Helper {
 	 *
 	 * @return string
 	 */
-	public function urlPath(array $params) {
+	public function urlPath(array $params): string {
 		$defaults = [
 			'prefix' => false,
 			'plugin' => false,
@@ -127,8 +127,9 @@ class TestHelperHelper extends Helper {
 	 *
 	 * @return string
 	 */
-	protected function normalizePrefix($prefix) {
-		if (strpos($prefix, '/') === false) {
+	protected function normalizePrefix(string $prefix): string
+	{
+		if (!str_contains($prefix, '/')) {
 			return Inflector::camelize($prefix);
 		}
 
