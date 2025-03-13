@@ -40,6 +40,11 @@ use Cake\Core\Plugin;
 			<li><?php echo $this->Html->link('Compare Fixtures against Tables', ['controller' => 'TestFixtures']); ?></li>
 		</ul>
 
+		<h2>Demo</h2>
+		<ul>
+			<li><?php echo $this->Html->link('Layouting and more', ['controller' => 'Demo']); ?></li>
+		</ul>
+
 	</div>
 
 	<div class="col-md-6 col-xs-12">
