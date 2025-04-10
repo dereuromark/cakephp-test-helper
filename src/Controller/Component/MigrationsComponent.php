@@ -3,20 +3,9 @@
 namespace TestHelper\Controller\Component;
 
 use Cake\Controller\Component;
-use Cake\Core\PluginInterface;
 use Cake\Datasource\ConnectionManager;
 
 class MigrationsComponent extends Component {
-
-	/**
-	 * @return array<string>
-	 */
-	public function hooks(): array {
-		$hooks = PluginInterface::VALID_HOOKS;
-		sort($hooks);
-
-		return $hooks;
-	}
 
 	/**
 	 * @param string $database
