@@ -2,6 +2,7 @@
 /**
  * @var \App\View\AppView $this
  * @var array|null $url
+ * @var mixed $params
  */
 ?>
 <?php if (isset($params)) {

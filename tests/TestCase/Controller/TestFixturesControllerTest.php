@@ -8,7 +8,7 @@ use Cake\Utility\Hash;
 use TestApp\TestSuite\TestSession;
 
 /**
- * @uses \TestHelper\Controller\TestHelperController
+ * @uses \TestHelper\Controller\TestFixturesController
  */
 class TestFixturesControllerTest extends TestCase {
 

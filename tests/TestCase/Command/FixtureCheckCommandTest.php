@@ -9,6 +9,9 @@ use Cake\TestSuite\TestCase;
 use Shim\TestSuite\ConsoleOutput;
 use TestHelper\Command\FixtureCheckCommand;
 
+/**
+ * @uses \TestHelper\Command\FixtureCheckCommand
+ */
 class FixtureCheckCommandTest extends TestCase {
 
 	use ConsoleIntegrationTestTrait;

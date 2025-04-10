@@ -35,6 +35,11 @@ use Cake\Core\Plugin;
 			<li><?php echo $this->Html->link('Check Plugin Hooks', ['controller' => 'Plugins']); ?></li>
 		</ul>
 
+		<h2>Migrations</h2>
+		<ul>
+			<li><?php echo $this->Html->link('Migration Re-Do', ['controller' => 'Migrations']); ?></li>
+		</ul>
+
 		<h2>Fixtures</h2>
 		<ul>
 			<li><?php echo $this->Html->link('Compare Fixtures against Tables', ['controller' => 'TestFixtures']); ?></li>

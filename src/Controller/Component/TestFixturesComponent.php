@@ -9,6 +9,9 @@ use DirectoryIterator;
 use Exception;
 use Throwable;
 
+/**
+ * @method \App\Controller\AppController getController()
+ */
 class TestFixturesComponent extends Component {
 
 	/**
