@@ -36,11 +36,9 @@ Note: This is not meant for production, so make sure you use the `--dev` flag an
 
 ## Setup
 
-Don't forget to load it under your bootstrap function in `Application.php`:
-```php
-if (Configure::read('debug')) {
-    $this->addPlugin('TestHelper');
-}
+Load the plugin:
+```
+bin/cake plugin load TestHelper --only-debug
 ```
 
 This will also load the routes.
