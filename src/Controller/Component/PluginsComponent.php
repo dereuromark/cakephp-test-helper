@@ -245,7 +245,6 @@ TXT;
 		$indentation = $this->detectIndentation($pieces);
 
 		$pos = null;
-		$count = 0;
 		foreach ($pieces as $i => $piece) {
 			if (strpos($piece, 'class Plugin extends BasePlugin') === false) {
 				continue;
@@ -268,12 +267,11 @@ TXT;
 				$indentation . ' */',
 				$indentation . 'protected $' . $part . 'Enabled = ' . ($result[$part . 'Exists'] ? 'true' : 'false') . ';',
 			];
-			if ($count === 0 && trim($pieces[$pos + 1]) !== '{') {
+			if (trim($pieces[$pos + 1]) !== '{') {
 				array_unshift($add, '');
 			}
 
 			array_splice($pieces, $pos, 0, $add);
-			$count++;
 		}
 
 		return implode(PHP_EOL, $pieces);
