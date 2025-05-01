@@ -22,7 +22,7 @@
 	"homepage": "https://github.com/dereuromark/cakephp-test-helper",
 	"require": {
 		"php": ">=8.1",
-		"cakephp/cakephp": "^5.0.0",
+		"cakephp/cakephp": "^5.1.1",
 		"dereuromark/cakephp-tools": "^3.0.0"
 	},
 	"require-dev": {

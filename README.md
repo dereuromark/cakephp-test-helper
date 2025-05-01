@@ -9,7 +9,7 @@
 
 Browser based addons for your test driven development.
 
-Note: This branch is for **CakePHP 5.0+**. See [version map](https://github.com/dereuromark/cakephp-test-helper/wiki#cakephp-version-map) for details.
+Note: This branch is for **CakePHP 5.1+**. See [version map](https://github.com/dereuromark/cakephp-test-helper/wiki#cakephp-version-map) for details.
 
 ## Motivation
 After 2.x=>3.x, the "web-tester" has been removed. It was, for certain cases, however, quite useful.
