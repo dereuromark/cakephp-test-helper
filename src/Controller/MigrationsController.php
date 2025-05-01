@@ -27,9 +27,9 @@ class MigrationsController extends AppController {
 
 	/**
 	 * @param \Cake\Event\EventInterface $event
-	 * @return \Cake\Http\Response|null|void
+	 * @return void
 	 */
-	public function beforeFilter(EventInterface $event) {
+	public function beforeFilter(EventInterface $event): void {
 		parent::beforeFilter($event);
 
 		if ($this->components()->has('Security')) {
@@ -45,7 +45,7 @@ class MigrationsController extends AppController {
 		if (!file_exists(ROOT . DS . 'vendor/cakephp/migrations/composer.json')) {
 			$this->Flash->error('It seems the Migrations plugin is missing.');
 
-			return $this->redirect(['controller' => 'TestHelper']);
+			$event->setResult($this->redirect(['controller' => 'TestHelper']));
 		}
 	}
 

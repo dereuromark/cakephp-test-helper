@@ -28,9 +28,9 @@ class PluginsController extends AppController {
 
 	/**
 	 * @param \Cake\Event\EventInterface $event
-	 * @return \Cake\Http\Response|null|void
+	 * @return void
 	 */
-	public function beforeFilter(EventInterface $event) {
+	public function beforeFilter(EventInterface $event): void {
 		parent::beforeFilter($event);
 
 		if ($this->components()->has('Security')) {
