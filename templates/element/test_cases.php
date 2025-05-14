@@ -39,7 +39,7 @@
 		$("#modal-default .modal-body").html(spinner);
 
 		$.ajax({
-			type: "post",
+			type: "get",
 			url: url,
 			beforeSend: function(xhr) {
 				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
