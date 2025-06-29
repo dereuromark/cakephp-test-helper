@@ -4,8 +4,6 @@ namespace TestHelper\Test\TestCase\Controller;
 
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
-use Cake\Utility\Hash;
-use TestApp\TestSuite\TestSession;
 
 /**
  * @uses \TestHelper\Controller\TestComparisonController
