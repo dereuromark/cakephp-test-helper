@@ -29,7 +29,12 @@
 		<h3><?php echo ($plugin); ?></h3>
 		<table class="list">
 			<tr>
-				<th>Fixture</th><th>DB Table</th><th>Model</th>
+				<th>Fixture</th>
+				<?php if (\Cake\Core\Plugin::isLoaded('CakephpFixtureFactories')) { ?>
+					<th>Fixture Factory</th>
+				<?php } ?>
+				<th>DB Table</th>
+				<th>Model</th>
 			</tr>
 			<?php foreach ($pluginResult as $fixture => $fixtureDetails) { ?>
 			<tr>
@@ -41,6 +46,9 @@
 					}
 					?>
 				</td>
+				<?php if (\Cake\Core\Plugin::isLoaded('CakephpFixtureFactories')) { ?>
+					<td><?php echo h($fixtureDetails['factory']); ?></td>
+				<?php } ?>
 				<td>
 					<?php echo h($fixtureDetails['table']); ?>
 				</td>
