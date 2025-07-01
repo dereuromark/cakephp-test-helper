@@ -91,7 +91,7 @@ class FixtureCheckCommand extends Command {
 		foreach ($fixtures as $fixture) {
 			$fixtureClass = $namespace . '\Test\Fixture\\' . $fixture;
 			if (!class_exists($fixtureClass)) {
-				$this->io->err(sprintf('Fixture %s does not exist.', $fixtureClass));
+				$this->io->error(sprintf('Fixture %s does not exist.', $fixtureClass));
 
 				continue;
 			}
@@ -153,7 +153,7 @@ class FixtureCheckCommand extends Command {
 					$this->_compareIndexes($fixtureIndexes, $liveIndexes, $fixture->table);
 				}
 			} catch (CakeException $e) {
-				$this->io->err($e->getMessage());
+				$this->io->error($e->getMessage());
 			}
 		}
 
