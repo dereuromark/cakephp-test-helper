@@ -11,6 +11,9 @@
 	.disabled {
 		color: #999;
 	}
+	.warning {
+		color: #ff6a00;
+	}
 </style>
 
 <h1>Test Helper</h1>
@@ -33,16 +36,31 @@
 			</tr>
 			<?php foreach ($pluginResult as $tableClassName => $details) { ?>
 				<?php
+				$details['dbTable'] = h($details['dbTable'] ?? '');
+				$details['entity'] = h($details['entity'] ?? '');
+
+				if ($details['table']) {
+					$underscored = \Cake\Utility\Inflector::underscore($details['table'] ?? '');
+					$singularized = \Cake\Utility\Inflector::singularize($details['table'] ?? '');
+
+					if ($details['dbTable'] && $underscored !== $details['dbTable']) {
+						$details['dbTable'] = ' <span class="warning">' . $details['dbTable'] . '</span>';
+					}
+					if ($details['entity'] && $singularized !== $details['entity']) {
+						$details['entity'] = ' <span class="warning">' . $details['entity'] . '</span>';
+					}
+				}
+
 				?>
 			<tr>
 				<td>
 					<?php echo h($details['table']) ?: $this->Icon->render('warning', [], ['title'=> 'Missing']); ?>
 				</td>
 				<td>
-					<?php echo h($details['dbTable']) ?: $this->Icon->render('warning', [], ['title'=> 'Missing']); ?>
+					<?php echo $details['dbTable'] ?: $this->Icon->render('warning', [], ['title'=> 'Missing']); ?>
 				</td>
 				<td>
-					<?php echo h($details['entity']) ?: $this->Icon->render('warning', [], ['title'=> 'Missing']); ?>
+					<?php echo $details['entity'] ?: $this->Icon->render('warning', [], ['title'=> 'Missing']); ?>
 				</td>
 			</tr>
 			<?php } ?>
