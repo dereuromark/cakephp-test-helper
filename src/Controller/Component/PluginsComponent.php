@@ -35,8 +35,7 @@ class PluginsComponent extends Component {
 	 * @return array
 	 */
 	public function check(array $pluginNames): array {
-		$result = [
-		];
+		$result = [];
 
 		foreach ($pluginNames as $pluginName) {
 			$result[$pluginName] = $this->checkPlugin($pluginName);

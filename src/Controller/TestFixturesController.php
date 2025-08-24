@@ -25,8 +25,8 @@ class TestFixturesController extends AppController {
 		$this->loadComponent('Flash');
 		$this->loadComponent('TestHelper.TestGenerator');
 		$this->loadComponent('TestHelper.Collector', [
-				'connection' => $this->request->getQuery('connection', 'default'),
-			] + (array)Configure::read('TestHelper.Collector'));
+			'connection' => $this->request->getQuery('connection', 'default'),
+		] + (array)Configure::read('TestHelper.Collector'));
 
 		$this->viewBuilder()->setHelpers([
 			'TestHelper.TestHelper',

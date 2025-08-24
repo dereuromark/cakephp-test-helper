@@ -1,8 +1,7 @@
 <?php
 
 return [
-	'TestHelper' => [
-	],
+	'TestHelper' => [],
 
 	'Icon' => [
 		'map' => [
