@@ -8,9 +8,9 @@ Browse `/test-helper` to see all functionality available.
 - Run tests and display results or coverage in backend.
 
 ## Configuration
-- TestHelper.command: If you need a custom phpunit command to run with.
-Both `php phpunit.phar` and `vendor/bin/phpunit` work out of the box.
-- TestHelper.coverage: Set to `xdebug` if you have this enabled, it otherwise uses pcov by default.
+- **TestHelper.command**: If you need a custom phpunit command to run with. Both `php phpunit.phar` and `vendor/bin/phpunit` work out of the box.
+- **TestHelper.coverage**: Set to `xdebug` if you have this enabled, it otherwise uses pcov by default.
+- **TestHelper.ignoreAuthorization**: Set to `true` to bypass authorization checks when using the CakePHP Authorization plugin. Default: `false`.
 
 ### Your own template
 The default template ships with bootstrap (5) and fontawesome icons.
@@ -20,6 +20,16 @@ Overwrite the `test_cases` element if you want to support e.g. foundation and th
 
 
 ## Troubleshooting
+
+### Authorization Plugin Errors
+
+If you are using the [CakePHP Authorization plugin](https://github.com/cakephp/authorization) and encounter `AuthorizationRequiredException` errors when accessing TestHelper routes, add this to your `config/bootstrap.php`:
+
+```php
+Configure::write('TestHelper.ignoreAuthorization', true);
+```
+
+This will skip authorization checks for all TestHelper routes, similar to how DebugKit handles authorization.
 
 ### Generated code coverage is black&white
 If the assets don't work, make sure your Nginx/Apache (like CakeBox Vagrant VM by default) doesn't block hidden files.

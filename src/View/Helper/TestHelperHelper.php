@@ -8,6 +8,30 @@ use Cake\View\Helper;
 class TestHelperHelper extends Helper {
 
 	/**
+	 * Displays a yes/no icon or text for boolean values
+	 *
+	 * @param bool $value The boolean value to display
+	 * @param array<string, mixed> $options Options for rendering
+	 * @return string HTML output
+	 */
+	public function yesNo(bool $value, array $options = []): string {
+		$defaults = [
+			'icon' => false,
+		];
+		$options += $defaults;
+
+		if ($options['icon']) {
+			return $value
+				? '<i class="fas fa-check text-success" title="Yes"></i>'
+				: '<i class="fas fa-times text-danger" title="No"></i>';
+		}
+
+		return $value
+			? '<span class="badge bg-success">Yes</span>'
+			: '<span class="badge bg-danger">No</span>';
+	}
+
+	/**
 	 * @param array<string, mixed> $params
 	 * @param bool $verbose
 	 *

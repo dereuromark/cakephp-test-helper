@@ -21,7 +21,7 @@
 			<td>
 				<?php
 				if (!$file['hasTestCase'] || empty($file['needsNoTestCase'])) {
-					echo $this->Format->yesNo($file['hasTestCase']);
+					echo $this->TestHelper->yesNo($file['hasTestCase']);
 				}
 				?>
 			</td>

@@ -2,17 +2,14 @@
 
 namespace TestHelper\Controller;
 
-use App\Controller\AppController;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
-use Cake\Event\EventInterface;
-use Templating\View\Helper\IconHelper;
 
 /**
  * @property \TestHelper\Controller\Component\TestGeneratorComponent $TestGenerator
  * @property \TestHelper\Controller\Component\CollectorComponent $Collector
  */
-class TestFixturesController extends AppController {
+class TestFixturesController extends TestHelperAppController {
 
 	protected ?string $defaultTable = '';
 
@@ -22,35 +19,10 @@ class TestFixturesController extends AppController {
 	public function initialize(): void {
 		parent::initialize();
 
-		$this->loadComponent('Flash');
 		$this->loadComponent('TestHelper.TestGenerator');
 		$this->loadComponent('TestHelper.Collector', [
 			'connection' => $this->request->getQuery('connection', 'default'),
 		] + (array)Configure::read('TestHelper.Collector'));
-
-		$this->viewBuilder()->setHelpers([
-			'TestHelper.TestHelper',
-			'Tools.Format',
-			class_exists(IconHelper::class) ? 'Templating.Icon' : 'Tools.Icon',
-		]);
-	}
-
-	/**
-	 * @param \Cake\Event\EventInterface $event
-	 * @return void
-	 */
-	public function beforeFilter(EventInterface $event): void {
-		parent::beforeFilter($event);
-
-		if ($this->components()->has('Security')) {
-			$this->components()->get('Security')->setConfig('validatePost', false);
-		}
-
-		if ($this->components()->has('Auth') && method_exists($this->components()->get('Auth'), 'allow')) {
-			$this->components()->get('Auth')->allow();
-		} elseif ($this->components()->has('Authentication') && method_exists($this->components()->get('Authentication'), 'addUnauthenticatedActions')) {
-			$this->components()->get('Authentication')->addUnauthenticatedActions(['index', 'generate']);
-		}
 	}
 
 	/**

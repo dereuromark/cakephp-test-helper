@@ -5,7 +5,7 @@ use Cake\Core\Configure;
 use Cake\Core\Plugin;
 use Cake\Datasource\ConnectionManager;
 use Cake\TestSuite\Fixture\SchemaLoader;
-use Shim\Filesystem\Folder;
+use Templating\TemplatingPlugin;
 use TestApp\Controller\AppController;
 use TestApp\View\AppView;
 use TestHelper\TestHelperPlugin;
@@ -54,10 +54,16 @@ Configure::write('debug', true);
 
 mb_internal_encoding('UTF-8');
 
-$Tmp = new Folder(TMP);
-$Tmp->create(TMP . 'cache/models', 0770);
-$Tmp->create(TMP . 'cache/persistent', 0770);
-$Tmp->create(TMP . 'cache/views', 0770);
+// Create cache directories
+if (!is_dir(TMP . 'cache/models')) {
+	mkdir(TMP . 'cache/models', 0770, true);
+}
+if (!is_dir(TMP . 'cache/persistent')) {
+	mkdir(TMP . 'cache/persistent', 0770, true);
+}
+if (!is_dir(TMP . 'cache/views')) {
+	mkdir(TMP . 'cache/views', 0770, true);
+}
 
 $cache = [
 	'default' => [
@@ -85,7 +91,7 @@ class_alias(AppView::class, 'App\View\AppView');
 
 Cache::setConfig($cache);
 Plugin::getCollection()->add(new TestHelperPlugin());
-Plugin::getCollection()->add(new ToolsPlugin());
+Plugin::getCollection()->add(new TemplatingPlugin());
 
 // Ensure default test connection is defined
 if (!getenv('DB_URL')) {

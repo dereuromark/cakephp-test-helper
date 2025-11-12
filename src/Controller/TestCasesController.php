@@ -2,21 +2,18 @@
 
 namespace TestHelper\Controller;
 
-use App\Controller\AppController;
 use Cake\Core\App;
 use Cake\Core\Plugin;
-use Cake\Event\EventInterface;
 use Cake\Http\Response;
+use DirectoryIterator;
 use RuntimeException;
-use Shim\Filesystem\Folder;
-use Templating\View\Helper\IconHelper;
 use TestHelper\Utility\ClassResolver;
 
 /**
  * @property \TestHelper\Controller\Component\TestRunnerComponent $TestRunner
  * @property \TestHelper\Controller\Component\TestGeneratorComponent $TestGenerator
  */
-class TestCasesController extends AppController {
+class TestCasesController extends TestHelperAppController {
 
 	/**
 	 * @return void
@@ -24,31 +21,8 @@ class TestCasesController extends AppController {
 	public function initialize(): void {
 		parent::initialize();
 
-		$this->loadComponent('Flash');
 		$this->loadComponent('TestHelper.TestRunner');
 		$this->loadComponent('TestHelper.TestGenerator');
-
-		$this->viewBuilder()->setHelpers([
-			'TestHelper.TestHelper',
-			'Tools.Format',
-			class_exists(IconHelper::class) ? 'Templating.Icon' : 'Tools.Icon',
-		]);
-	}
-
-	/**
-	 * @param \Cake\Event\EventInterface $event
-	 * @return void
-	 */
-	public function beforeFilter(EventInterface $event): void {
-		parent::beforeFilter($event);
-
-		if ($this->components()->has('Security')) {
-			$this->components()->get('Security')->setConfig('validatePost', false);
-		}
-
-		if ($this->components()->has('Auth') && method_exists($this->components()->get('Auth'), 'allow')) {
-			$this->components()->get('Auth')->allow();
-		}
 	}
 
 	/**
@@ -254,19 +228,30 @@ class TestCasesController extends AppController {
 	protected function getFiles(array $folders) {
 		$names = [];
 		foreach ($folders as $folder) {
-			$folderContent = (new Folder($folder))->read(Folder::SORT_NAME, true);
-
-			foreach ($folderContent[1] as $file) {
-				$name = pathinfo($file, PATHINFO_FILENAME);
-				$names[] = $name;
+			if (!is_dir($folder)) {
+				continue;
 			}
 
-			foreach ($folderContent[0] as $subFolder) {
-				$folderContent = (new Folder($folder . $subFolder))->read(Folder::SORT_NAME, true);
+			// Get files in the main folder
+			$iterator = new DirectoryIterator($folder);
+			foreach ($iterator as $fileInfo) {
+				if ($fileInfo->isFile() && $fileInfo->getExtension() === 'php') {
+					$name = $fileInfo->getBasename('.php');
+					$names[] = $name;
+				}
+			}
 
-				foreach ($folderContent[1] as $file) {
-					$name = pathinfo($file, PATHINFO_FILENAME);
-					$names[] = $subFolder . '.' . $name;
+			// Get files in subdirectories
+			foreach ($iterator as $fileInfo) {
+				if ($fileInfo->isDir() && !$fileInfo->isDot()) {
+					$subFolder = $fileInfo->getFilename();
+					$subIterator = new DirectoryIterator($folder . $subFolder);
+					foreach ($subIterator as $subFileInfo) {
+						if ($subFileInfo->isFile() && $subFileInfo->getExtension() === 'php') {
+							$name = $subFileInfo->getBasename('.php');
+							$names[] = $subFolder . '.' . $name;
+						}
+					}
 				}
 			}
 		}
