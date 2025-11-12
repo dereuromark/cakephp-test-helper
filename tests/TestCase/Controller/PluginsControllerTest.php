@@ -29,7 +29,7 @@ class PluginsControllerTest extends TestCase {
 	public function testRecommended() {
 		$this->disableErrorHandlerMiddleware();
 
-		$this->get(['plugin' => 'TestHelper', 'controller' => 'Plugins', 'action' => 'recommended', '?' => ['plugin' => 'Templating']]);
+		$this->get(['plugin' => 'TestHelper', 'controller' => 'Plugins', 'action' => 'recommended', '?' => ['plugin' => 'Shim']]);
 
 		$this->assertResponseCode(200);
 	}
