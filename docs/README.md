@@ -55,6 +55,9 @@ Navigate to
 for details.
 
 ### Fixture validation tool
+
+Note: Deprecated - Use [Fixture Factories](https://github.com/dereuromark/cakephp-fixture-factories) instead.
+
 Compare actual DB with the schema files: fields and attributes, constraints and indexes.
 It will also give you a list of bake commands you need to update the outdated fixtures.
 
