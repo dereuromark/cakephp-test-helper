@@ -115,4 +115,52 @@ TXT;
 		$this->assertStringContainsString('title="No"', $result);
 	}
 
+	/**
+	 * Test icon method with basic icon
+	 *
+	 * @return void
+	 */
+	public function testIconBasic(): void {
+		$result = $this->testHelperHelper->icon('add');
+
+		$this->assertStringContainsString('<i', $result);
+		$this->assertStringContainsString('fas', $result);
+		$this->assertStringContainsString('fa-plus', $result);
+		$this->assertStringContainsString('</i>', $result);
+	}
+
+	/**
+	 * Test icon method with attributes
+	 *
+	 * @return void
+	 */
+	public function testIconWithAttributes(): void {
+		$result = $this->testHelperHelper->icon('missing', ['title' => 'Missing!']);
+
+		$this->assertStringContainsString('fa-triangle-exclamation', $result);
+		$this->assertStringContainsString('title="Missing!"', $result);
+	}
+
+	/**
+	 * Test icon method with custom class
+	 *
+	 * @return void
+	 */
+	public function testIconWithClass(): void {
+		$result = $this->testHelperHelper->icon('yes', ['class' => 'text-success']);
+
+		$this->assertStringContainsString('fas fa-check text-success', $result);
+	}
+
+	/**
+	 * Test icon method with unmapped icon
+	 *
+	 * @return void
+	 */
+	public function testIconUnmappedIcon(): void {
+		$result = $this->testHelperHelper->icon('custom-icon');
+
+		$this->assertStringContainsString('fa-custom-icon', $result);
+	}
+
 }

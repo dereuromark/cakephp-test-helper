@@ -30,13 +30,6 @@ class TestHelperAppController extends Controller {
 
 		// Set default layout for the plugin
 		$this->viewBuilder()->setLayout('TestHelper.default');
-
-		// Load plugin helpers
-		$helpers = [
-			'TestHelper.TestHelper',
-			'TestHelper.Icon',
-		];
-		$this->viewBuilder()->setHelpers($helpers);
 	}
 
 	/**

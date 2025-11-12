@@ -54,13 +54,13 @@
 				?>
 			<tr>
 				<td>
-					<?php echo h($details['table']) ?: $this->Icon->render('warning', [], ['title'=> 'Missing']); ?>
+					<?php echo h($details['table']) ?: $this->TestHelper->icon('missing', ['title'=> 'Missing']); ?>
 				</td>
 				<td>
-					<?php echo $details['dbTable'] ?: $this->Icon->render('warning', [], ['title'=> 'Missing']); ?>
+					<?php echo $details['dbTable'] ?: $this->TestHelper->icon('missing', ['title'=> 'Missing']); ?>
 				</td>
 				<td>
-					<?php echo $details['entity'] ?: $this->Icon->render('warning', [], ['title'=> 'Missing']); ?>
+					<?php echo $details['entity'] ?: $this->TestHelper->icon('missing', ['title'=> 'Missing']); ?>
 				</td>
 			</tr>
 			<?php } ?>

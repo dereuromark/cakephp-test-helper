@@ -26,6 +26,8 @@ You have an overview of your classes and the test classes to it. If there is one
 - Model/entity/table comparison overview.
 - GUI for fixture comparison and generation of missing ones per mouse click.
 
+![Dashboard](docs/img/dashboard.png)
+
 ## Installation
 
 You can install this plugin into your CakePHP application using [composer](https://getcomposer.org):
@@ -87,6 +89,8 @@ Supported class types:
 Feel free to help out improving and completing this test helper plugin.
 
 - [Full Documentation](docs/README.md)
+
+
 
 ## Limitations
 Executing the tests and coverage from the web backend usually can not work for long-running tests due to the timeout issues.

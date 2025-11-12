@@ -5,7 +5,6 @@ use Cake\Core\Configure;
 use Cake\Core\Plugin;
 use Cake\Datasource\ConnectionManager;
 use Cake\TestSuite\Fixture\SchemaLoader;
-use Templating\TemplatingPlugin;
 use TestApp\Controller\AppController;
 use TestApp\View\AppView;
 use TestHelper\TestHelperPlugin;
@@ -89,7 +88,6 @@ class_alias(AppView::class, 'App\View\AppView');
 
 Cache::setConfig($cache);
 Plugin::getCollection()->add(new TestHelperPlugin());
-Plugin::getCollection()->add(new TemplatingPlugin());
 
 // Ensure default test connection is defined
 if (!getenv('DB_URL')) {
@@ -101,14 +99,6 @@ ConnectionManager::setConfig('test', [
 	'timezone' => 'UTC',
 	'quoteIdentifiers' => false,
 	'cacheMetadata' => true,
-]);
-
-Configure::write('Icon', [
-	'sets' => [
-		'fas' => [
-			'class' => \Templating\View\Icon\FontAwesome5Icon::class,
-		],
-	],
 ]);
 
 if (env('FIXTURE_SCHEMA_METADATA')) {

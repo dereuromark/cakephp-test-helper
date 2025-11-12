@@ -25,7 +25,6 @@
 		"cakephp/cakephp": "^5.1.1"
 	},
 	"require-dev": {
-		"dereuromark/cakephp-templating": "^0.2.12",
 		"fig-r/psr2r-sniffer": "dev-master",
 		"phpunit/phpunit": "^10.5 || ^11.5 || ^12.1",
 		"sebastian/diff": "^5.0.0 || ^6.0.0 || ^7.0.0"

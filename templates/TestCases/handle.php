@@ -28,12 +28,12 @@
 			<td>
 				<?php
 				if (!$file['hasTestCase']) {
-					echo $this->Form->postLink($this->Icon->render('plus', ['title' => 'Generate test case']), ['action' => $this->request->getParam('action'), '?' => ['namespace' => $this->request->getQuery('namespace')]], ['class' => '', 'escapeTitle' => false, 'data' => ['name' => $file['name']]]);
+					echo $this->Form->postLink($this->TestHelper->icon('add', ['title' => 'Generate test case']), ['action' => $this->request->getParam('action'), '?' => ['namespace' => $this->request->getQuery('namespace')]], ['class' => '', 'escapeTitle' => false, 'data' => ['name' => $file['name']]]);
 				} else {
 					?>
-					<?php echo $this->Html->link($this->Icon->render('play', ['title' => 'Run tests']), ['action' => 'run', '?' => ['test' => $file['testCase']]], ['escapeTitle' => false, 'target' => '_blank', 'class' => 'run', 'data-test-case' => $file['testCase']]); ?>
+					<?php echo $this->Html->link($this->TestHelper->icon('run', ['title' => 'Run tests']), ['action' => 'run', '?' => ['test' => $file['testCase']]], ['escapeTitle' => false, 'target' => '_blank', 'class' => 'run', 'data-test-case' => $file['testCase']]); ?>
 
-					<?php echo $this->Html->link($this->Icon->render('chart-bar', ['title' => 'Coverage']), ['action' => 'coverage', '?' => ['test' => $file['testCase'], 'name' => $file['name'], 'type' => $file['type']]], ['escapeTitle' => false, 'target' => '_blank', 'class' => 'coverage', 'data-test-case' => $file['testCase'], 'data-name' => $file['name'], 'data-type' => $file['type']]); ?>
+					<?php echo $this->Html->link($this->TestHelper->icon('coverage', ['title' => 'Coverage']), ['action' => 'coverage', '?' => ['test' => $file['testCase'], 'name' => $file['name'], 'type' => $file['type']]], ['escapeTitle' => false, 'target' => '_blank', 'class' => 'coverage', 'data-test-case' => $file['testCase'], 'data-name' => $file['name'], 'data-type' => $file['type']]); ?>
 				<?php } ?>
 			</td>
 			<td>

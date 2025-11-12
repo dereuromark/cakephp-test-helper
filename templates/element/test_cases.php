@@ -37,7 +37,7 @@
 
 	var remoteModal = function(url) {
 		// reset modal body with a spinner or empty content
-		var spinner = "<div class='text-center'><i class='fas fa-spinner fa-spin fa-5x fa-fw'></i></div>";
+		var spinner = "<div class='text-center'><?php echo $this->TestHelper->icon('loading', ['class' => 'fa-spin fa-5x fa-fw']); ?></div>";
 		var modalBody = document.querySelector("#modal-default .modal-body");
 		var modalFooterButtons = document.querySelector("#modal-default .modal-footer .buttons");
 

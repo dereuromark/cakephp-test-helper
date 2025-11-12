@@ -5,6 +5,7 @@ namespace TestHelper\Controller;
 use Cake\Core\Plugin;
 use Cake\Http\ServerRequest;
 use Cake\Http\UriFactory;
+use Cake\Routing\Exception\MissingRouteException;
 use Cake\Routing\Router;
 
 class TestHelperController extends TestHelperAppController {
@@ -22,7 +23,12 @@ class TestHelperController extends TestHelperAppController {
 			}
 
 			$request = (new ServerRequest())->withUri((new UriFactory())->createUri($url));
-			$params = Router::getRouteCollection()->parseRequest($request);
+			$params = null;
+			try {
+				$params = Router::getRouteCollection()->parseRequest($request);
+			} catch (MissingRouteException $e) {
+				$this->Flash->error($e->getMessage());
+			}
 
 			$this->set(compact('params'));
 		}

@@ -42,7 +42,7 @@
 					<?php echo h($fixture); ?>
 					<?php
 					if ($fixtureDetails['missing']) {
-						echo $this->Form->postLink($this->Icon->render('plus', ['title' => 'Generate Fixture']), ['action' => 'generate'], ['class' => '', 'escapeTitle' => false, 'data' => ['plugin' => $plugin, 'name' => $fixture]]);
+						echo $this->Form->postLink($this->TestHelper->icon('add', ['title' => 'Generate Fixture']), ['action' => 'generate'], ['class' => '', 'escapeTitle' => false, 'data' => ['plugin' => $plugin, 'name' => $fixture]]);
 					}
 					?>
 				</td>
