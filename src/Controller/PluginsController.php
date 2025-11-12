@@ -2,14 +2,12 @@
 
 namespace TestHelper\Controller;
 
-use App\Controller\AppController;
 use Cake\Core\Plugin;
-use Cake\Event\EventInterface;
 
 /**
  * @property \TestHelper\Controller\Component\PluginsComponent $Plugins
  */
-class PluginsController extends AppController {
+class PluginsController extends TestHelperAppController {
 
 	protected ?string $defaultTable = '';
 
@@ -20,28 +18,6 @@ class PluginsController extends AppController {
 		parent::initialize();
 
 		$this->loadComponent('TestHelper.Plugins');
-
-		$this->viewBuilder()->setHelpers([
-			'Tools.Format',
-		]);
-	}
-
-	/**
-	 * @param \Cake\Event\EventInterface $event
-	 * @return void
-	 */
-	public function beforeFilter(EventInterface $event): void {
-		parent::beforeFilter($event);
-
-		if ($this->components()->has('Security')) {
-			$this->components()->get('Security')->setConfig('validatePost', false);
-		}
-
-		if ($this->components()->has('Auth') && method_exists($this->components()->get('Auth'), 'allow')) {
-			$this->components()->get('Auth')->allow();
-		} elseif ($this->components()->has('Authentication') && method_exists($this->components()->get('Authentication'), 'addUnauthenticatedActions')) {
-			$this->components()->get('Authentication')->addUnauthenticatedActions(['index', 'recommended']);
-		}
 	}
 
 	/**

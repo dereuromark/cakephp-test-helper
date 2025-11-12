@@ -85,4 +85,34 @@ TXT;
 		$this->assertSame('My/Plugin.My/NestedPrefix/MyController::myAction', $result);
 	}
 
+	/**
+	 * Test yesNo method with badge display
+	 *
+	 * @return void
+	 */
+	public function testYesNoBadge(): void {
+		$result = $this->testHelperHelper->yesNo(true);
+		$this->assertStringContainsString('badge bg-success', $result);
+		$this->assertStringContainsString('Yes', $result);
+
+		$result = $this->testHelperHelper->yesNo(false);
+		$this->assertStringContainsString('badge bg-danger', $result);
+		$this->assertStringContainsString('No', $result);
+	}
+
+	/**
+	 * Test yesNo method with icon display
+	 *
+	 * @return void
+	 */
+	public function testYesNoIcon(): void {
+		$result = $this->testHelperHelper->yesNo(true, ['icon' => true]);
+		$this->assertStringContainsString('fas fa-check text-success', $result);
+		$this->assertStringContainsString('title="Yes"', $result);
+
+		$result = $this->testHelperHelper->yesNo(false, ['icon' => true]);
+		$this->assertStringContainsString('fas fa-times text-danger', $result);
+		$this->assertStringContainsString('title="No"', $result);
+	}
+
 }

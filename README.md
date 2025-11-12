@@ -44,6 +44,16 @@ bin/cake plugin load TestHelper --only-debug
 
 This will also load the routes.
 
+### Authorization Plugin
+
+If you are using the [CakePHP Authorization plugin](https://github.com/cakephp/authorization), you need to configure TestHelper to bypass authorization checks. Add this to your `config/bootstrap.php`:
+
+```php
+Configure::write('TestHelper.ignoreAuthorization', true);
+```
+
+This is similar to how DebugKit handles authorization and is necessary to prevent `AuthorizationRequiredException` errors when accessing TestHelper routes.
+
 ### non-dev mode
 In certain apps it can be useful to have some of the helper functionality available also for staging and prod.
 Here you must make sure then to not load the routes, though:

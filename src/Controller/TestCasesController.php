@@ -2,21 +2,18 @@
 
 namespace TestHelper\Controller;
 
-use App\Controller\AppController;
 use Cake\Core\App;
 use Cake\Core\Plugin;
-use Cake\Event\EventInterface;
 use Cake\Http\Response;
+use DirectoryIterator;
 use RuntimeException;
-use Shim\Filesystem\Folder;
-use Templating\View\Helper\IconHelper;
 use TestHelper\Utility\ClassResolver;
 
 /**
  * @property \TestHelper\Controller\Component\TestRunnerComponent $TestRunner
  * @property \TestHelper\Controller\Component\TestGeneratorComponent $TestGenerator
  */
-class TestCasesController extends AppController {
+class TestCasesController extends TestHelperAppController {
 
 	/**
 	 * @return void
@@ -24,31 +21,8 @@ class TestCasesController extends AppController {
 	public function initialize(): void {
 		parent::initialize();
 
-		$this->loadComponent('Flash');
 		$this->loadComponent('TestHelper.TestRunner');
 		$this->loadComponent('TestHelper.TestGenerator');
-
-		$this->viewBuilder()->setHelpers([
-			'TestHelper.TestHelper',
-			'Tools.Format',
-			class_exists(IconHelper::class) ? 'Templating.Icon' : 'Tools.Icon',
-		]);
-	}
-
-	/**
-	 * @param \Cake\Event\EventInterface $event
-	 * @return void
-	 */
-	public function beforeFilter(EventInterface $event): void {
-		parent::beforeFilter($event);
-
-		if ($this->components()->has('Security')) {
-			$this->components()->get('Security')->setConfig('validatePost', false);
-		}
-
-		if ($this->components()->has('Auth') && method_exists($this->components()->get('Auth'), 'allow')) {
-			$this->components()->get('Auth')->allow();
-		}
 	}
 
 	/**
@@ -59,12 +33,25 @@ class TestCasesController extends AppController {
 
 		$result = $this->TestRunner->run($file);
 
-		$this->set(compact('result'));
-		$serialize = 'result';
-		$this->viewBuilder()->setOptions(compact('serialize'));
-
 		if ($this->request->is('ajax')) {
+			// For AJAX, return JSON directly
 			$this->viewBuilder()->setClassName('Json');
+
+			// Build HTML output manually
+			$output = '<h1>' . h($file) . '</h1>';
+			$output .= '<code>' . h($result['command']) . '</code>';
+			$output .= '<h2>' . ($result['code'] === 0 ? 'OK' : 'ERROR (code ' . $result['code'] . ')') . '</h2>';
+			$output .= '<pre>' . h(implode("\n", $result['content'])) . '</pre>';
+
+			$response = [
+				'output' => $output,
+				'code' => $result['code'],
+				'command' => $result['command'],
+			];
+			$this->set($response);
+			$this->viewBuilder()->setOptions(['serialize' => array_keys($response)]);
+		} else {
+			$this->set(compact('result'));
 		}
 	}
 
@@ -84,11 +71,36 @@ class TestCasesController extends AppController {
 
 		$result = $this->TestRunner->coverage($file, $name, $type, (bool)$force);
 
-		$this->set(compact('result'));
-		$serialize = 'result';
-		$this->viewBuilder()->setOptions(compact('serialize'));
 		if ($this->request->is('ajax')) {
+			// For AJAX, return JSON directly
 			$this->viewBuilder()->setClassName('Json');
+
+			// Build HTML output manually
+			$refreshUrl = $this->request->getUri()->getPath() . '?' . http_build_query(['force' => true] + $this->request->getQuery());
+			$output = '<h1>' . h($file) . '</h1>';
+			$output .= '<code>' . h($result['command']) . '</code><br><br>';
+			$output .= '<div style="float: right">';
+			$output .= '<a href="' . h($refreshUrl) . '">Refresh</a>';
+			$output .= ' | ';
+			$output .= '<a href="' . h($result['url']) . '" target="_blank">Open in new tab</a>';
+			$output .= '</div>';
+			$output .= 'Coverage-Result of ' . h($result['file']);
+			$output .= '<h2>Details</h2>';
+			if ($result['testFileExists']) {
+				$output .= '<iframe src="' . h($result['url']) . '" style="width: 98%; height: 800px;"></iframe>';
+			} else {
+				$output .= '<i>Coverage file could not be created, coverage driver issues?</i>';
+			}
+
+			$response = [
+				'output' => $output,
+				'url' => $result['url'],
+				'testFileExists' => $result['testFileExists'],
+			];
+			$this->set($response);
+			$this->viewBuilder()->setOptions(['serialize' => array_keys($response)]);
+		} else {
+			$this->set(compact('result'));
 		}
 	}
 
@@ -254,19 +266,30 @@ class TestCasesController extends AppController {
 	protected function getFiles(array $folders) {
 		$names = [];
 		foreach ($folders as $folder) {
-			$folderContent = (new Folder($folder))->read(Folder::SORT_NAME, true);
-
-			foreach ($folderContent[1] as $file) {
-				$name = pathinfo($file, PATHINFO_FILENAME);
-				$names[] = $name;
+			if (!is_dir($folder)) {
+				continue;
 			}
 
-			foreach ($folderContent[0] as $subFolder) {
-				$folderContent = (new Folder($folder . $subFolder))->read(Folder::SORT_NAME, true);
+			// Get files in the main folder
+			$iterator = new DirectoryIterator($folder);
+			foreach ($iterator as $fileInfo) {
+				if ($fileInfo->isFile() && $fileInfo->getExtension() === 'php') {
+					$name = $fileInfo->getBasename('.php');
+					$names[] = $name;
+				}
+			}
 
-				foreach ($folderContent[1] as $file) {
-					$name = pathinfo($file, PATHINFO_FILENAME);
-					$names[] = $subFolder . '.' . $name;
+			// Get files in subdirectories
+			foreach ($iterator as $fileInfo) {
+				if ($fileInfo->isDir() && !$fileInfo->isDot()) {
+					$subFolder = $fileInfo->getFilename();
+					$subIterator = new DirectoryIterator($folder . $subFolder);
+					foreach ($subIterator as $subFileInfo) {
+						if ($subFileInfo->isFile() && $subFileInfo->getExtension() === 'php') {
+							$name = $subFileInfo->getBasename('.php');
+							$names[] = $subFolder . '.' . $name;
+						}
+					}
 				}
 			}
 		}

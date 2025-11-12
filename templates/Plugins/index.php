@@ -48,7 +48,7 @@
 							<?php echo h($hook); ?>
 						</td>
 						<td>
-							<?php echo $this->Format->yesNo((bool)$result[$plugin][$hook]); ?>
+							<?php echo $this->TestHelper->yesNo((bool)$result[$plugin][$hook], ['icon' => true]); ?>
 							<?php if ($result[$plugin][$hook]) {
 								echo implode(', ', $result[$plugin][$hook]);
 							} ?>

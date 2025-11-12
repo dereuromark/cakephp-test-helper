@@ -2,6 +2,7 @@
 
 namespace TestHelper\Command;
 
+use Cake\Command\Command;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
@@ -11,8 +12,6 @@ use Cake\Core\Plugin;
 use Cake\Datasource\ConnectionManager;
 use Cake\Error\Debugger;
 use Cake\ORM\Table;
-use Shim\Command\Command;
-use Shim\Filesystem\Folder;
 
 if (!defined('TESTS')) {
 	define('TESTS', ROOT . DS . 'tests' . DS);
@@ -59,6 +58,16 @@ class FixtureCheckCommand extends Command {
 	protected array $_missingFields = [];
 
 	/**
+	 * @var \Cake\Console\Arguments
+	 */
+	protected Arguments $args;
+
+	/**
+	 * @var \Cake\Console\ConsoleIo
+	 */
+	protected ConsoleIo $io;
+
+	/**
 	 * @inheritDoc
 	 */
 	public function initialize(): void {
@@ -75,6 +84,9 @@ class FixtureCheckCommand extends Command {
 	 */
 	public function execute(Arguments $args, ConsoleIo $io) {
 		parent::execute($args, $io);
+
+		$this->args = $args;
+		$this->io = $io;
 
 		$fixtures = $this->_getFixtures();
 		$this->io->out(count($fixtures) . ' fixtures found, processing:');
@@ -439,12 +451,18 @@ class FixtureCheckCommand extends Command {
 			$fixtureFolder = Plugin::path($plugin) . 'tests' . DS . 'Fixture' . DS;
 		}
 
-		$folder = new Folder($fixtureFolder);
-		$content = $folder->read();
-
 		$fixtures = [];
-		foreach ($content[1] as $file) {
-			$fixture = substr($file, 0, -4);
+		if (!is_dir($fixtureFolder)) {
+			return $fixtures;
+		}
+
+		$files = array_values(array_diff(scandir($fixtureFolder), ['.', '..']));
+		foreach ($files as $file) {
+			if (!is_file($fixtureFolder . $file) || pathinfo($file, PATHINFO_EXTENSION) !== 'php') {
+				continue;
+			}
+
+			$fixture = pathinfo($file, PATHINFO_FILENAME);
 			if (substr($fixture, -7) !== 'Fixture') {
 				continue;
 			}

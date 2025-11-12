@@ -2,17 +2,15 @@
 
 namespace TestHelper\Controller;
 
-use App\Controller\AppController;
 use Cake\Datasource\ConnectionManager;
 use Cake\Event\EventInterface;
 use SebastianBergmann\Diff\Differ;
 use SebastianBergmann\Diff\Output\DiffOnlyOutputBuilder;
-use Shim\Filesystem\Folder;
 
 /**
  * @property \TestHelper\Controller\Component\MigrationsComponent $Migrations
  */
-class MigrationsController extends AppController {
+class MigrationsController extends TestHelperAppController {
 
 	protected ?string $defaultTable = '';
 
@@ -31,16 +29,6 @@ class MigrationsController extends AppController {
 	 */
 	public function beforeFilter(EventInterface $event): void {
 		parent::beforeFilter($event);
-
-		if ($this->components()->has('Security')) {
-			$this->components()->get('Security')->setConfig('validatePost', false);
-		}
-
-		if ($this->components()->has('Auth') && method_exists($this->components()->get('Auth'), 'allow')) {
-			$this->components()->get('Auth')->allow();
-		} elseif ($this->components()->has('Authentication') && method_exists($this->components()->get('Authentication'), 'addUnauthenticatedActions')) {
-			$this->components()->get('Authentication')->addUnauthenticatedActions(['index']);
-		}
 
 		if (!file_exists(ROOT . DS . 'vendor/cakephp/migrations/composer.json')) {
 			$this->Flash->error('It seems the Migrations plugin is missing.');
@@ -91,8 +79,13 @@ class MigrationsController extends AppController {
 	 * @return \Cake\Http\Response|null|void
 	 */
 	public function snapshot() {
-		$x = (new Folder(CONFIG . 'MigrationsTmp'))->read();
-		$files = $x[1] ?? [];
+		$files = [];
+		$migrationsTmpPath = CONFIG . 'MigrationsTmp';
+		if (is_dir($migrationsTmpPath)) {
+			$files = array_values(array_diff(scandir($migrationsTmpPath), ['.', '..']));
+			$files = array_filter($files, fn ($file) => is_file($migrationsTmpPath . DS . $file));
+		}
+
 		if ($this->request->is('post') && $this->request->getData('clear')) {
 			foreach ($files as $file) {
 				unlink(CONFIG . 'MigrationsTmp' . DS . $file);
@@ -131,8 +124,12 @@ class MigrationsController extends AppController {
 		$database = $dbConfig['database'] ?? [];
 		$tmpDatabase = $database . '_tmp';
 
-		$x = (new Folder(CONFIG . 'MigrationsTmp'))->read();
-		$files = $x[1] ?? [];
+		$files = [];
+		$migrationsTmpPath = CONFIG . 'MigrationsTmp';
+		if (is_dir($migrationsTmpPath)) {
+			$files = array_values(array_diff(scandir($migrationsTmpPath), ['.', '..']));
+			$files = array_filter($files, fn ($file) => is_file($migrationsTmpPath . DS . $file));
+		}
 
 		if ($this->request->is('post') && $this->request->getData('test')) {
 			$connectionConfig = [
@@ -185,8 +182,12 @@ SQL;
 		$database = $dbConfig['database'] ?? [];
 		$tmpDatabase = $database . '_tmp';
 
-		$x = (new Folder(CONFIG . 'Seeds'))->read();
-		$seeds = $x[1] ?? [];
+		$seeds = [];
+		$seedsPath = CONFIG . 'Seeds';
+		if (is_dir($seedsPath)) {
+			$seeds = array_values(array_diff(scandir($seedsPath), ['.', '..']));
+			$seeds = array_filter($seeds, fn ($file) => is_file($seedsPath . DS . $file));
+		}
 
 		if ($this->request->is('post') && $this->request->getData('test')) {
 			$command = 'bin/cake migrations seed -c "mysql://root@127.0.0.1/' . $tmpDatabase . '"';
@@ -213,16 +214,25 @@ SQL;
 		$tmpDatabase = $database . '_tmp';
 
 		if ($this->request->is('post') && $this->request->getData('confirm')) {
-			$folder = (new Folder(CONFIG . 'Migrations'))->read();
-			$files = $folder[1] ?? [];
-			foreach ($files as $file) {
-				unlink(CONFIG . 'Migrations' . DS . $file);
+			// Remove old migration files
+			$migrationsPath = CONFIG . 'Migrations';
+			if (is_dir($migrationsPath)) {
+				$files = array_values(array_diff(scandir($migrationsPath), ['.', '..']));
+				$files = array_filter($files, fn ($file) => is_file($migrationsPath . DS . $file));
+				foreach ($files as $file) {
+					unlink($migrationsPath . DS . $file);
+				}
 			}
-			$folder = (new Folder(CONFIG . 'MigrationsTmp'))->read();
-			$files = $folder[1] ?? [];
-			foreach ($files as $file) {
-				copy(CONFIG . 'MigrationsTmp' . DS . $file, CONFIG . 'Migrations' . DS . $file);
-				unlink(CONFIG . 'MigrationsTmp' . DS . $file);
+
+			// Copy tmp migration files to Migrations folder
+			$migrationsTmpPath = CONFIG . 'MigrationsTmp';
+			if (is_dir($migrationsTmpPath)) {
+				$files = array_values(array_diff(scandir($migrationsTmpPath), ['.', '..']));
+				$files = array_filter($files, fn ($file) => is_file($migrationsTmpPath . DS . $file));
+				foreach ($files as $file) {
+					copy($migrationsTmpPath . DS . $file, $migrationsPath . DS . $file);
+					unlink($migrationsTmpPath . DS . $file);
+				}
 			}
 
 			/** @var \Cake\Database\Connection $connection */

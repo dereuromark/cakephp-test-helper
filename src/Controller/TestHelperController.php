@@ -2,46 +2,12 @@
 
 namespace TestHelper\Controller;
 
-use App\Controller\AppController;
 use Cake\Core\Plugin;
-use Cake\Event\EventInterface;
 use Cake\Http\ServerRequest;
 use Cake\Http\UriFactory;
 use Cake\Routing\Router;
 
-class TestHelperController extends AppController {
-
-	/**
-	 * @return void
-	 */
-	public function initialize(): void {
-		parent::initialize();
-
-		$this->loadComponent('Flash');
-
-		$this->viewBuilder()->setHelpers([
-			'TestHelper.TestHelper',
-			'Tools.Format',
-		]);
-	}
-
-	/**
-	 * @param \Cake\Event\EventInterface $event
-	 * @return void
-	 */
-	public function beforeFilter(EventInterface $event): void {
-		parent::beforeFilter($event);
-
-		if ($this->components()->has('Security')) {
-			$this->components()->get('Security')->setConfig('validatePost', false);
-		}
-
-		if ($this->components()->has('Auth') && method_exists($this->components()->get('Auth'), 'allow')) {
-			$this->components()->get('Auth')->allow();
-		} elseif ($this->components()->has('Authentication') && method_exists($this->components()->get('Authentication'), 'addUnauthenticatedActions')) {
-			$this->components()->get('Authentication')->addUnauthenticatedActions(['index']);
-		}
-	}
+class TestHelperController extends TestHelperAppController {
 
 	/**
 	 * @return \Cake\Http\Response|null|void

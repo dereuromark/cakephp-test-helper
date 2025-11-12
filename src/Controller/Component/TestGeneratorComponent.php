@@ -4,7 +4,7 @@ namespace TestHelper\Controller\Component;
 
 use Cake\Controller\Component;
 use Cake\Core\Plugin;
-use Shim\Filesystem\Folder;
+use DirectoryIterator;
 
 /**
  * @property \Cake\Controller\Component\FlashComponent $Flash
@@ -107,19 +107,30 @@ class TestGeneratorComponent extends Component {
 	public function getFiles(array $folders) {
 		$names = [];
 		foreach ($folders as $folder) {
-			$folderContent = (new Folder($folder))->read(Folder::SORT_NAME, true);
-
-			foreach ($folderContent[1] as $file) {
-				$name = pathinfo($file, PATHINFO_FILENAME);
-				$names[] = $name;
+			if (!is_dir($folder)) {
+				continue;
 			}
 
-			foreach ($folderContent[0] as $subFolder) {
-				$folderContent = (new Folder($folder . $subFolder))->read(Folder::SORT_NAME, true);
+			// Get files in the main folder
+			$iterator = new DirectoryIterator($folder);
+			foreach ($iterator as $fileInfo) {
+				if ($fileInfo->isFile() && $fileInfo->getExtension() === 'php') {
+					$name = $fileInfo->getBasename('.php');
+					$names[] = $name;
+				}
+			}
 
-				foreach ($folderContent[1] as $file) {
-					$name = pathinfo($file, PATHINFO_FILENAME);
-					$names[] = $subFolder . '/' . $name;
+			// Get files in subdirectories
+			foreach ($iterator as $fileInfo) {
+				if ($fileInfo->isDir() && !$fileInfo->isDot()) {
+					$subFolder = $fileInfo->getFilename();
+					$subIterator = new DirectoryIterator($folder . $subFolder);
+					foreach ($subIterator as $subFileInfo) {
+						if ($subFileInfo->isFile() && $subFileInfo->getExtension() === 'php') {
+							$name = $subFileInfo->getBasename('.php');
+							$names[] = $subFolder . '/' . $name;
+						}
+					}
 				}
 			}
 		}

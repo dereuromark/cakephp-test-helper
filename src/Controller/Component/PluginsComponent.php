@@ -245,7 +245,7 @@ TXT;
 
 		$pos = null;
 		foreach ($pieces as $i => $piece) {
-			if (strpos($piece, 'class Plugin extends BasePlugin') === false) {
+			if (!str_contains($piece, 'class Plugin extends BasePlugin')) {
 				continue;
 			}
 
@@ -264,7 +264,7 @@ TXT;
 				$indentation . '/**',
 				$indentation . ' * @var bool',
 				$indentation . ' */',
-				$indentation . 'protected $' . $part . 'Enabled = ' . ($result[$part . 'Exists'] ? 'true' : 'false') . ';',
+				$indentation . 'protected $' . $part . 'Enabled = ' . (!empty($result[$part . 'Exists']) ? 'true' : 'false') . ';',
 			];
 			if (trim($pieces[$pos + 1]) !== '{') {
 				array_unshift($add, '');
