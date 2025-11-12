@@ -7,7 +7,6 @@ use Cake\Controller\Controller;
 use Cake\Core\Configure;
 use Cake\Event\EventInterface;
 use Cake\Log\Log;
-use Templating\View\Helper\IconHelper;
 
 /**
  * TestHelper Plugin Base Controller
@@ -32,12 +31,11 @@ class TestHelperAppController extends Controller {
 		// Set default layout for the plugin
 		$this->viewBuilder()->setLayout('TestHelper.default');
 
+		// Load plugin helpers
 		$helpers = [
 			'TestHelper.TestHelper',
+			'TestHelper.Icon',
 		];
-		if (class_exists(IconHelper::class)) {
-			$helpers[] = 'Templating.Icon';
-		}
 		$this->viewBuilder()->setHelpers($helpers);
 	}
 

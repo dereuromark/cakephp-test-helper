@@ -15,56 +15,70 @@
 
 <?php $this->append('script');?>
 <script>
-	jQuery(document).ready(function () {
-		$('.run').click(function (e) {
-			e.preventDefault();
-
-			var url = $(this).attr('href');
-			remoteModal(url);
+	document.addEventListener('DOMContentLoaded', function () {
+		// Handle run test clicks
+		document.querySelectorAll('.run').forEach(function(link) {
+			link.addEventListener('click', function (e) {
+				e.preventDefault();
+				var url = this.getAttribute('href');
+				remoteModal(url);
+			});
 		});
 
-		$('.coverage').click(function (e) {
-			e.preventDefault();
-
-
-			var url = $(this).attr('href');
-			remoteModal(url);
+		// Handle coverage clicks
+		document.querySelectorAll('.coverage').forEach(function(link) {
+			link.addEventListener('click', function (e) {
+				e.preventDefault();
+				var url = this.getAttribute('href');
+				remoteModal(url);
+			});
 		});
 	});
 
 	var remoteModal = function(url) {
 		// reset modal body with a spinner or empty content
-		var spinner = "<div class='text-center'><i class='fa fa-spinner fa-spin fa-5x fa-fw'></i></div>";
+		var spinner = "<div class='text-center'><i class='fas fa-spinner fa-spin fa-5x fa-fw'></i></div>";
+		var modalBody = document.querySelector("#modal-default .modal-body");
+		var modalFooterButtons = document.querySelector("#modal-default .modal-footer .buttons");
 
-		$("#modal-default .modal-body").html(spinner);
+		modalBody.innerHTML = spinner;
 
-		$.ajax({
-			type: "get",
-			url: url,
-			beforeSend: function(xhr) {
-				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-				xhr.setRequestHeader('X-CSRF-Token', '<?php echo $this->request->getParam('_csrfToken'); ?>');
-			},
-			data: {
-			},
-			dataType: "json",
-			success: function(response) { //so, if data is retrieved, store it in html
-				var output = response.output;
-				var button = '<div><a href="' + url + '" target="blank" class="btn btn-primary">Details</a></div>';
-
-				$("#modal-default .modal-body").html(output);
-				$("#modal-default .modal-footer .buttons").html(button);
-				$("#modal-default .btn-primary").show();
-			},
-			error: function(e) {
-				var errorText = 'Error ' + e.status + ': ' + e.statusText;
-
-				alert("Fehler bei der Anfrage! " + errorText);
-				$("#modal-default .modal-body").html('');
+		fetch(url, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+				'X-CSRF-Token': '<?php echo $this->request->getParam('_csrfToken'); ?>',
+				'X-Requested-With': 'XMLHttpRequest',
+				'Accept': 'application/json'
 			}
+		})
+		.then(function(response) {
+			if (!response.ok) {
+				throw new Error('Error ' + response.status + ': ' + response.statusText);
+			}
+			return response.json();
+		})
+		.then(function(data) {
+			var output = data.output;
+			var button = '<div><a href="' + url + '" target="_blank" class="btn btn-primary">Details</a></div>';
+
+			modalBody.innerHTML = output;
+			modalFooterButtons.innerHTML = button;
+
+			var primaryButton = document.querySelector("#modal-default .btn-primary");
+			if (primaryButton) {
+				primaryButton.style.display = 'block';
+			}
+		})
+		.catch(function(error) {
+			alert("Fehler bei der Anfrage! " + error.message);
+			modalBody.innerHTML = '';
 		});
 
-		$("#modal-default").modal("show");
+		// Show modal using Bootstrap 5 API
+		var modalElement = document.getElementById('modal-default');
+		var modal = new bootstrap.Modal(modalElement);
+		modal.show();
 	};
 </script>
 <?php $this->end();?>

@@ -9,8 +9,6 @@ use Templating\TemplatingPlugin;
 use TestApp\Controller\AppController;
 use TestApp\View\AppView;
 use TestHelper\TestHelperPlugin;
-use Tools\ToolsPlugin;
-use Tools\View\Icon\FontAwesome4Icon;
 
 if (!defined('DS')) {
 	define('DS', DIRECTORY_SEPARATOR);
@@ -108,7 +106,7 @@ ConnectionManager::setConfig('test', [
 Configure::write('Icon', [
 	'sets' => [
 		'fas' => [
-			'class' => FontAwesome4Icon::class,
+			'class' => \Templating\View\Icon\FontAwesome5Icon::class,
 		],
 	],
 ]);

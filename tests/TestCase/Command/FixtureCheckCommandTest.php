@@ -6,8 +6,8 @@ use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
-use Shim\TestSuite\ConsoleOutput;
 use TestHelper\Command\FixtureCheckCommand;
+use TestHelper\Test\TestSuite\ConsoleOutput;
 
 /**
  * @uses \TestHelper\Command\FixtureCheckCommand

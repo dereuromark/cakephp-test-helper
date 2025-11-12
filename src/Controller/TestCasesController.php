@@ -33,12 +33,25 @@ class TestCasesController extends TestHelperAppController {
 
 		$result = $this->TestRunner->run($file);
 
-		$this->set(compact('result'));
-		$serialize = 'result';
-		$this->viewBuilder()->setOptions(compact('serialize'));
-
 		if ($this->request->is('ajax')) {
+			// For AJAX, return JSON directly
 			$this->viewBuilder()->setClassName('Json');
+
+			// Build HTML output manually
+			$output = '<h1>' . h($file) . '</h1>';
+			$output .= '<code>' . h($result['command']) . '</code>';
+			$output .= '<h2>' . ($result['code'] === 0 ? 'OK' : 'ERROR (code ' . $result['code'] . ')') . '</h2>';
+			$output .= '<pre>' . h(implode("\n", $result['content'])) . '</pre>';
+
+			$response = [
+				'output' => $output,
+				'code' => $result['code'],
+				'command' => $result['command'],
+			];
+			$this->set($response);
+			$this->viewBuilder()->setOptions(['serialize' => array_keys($response)]);
+		} else {
+			$this->set(compact('result'));
 		}
 	}
 
@@ -58,11 +71,36 @@ class TestCasesController extends TestHelperAppController {
 
 		$result = $this->TestRunner->coverage($file, $name, $type, (bool)$force);
 
-		$this->set(compact('result'));
-		$serialize = 'result';
-		$this->viewBuilder()->setOptions(compact('serialize'));
 		if ($this->request->is('ajax')) {
+			// For AJAX, return JSON directly
 			$this->viewBuilder()->setClassName('Json');
+
+			// Build HTML output manually
+			$refreshUrl = $this->request->getUri()->getPath() . '?' . http_build_query(['force' => true] + $this->request->getQuery());
+			$output = '<h1>' . h($file) . '</h1>';
+			$output .= '<code>' . h($result['command']) . '</code><br><br>';
+			$output .= '<div style="float: right">';
+			$output .= '<a href="' . h($refreshUrl) . '">Refresh</a>';
+			$output .= ' | ';
+			$output .= '<a href="' . h($result['url']) . '" target="_blank">Open in new tab</a>';
+			$output .= '</div>';
+			$output .= 'Coverage-Result of ' . h($result['file']);
+			$output .= '<h2>Details</h2>';
+			if ($result['testFileExists']) {
+				$output .= '<iframe src="' . h($result['url']) . '" style="width: 98%; height: 800px;"></iframe>';
+			} else {
+				$output .= '<i>Coverage file could not be created, coverage driver issues?</i>';
+			}
+
+			$response = [
+				'output' => $output,
+				'url' => $result['url'],
+				'testFileExists' => $result['testFileExists'],
+			];
+			$this->set($response);
+			$this->viewBuilder()->setOptions(['serialize' => array_keys($response)]);
+		} else {
+			$this->set(compact('result'));
 		}
 	}
 
