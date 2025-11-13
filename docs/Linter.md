@@ -74,14 +74,15 @@ Ensures template variables have specific type annotations, not `mixed`.
 
 ### use-orm-query
 
-Checks for incorrect `use Cake\Database\Query;` imports which should be `use Cake\ORM\Query\SelectQuery;`
+Checks for incorrect generic Query imports which should use specific query types like `SelectQuery`
 
 **Checks:** `src/`, `tests/`, `plugins/` directories
-**Purpose:** Enforce correct Query class imports for CakePHP 5.x
+**Purpose:** Enforce specific Query class imports for CakePHP 5.x
 
-**Example violation:**
+**Example violations:**
 ```php
 use Cake\Database\Query;
+use Cake\ORM\Query;
 ```
 
 **Should be:**

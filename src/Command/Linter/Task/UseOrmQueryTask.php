@@ -20,7 +20,7 @@ class UseOrmQueryTask extends AbstractLinterTask {
      * @inheritDoc
      */
 	public function description(): string {
-		return 'Check for incorrect "use Cake\Database\Query;" which should be "use Cake\ORM\Query\SelectQuery;"';
+		return 'Check for incorrect Query imports - use specific query types like SelectQuery instead';
 	}
 
 	/**
@@ -50,13 +50,13 @@ class UseOrmQueryTask extends AbstractLinterTask {
 
 			$lines = explode("\n", $content);
 			foreach ($lines as $lineNumber => $line) {
-				// Check for the incorrect import
-				if (preg_match('/^\s*use\s+Cake\\\\Database\\\\Query\s*;/', $line)) {
+				// Check for generic Query imports (Database\Query or ORM\Query)
+				if (preg_match('/^\s*use\s+Cake\\\\(Database|ORM)\\\\Query\s*;/', $line)) {
 					$this->outputIssue(
 						$io,
 						$file,
 						$lineNumber + 1,
-						'Use "use Cake\ORM\Query\SelectQuery;" instead of "use Cake\Database\Query;"',
+						'Use specific query type like "use Cake\ORM\Query\SelectQuery;" instead',
 						trim($line),
 					);
 					$issues++;

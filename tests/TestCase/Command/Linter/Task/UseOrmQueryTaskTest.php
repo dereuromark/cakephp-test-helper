@@ -58,8 +58,8 @@ class UseOrmQueryTaskTest extends TestCase {
      */
 	public function testDescription(): void {
 		$description = $this->task->description();
-		$this->assertStringContainsString('Cake\Database\Query', $description);
-		$this->assertStringContainsString('Cake\ORM\Query\SelectQuery', $description);
+		$this->assertStringContainsString('Query', $description);
+		$this->assertStringContainsString('SelectQuery', $description);
 	}
 
 	/**
