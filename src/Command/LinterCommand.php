@@ -104,7 +104,7 @@ class LinterCommand extends Command {
 			return $this->listTasks($io, $tasks);
 		}
 
-		$taskFilter = $args->getOption('task');
+		$taskFilter = (string)$args->getOption('task');
 		if ($taskFilter) {
 			$tasks = $this->filterTasks($tasks, $taskFilter);
 			if (!$tasks) {
