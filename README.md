@@ -21,10 +21,11 @@ With a browser backend generating tests or running them is just a simple mouse c
 You have an overview of your classes and the test classes to it. If there is one missing, you can easily "bake" it from this web backend. It internally uses [Bake](https://github.com/cakephp/bake/) plugin as well as your preferred theme.
 
 ### Further useful addons
-- URL array generation from string URLs (respects routing, so it is basically also a reverse lookup)
-- Fixture validation tool (compares actual DB with the schema files: fields and attributes, constraints and indexes)
-- Model/entity/table comparison overview.
-- GUI for fixture comparison and generation of missing ones per mouse click.
+* URL array generation from string URLs (respects routing, so it is basically also a reverse lookup)
+* Fixture validation tool (compares actual DB with the schema files: fields and attributes, constraints and indexes)
+* Model/entity/table comparison overview.
+* GUI for fixture comparison and generation of missing ones per mouse click.
+* Custom linter tasks for project-specific code quality checks.
 
 ![Dashboard](docs/img/dashboard.png)
 
@@ -74,22 +75,31 @@ You can then with a single click
 
 Supported class types:
 
-- [x] Controllers
-- [x] Models (Tables/Entities)
-- [x] Components
-- [x] Behavior
-- [x] Helpers
-- [x] Commands
-- [x] Tasks
-- [ ] Cells
-- [ ] CommandHelpers
-- [ ] Forms
-- [ ] Mailers
+* [x] Controllers
+* [x] Models (Tables/Entities)
+* [x] Components
+* [x] Behavior
+* [x] Helpers
+* [x] Commands
+* [x] Tasks
+* [ ] Cells
+* [ ] CommandHelpers
+* [ ] Forms
+* [ ] Mailers
 
 Feel free to help out improving and completing this test helper plugin.
 
-- [Full Documentation](docs/README.md)
+* [Full Documentation](docs/README.md)
 
+## Custom Linter Tasks
+
+The plugin includes a flexible linter system for running project-specific code quality checks.
+
+```bash
+bin/cake linter
+```
+
+See [Linter Documentation](docs/Linter.md) for details on creating custom tasks, configuration, and included default tasks.
 
 
 ## Limitations

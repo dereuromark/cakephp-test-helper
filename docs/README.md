@@ -1,11 +1,12 @@
 # TestHelper Plugin Documentation
 
 Browse `/test-helper` to see all functionality available.
-- URL generation and reverse lookup
-- Check plugin hooks
-- Check fixtures against tables (+ bake missing ones via click)
-- Check tests per file available (+ bake missing ones via click)
-- Run tests and display results or coverage in backend.
+* URL generation and reverse lookup
+* Check plugin hooks
+* Check fixtures against tables (+ bake missing ones via click)
+* Check tests per file available (+ bake missing ones via click)
+* Run tests and display results or coverage in backend.
+* [Custom Linter Tasks](Linter.md) - Project-specific code quality checks
 
 ## Configuration
 - **TestHelper.command**: If you need a custom phpunit command to run with. Both `php phpunit.phar` and `vendor/bin/phpunit` work out of the box.
@@ -64,6 +65,20 @@ Navigate to
 ```
 for details.
 
+### Custom Linter Tasks
+
+Run project-specific code quality checks:
+
+```
+bin/cake linter
+```
+
+See [Linter Documentation](Linter.md) for complete details on:
+* Creating custom linter tasks
+* Configuration options
+* Included default tasks
+* Advanced examples
+
 ### Fixture validation tool
 
 Note: Deprecated - Use [Fixture Factories](https://github.com/dereuromark/cakephp-fixture-factories) instead.
@@ -76,11 +91,11 @@ bin/cake fixture_check
 ```
 
 Most useful options:
-- 'p': Plugin
-- 't': Type to run: fields, constraints, indexes (none = all).
-- 'c': Connection (you can switch from default DB to also another one)
-- 'f': Specific fixtures to check (comma separated list)
-- 's': Strict mode, includes collation
+* 'p': Plugin
+* 't': Type to run: fields, constraints, indexes (none = all).
+* 'c': Connection (you can switch from default DB to also another one)
+* 'f': Specific fixtures to check (comma separated list)
+* 's': Strict mode, includes collation
 
 By default it will only check your app level. You can use a combined composer command for convenience to check also your important plugins as convenience wrapper:
 ```json
