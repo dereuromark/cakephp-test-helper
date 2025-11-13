@@ -1,10 +1,11 @@
-# Custom Linter Tasks
+# Cake Linter Tasks
 
 The TestHelper plugin provides a flexible linter system for running project-specific code quality checks. Unlike general-purpose tools (phpcs, phpstan, rector), these linters are designed for quick validation of project-specific conventions that don't fit into standard static analysis tools.
 
-## Why Custom Linter Tasks?
+## Why Linter Tasks?
 
-* **Project-specific rules**: Enforce conventions unique to your codebase
+* **Cake rules**: Enforce CakePHP conventions and best practices (plugin based tasks)
+* **Project-specific rules**: Enforce conventions unique to your codebase (extension level)
 * **Fast execution**: Simple checks that run in seconds
 * **Easy to extend**: Create custom tasks without complex tool configuration
 * **Integration-friendly**: Can be run in CI pipelines alongside other quality tools
@@ -294,9 +295,9 @@ Report an issue with file path, line number, and context:
 $this->outputIssue(
     $io,
     $file,          // File path
-    $lineNumber,    // Line number (1-indexed)
+    $lineNumber,    // Line number (1-indexed, use 0 if no line is possible to set)
     'Issue description',
-    'Code context'  // Optional: the problematic code
+    'Code context',  // Optional: the problematic code
 );
 ```
 
@@ -436,7 +437,7 @@ Add to your CI pipeline to enforce code quality:
   run: bin/cake linter
 ```
 
-Or in composer scripts:
+And for developers as quick-check in composer scripts:
 
 ```json
 {
@@ -445,7 +446,8 @@ Or in composer scripts:
             "phpcs",
             "phpstan",
             "bin/cake linter"
-        ]
+        ],
+        "lint": "bin/cake linter"
     }
 }
 ```
@@ -492,6 +494,5 @@ If linting is slow:
 ## See Also
 
 * [Main README](../README.md)
-* [CakePHP Commands Documentation](https://book.cakephp.org/5/en/console-commands.html)
 * [PHPStan](https://phpstan.org/) - For complex static analysis
-* [PHP CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer) - For code style
+* [Rector](https://github.com/rectorphp/rector) - For complex migration tooling
