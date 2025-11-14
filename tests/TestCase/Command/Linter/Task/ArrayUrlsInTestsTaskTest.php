@@ -206,4 +206,41 @@ PHP;
 		unlink($tempFile);
 	}
 
+	/**
+	 * Test autofix skips concatenated URLs
+	 *
+	 * @return void
+	 */
+	public function testAutofixSkipsConcatenatedUrls(): void {
+		$tempFile = tempnam(sys_get_temp_dir(), 'linter_test_');
+		$content = <<<'PHP'
+<?php
+class SomeTest extends TestCase {
+    public function testSomething(): void {
+        $this->get('/some/path/' . $variable);
+        $this->post('/users/' . $id . '/edit');
+        $this->assertRedirect('/resident-backgrounds/single/' . $resident->uuid);
+        $this->assertRedirect('/resident-backgrounds/single?resident_uuid=' . $resident->uuid);
+    }
 }
+PHP;
+		file_put_contents($tempFile, $content);
+
+		$io = new ConsoleIo($this->out, $this->err);
+		$reflection = new \ReflectionClass($this->task);
+		$method = $reflection->getMethod('checkFile');
+
+		// Run with fix enabled
+		$method->invoke($this->task, $io, $tempFile, false, true);
+
+		$fixed = file_get_contents($tempFile);
+
+		// Content should be unchanged - concatenated URLs are too complex to auto-fix
+		$this->assertSame($content, $fixed);
+
+		unlink($tempFile);
+	}
+
+}
+
+

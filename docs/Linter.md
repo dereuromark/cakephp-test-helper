@@ -75,7 +75,7 @@ Checks test files for string URLs in `get()`, `post()`, and `assertRedirect()` -
 
 * **Checks:** `tests/TestCase/Controller/` directory
 * **Purpose:** Enforce CakePHP routing array format instead of string URLs in tests
-* **Auto-fix:** ✅ Supported
+* **Auto-fix:** ✅ Supported (simple URLs only)
 
 **Example violation:**
 ```php
@@ -90,6 +90,8 @@ $this->get(['controller' => 'Suppliers', 'action' => 'view', 123]);
 $this->post(['controller' => 'Users', 'action' => 'login', '?' => ['user' => 'x']]);
 $this->assertRedirect(['controller' => 'Dashboard', 'action' => 'index']);
 ```
+
+**Limitation:** Concatenated URLs (e.g., `$this->get('/path/' . $variable)` or `$this->assertRedirect('/path?param=' . $value)`) are not auto-fixable and will be skipped to avoid breaking code. These need to be manually converted.
 
 ### deprecated-find-options
 

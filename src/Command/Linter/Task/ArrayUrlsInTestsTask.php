@@ -91,6 +91,12 @@ class ArrayUrlsInTestsTask extends AbstractLinterTask {
 
 		foreach ($lines as $lineNum => $line) {
 			// Check for $this->get('/some/url') or $this->get("/some/url")
+			// Skip concatenated strings (e.g., '/path/' . $var) as they're too complex to auto-fix
+			if (preg_match('/\$this->(get|post)\(\s*([\'"])\/[^\'"]*\2\s*\./', $line)) {
+				// Skip concatenated URLs
+				continue;
+			}
+
 			if (preg_match('/\$this->(get|post)\(\s*([\'"])\//', $line, $matches)) {
 				$method = $matches[1];
 				$this->outputIssue(
@@ -111,6 +117,12 @@ class ArrayUrlsInTestsTask extends AbstractLinterTask {
 			}
 
 			// Check for $this->assertRedirect('/some/url') or $this->assertRedirect("/some/url")
+			// Skip concatenated strings (e.g., '/path/' . $var) as they're too complex to auto-fix
+			if (preg_match('/\$this->assertRedirect\(\s*([\'"])\/[^\'"]*\1\s*\./', $line)) {
+				// Skip concatenated URLs
+				continue;
+			}
+
 			if (preg_match('/\$this->assertRedirect\(\s*([\'"])\//', $line)) {
 				$this->outputIssue(
 					$io,
