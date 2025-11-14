@@ -12,11 +12,17 @@ class ClassResolver {
 		'Component' => 'Controller/Component',
 		'Helper' => 'View/Helper',
 		'CommandHelper' => 'Command/Helper',
+		'Cell' => 'View/Cell',
+		'Form' => 'Form',
+		'Mailer' => 'Mailer',
 	];
 
 	protected static array $suffixMap = [
 		'Entity' => '',
 		'CommandHelper' => 'Helper',
+		'Cell' => 'Cell',
+		'Form' => 'Form',
+		'Mailer' => 'Mailer',
 	];
 
 	/**

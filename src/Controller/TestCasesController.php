@@ -161,6 +161,34 @@ class TestCasesController extends TestHelperAppController {
 	}
 
 	/**
+	 * @return \Cake\Http\Response|null
+	 */
+	public function commandHelper() {
+		return $this->handle('CommandHelper');
+	}
+
+	/**
+	 * @return \Cake\Http\Response|null
+	 */
+	public function cell() {
+		return $this->handle(ucfirst(__FUNCTION__));
+	}
+
+	/**
+	 * @return \Cake\Http\Response|null
+	 */
+	public function form() {
+		return $this->handle(ucfirst(__FUNCTION__));
+	}
+
+	/**
+	 * @return \Cake\Http\Response|null
+	 */
+	public function mailer() {
+		return $this->handle(ucfirst(__FUNCTION__));
+	}
+
+	/**
 	 * Bake currently supports types:
 	 * - Entity
 	 * - Table

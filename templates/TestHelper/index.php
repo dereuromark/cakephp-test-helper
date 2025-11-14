@@ -78,43 +78,37 @@ $this->assign('title', 'Test Helper Dashboard');
 				<h6 class="fw-bold mt-3"><?php echo h($namespace ?: '[App]'); ?></h6>
 				<?php
 					$namespace = $namespace ?: 'app';
+
+					$testTypes = [
+						// Controller Layer
+						['icon' => 'controllers', 'label' => 'Controllers', 'action' => 'controller'],
+						['icon' => 'components', 'label' => 'Components', 'action' => 'component'],
+						// Model Layer
+						['icon' => 'tables', 'label' => 'Tables', 'action' => 'table'],
+						['icon' => 'entities', 'label' => 'Entities', 'action' => 'entity'],
+						['icon' => 'behaviors', 'label' => 'Behaviors', 'action' => 'behavior'],
+						// View Layer
+						['icon' => 'helpers', 'label' => 'Helpers', 'action' => 'helper'],
+						['icon' => 'cells', 'label' => 'Cells', 'action' => 'cell'],
+						// Console/Command Layer
+						['icon' => 'commands', 'label' => 'Commands', 'action' => 'command'],
+						['icon' => 'tasks', 'label' => 'Tasks', 'action' => 'task'],
+						['icon' => 'command-helpers', 'label' => 'Command Helpers', 'action' => 'commandHelper'],
+						// Other
+						['icon' => 'forms', 'label' => 'Forms', 'action' => 'form'],
+						['icon' => 'mailers', 'label' => 'Mailers', 'action' => 'mailer'],
+					];
 				?>
-				<div class="list-group">
-					<?php echo $this->Html->link(
-						$this->TestHelper->icon('controllers') . ' Controllers',
-						['controller' => 'TestCases', 'action' => 'controller', '?' => ['namespace' => $namespace]],
-						['escape' => false, 'class' => 'list-group-item list-group-item-action'],
-					); ?>
-					<?php echo $this->Html->link(
-						$this->TestHelper->icon('commands') . ' Commands',
-						['controller' => 'TestCases', 'action' => 'command', '?' => ['namespace' => $namespace]],
-						['escape' => false, 'class' => 'list-group-item list-group-item-action'],
-					); ?>
-					<?php echo $this->Html->link(
-						$this->TestHelper->icon('tables') . ' Tables',
-						['controller' => 'TestCases', 'action' => 'table', '?' => ['namespace' => $namespace]],
-						['escape' => false, 'class' => 'list-group-item list-group-item-action'],
-					); ?>
-					<?php echo $this->Html->link(
-						$this->TestHelper->icon('entities') . ' Entities',
-						['controller' => 'TestCases', 'action' => 'entity', '?' => ['namespace' => $namespace]],
-						['escape' => false, 'class' => 'list-group-item list-group-item-action'],
-					); ?>
-					<?php echo $this->Html->link(
-						$this->TestHelper->icon('behaviors') . ' Behaviors',
-						['controller' => 'TestCases', 'action' => 'behavior', '?' => ['namespace' => $namespace]],
-						['escape' => false, 'class' => 'list-group-item list-group-item-action'],
-					); ?>
-					<?php echo $this->Html->link(
-						$this->TestHelper->icon('components') . ' Components',
-						['controller' => 'TestCases', 'action' => 'component', '?' => ['namespace' => $namespace]],
-						['escape' => false, 'class' => 'list-group-item list-group-item-action'],
-					); ?>
-					<?php echo $this->Html->link(
-						$this->TestHelper->icon('helpers') . ' Helpers',
-						['controller' => 'TestCases', 'action' => 'helper', '?' => ['namespace' => $namespace]],
-						['escape' => false, 'class' => 'list-group-item list-group-item-action'],
-					); ?>
+				<div class="row g-2">
+					<?php foreach ($testTypes as $type) { ?>
+						<div class="col-6">
+							<?php echo $this->Html->link(
+								$this->TestHelper->icon($type['icon']) . ' ' . $type['label'],
+								['controller' => 'TestCases', 'action' => $type['action'], '?' => ['namespace' => $namespace]],
+								['escape' => false, 'class' => 'btn btn-sm btn-outline-success d-block text-start'],
+							); ?>
+						</div>
+					<?php } ?>
 				</div>
 			</div>
 		</div>

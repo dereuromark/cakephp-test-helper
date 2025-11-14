@@ -27,6 +27,9 @@
 		<include>
 			<directory suffix=".php">src/</directory>
 		</include>
+		<exclude>
+			<file>src/Command/FixtureCheckCommand.php</file>
+		</exclude>
 	</source>
 
 </phpunit>

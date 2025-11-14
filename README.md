@@ -82,10 +82,10 @@ Supported class types:
 * [x] Helpers
 * [x] Commands
 * [x] Tasks
-* [ ] Cells
-* [ ] CommandHelpers
-* [ ] Forms
-* [ ] Mailers
+* [x] Cells
+* [x] CommandHelpers
+* [x] Forms
+* [x] Mailers
 
 Feel free to help out improving and completing this test helper plugin.
 
