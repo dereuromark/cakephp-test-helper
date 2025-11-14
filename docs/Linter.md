@@ -58,8 +58,8 @@ The plugin includes four default linter tasks that are active by default:
 
 Ensures template variables have specific type annotations, not `mixed`.
 
-**Checks:** `templates/` directory
-**Purpose:** Enforce proper type hints in template files for better IDE support and type safety
+* **Checks:** `templates/` directory
+* **Purpose:** Enforce proper type hints in template files for better IDE support and type safety
 
 **Example violation:**
 ```php
@@ -83,8 +83,8 @@ Ensures template variables have specific type annotations, not `mixed`.
 
 Checks for incorrect generic Query imports which should use specific query types like `SelectQuery`
 
-**Checks:** `src/`, `tests/`, `plugins/` directories
-**Purpose:** Enforce specific Query class imports for CakePHP 5.x
+* **Checks:** `src/`, `tests/`, `plugins/` directories
+* **Purpose:** Enforce specific Query class imports for CakePHP 5.x
 
 **Example violations:**
 ```php
@@ -103,8 +103,8 @@ Note: Not auto-fixed here, if found, use [upgrade tool](https://github.com/cakep
 
 Flags deprecated `AbstractMigration` and `AbstractSeed` usage, recommending `BaseMigration` and `BaseSeed`
 
-**Checks:** `config/Migrations/`, `config/Seeds/` directories
-**Purpose:** Ensure migrations use non-deprecated base classes
+* **Checks:** `config/Migrations/`, `config/Seeds/` directories
+* **Purpose:** Ensure migrations use non-deprecated base classes
 
 **Example violation:**
 ```php
@@ -126,8 +126,8 @@ Note: Not auto-fixed here, if found, use [upgrade tool](https://github.com/cakep
 
 Validates that controller test methods contain only one `get()` or `post()` call
 
-**Checks:** `tests/TestCase/Controller/` directory
-**Purpose:** Enforce test isolation - each test method should test a single request
+- **Checks:** `tests/TestCase/Controller/` directory
+- **Purpose:** Enforce test isolation - each test method should test a single request
 
 **Example violation:**
 ```php
