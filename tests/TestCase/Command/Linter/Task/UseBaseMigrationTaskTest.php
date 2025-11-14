@@ -33,16 +33,6 @@ class UseBaseMigrationTaskTest extends TestCase {
 	}
 
 	/**
-	 * tearDown method
-	 *
-	 * @return void
-	 */
-	public function tearDown(): void {
-		unset($this->task);
-		parent::tearDown();
-	}
-
-	/**
 	 * Test task name
 	 *
 	 * @return void

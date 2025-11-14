@@ -34,16 +34,6 @@ class DeprecatedFindOptionsTaskTest extends TestCase {
 	}
 
 	/**
-	 * tearDown method
-	 *
-	 * @return void
-	 */
-	public function tearDown(): void {
-		unset($this->task);
-		parent::tearDown();
-	}
-
-	/**
 	 * Test task name
 	 *
 	 * @return void
@@ -103,7 +93,6 @@ PHP;
 		$io = new ConsoleIo($this->out, $this->err);
 		$reflection = new \ReflectionClass($this->task);
 		$method = $reflection->getMethod('checkFile');
-		$method->setAccessible(true);
 
 		// Run with fix enabled
 		$method->invoke($this->task, $io, $tempFile, false, true);
@@ -135,7 +124,6 @@ PHP;
 		$io = new ConsoleIo($this->out, $this->err);
 		$reflection = new \ReflectionClass($this->task);
 		$method = $reflection->getMethod('checkFile');
-		$method->setAccessible(true);
 
 		// Run with fix enabled
 		$method->invoke($this->task, $io, $tempFile, false, true);
@@ -169,7 +157,6 @@ PHP;
 		$io = new ConsoleIo($this->out, $this->err);
 		$reflection = new \ReflectionClass($this->task);
 		$method = $reflection->getMethod('checkFile');
-		$method->setAccessible(true);
 
 		// Run with fix enabled
 		$method->invoke($this->task, $io, $tempFile, false, true);

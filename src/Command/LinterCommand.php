@@ -11,6 +11,7 @@ use Cake\Core\Configure;
 use ReflectionClass;
 use Shim\Command\Command;
 use TestHelper\Command\Linter\LinterTaskInterface;
+use TestHelper\Command\Linter\Task\ArrayUrlsInControllersTask;
 use TestHelper\Command\Linter\Task\ArrayUrlsInTestsTask;
 use TestHelper\Command\Linter\Task\DeprecatedFindOptionsTask;
 use TestHelper\Command\Linter\Task\NoMixedInTemplatesTask;
@@ -40,6 +41,7 @@ class LinterCommand extends Command {
      * @var array<string, string>
      */
 	protected array $defaultTasks = [
+		ArrayUrlsInControllersTask::class => ArrayUrlsInControllersTask::class,
 		ArrayUrlsInTestsTask::class => ArrayUrlsInTestsTask::class,
 		DeprecatedFindOptionsTask::class => DeprecatedFindOptionsTask::class,
 		NoMixedInTemplatesTask::class => NoMixedInTemplatesTask::class,

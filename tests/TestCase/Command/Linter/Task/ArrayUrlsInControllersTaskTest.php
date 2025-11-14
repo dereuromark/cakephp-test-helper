@@ -6,19 +6,19 @@ namespace TestHelper\Test\TestCase\Command\Linter\Task;
 
 use Cake\Console\ConsoleIo;
 use Cake\TestSuite\TestCase;
-use TestHelper\Command\Linter\Task\ArrayUrlsInTestsTask;
+use TestHelper\Command\Linter\Task\ArrayUrlsInControllersTask;
 use TestHelper\Test\TestSuite\ConsoleOutput;
 
 /**
- * @uses \TestHelper\Command\Linter\Task\ArrayUrlsInTestsTask
+ * @link \TestHelper\Command\Linter\Task\ArrayUrlsInControllersTask
  */
-class ArrayUrlsInTestsTaskTest extends TestCase {
+class ArrayUrlsInControllersTaskTest extends TestCase {
 
 	protected ConsoleOutput $out;
 
 	protected ConsoleOutput $err;
 
-	protected ArrayUrlsInTestsTask $task;
+	protected ArrayUrlsInControllersTask $task;
 
 	/**
 	 * setUp method
@@ -30,7 +30,16 @@ class ArrayUrlsInTestsTaskTest extends TestCase {
 
 		$this->out = new ConsoleOutput();
 		$this->err = new ConsoleOutput();
-		$this->task = new ArrayUrlsInTestsTask();
+		$this->task = new ArrayUrlsInControllersTask();
+	}
+
+	/**
+	 * tearDown method
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void {
+		parent::tearDown();
 	}
 
 	/**
@@ -39,7 +48,7 @@ class ArrayUrlsInTestsTaskTest extends TestCase {
 	 * @return void
 	 */
 	public function testName(): void {
-		$this->assertSame('array-urls-in-tests', $this->task->name());
+		$this->assertSame('array-urls-in-controllers', $this->task->name());
 	}
 
 	/**
@@ -49,9 +58,7 @@ class ArrayUrlsInTestsTaskTest extends TestCase {
 	 */
 	public function testDescription(): void {
 		$description = $this->task->description();
-		$this->assertStringContainsString('get()', $description);
-		$this->assertStringContainsString('post()', $description);
-		$this->assertStringContainsString('assertRedirect()', $description);
+		$this->assertStringContainsString('redirect()', $description);
 	}
 
 	/**
@@ -61,7 +68,7 @@ class ArrayUrlsInTestsTaskTest extends TestCase {
 	 */
 	public function testDefaultPaths(): void {
 		$paths = $this->task->defaultPaths();
-		$this->assertContains('tests/TestCase/Controller/', $paths);
+		$this->assertContains('src/Controller/', $paths);
 	}
 
 	/**
@@ -74,17 +81,17 @@ class ArrayUrlsInTestsTaskTest extends TestCase {
 	}
 
 	/**
-	 * Test autofix converts string URL to array in get()
+	 * Test autofix converts string URL to array in redirect()
 	 *
 	 * @return void
 	 */
-	public function testAutofixConvertsGetUrl(): void {
+	public function testAutofixConvertsRedirectUrl(): void {
 		$tempFile = tempnam(sys_get_temp_dir(), 'linter_test_');
 		$content = <<<'PHP'
 <?php
-class SomeTest extends TestCase {
-    public function testSomething(): void {
-        $this->get('/suppliers/view/123');
+class SomeController extends Controller {
+    public function someAction() {
+        return $this->redirect('/dashboard/index');
     }
 }
 PHP;
@@ -102,9 +109,9 @@ PHP;
 		// Test the complete method with proper whitespace preservation
 		$expected = <<<'PHP'
 <?php
-class SomeTest extends TestCase {
-    public function testSomething(): void {
-        $this->get(['controller' => 'Suppliers', 'action' => 'view', 123]);
+class SomeController extends Controller {
+    public function someAction() {
+        return $this->redirect(['controller' => 'Dashboard', 'action' => 'index']);
     }
 }
 PHP;
@@ -114,17 +121,17 @@ PHP;
 	}
 
 	/**
-	 * Test autofix converts string URL to array in post()
+	 * Test autofix converts redirect with query string
 	 *
 	 * @return void
 	 */
-	public function testAutofixConvertsPostUrl(): void {
+	public function testAutofixConvertsRedirectUrlWithQueryString(): void {
 		$tempFile = tempnam(sys_get_temp_dir(), 'linter_test_');
 		$content = <<<'PHP'
 <?php
-class SomeTest extends TestCase {
-    public function testSomething(): void {
-        $this->post('/users/login');
+class SomeController extends Controller {
+    public function someAction() {
+        return $this->redirect('/articles/index?status=published');
     }
 }
 PHP;
@@ -142,49 +149,9 @@ PHP;
 		// Test the complete method with proper whitespace preservation
 		$expected = <<<'PHP'
 <?php
-class SomeTest extends TestCase {
-    public function testSomething(): void {
-        $this->post(['controller' => 'Users', 'action' => 'login']);
-    }
-}
-PHP;
-		$this->assertSame($expected, $fixed);
-
-		unlink($tempFile);
-	}
-
-	/**
-	 * Test autofix converts string URL to array in assertRedirect()
-	 *
-	 * @return void
-	 */
-	public function testAutofixConvertsAssertRedirectUrl(): void {
-		$tempFile = tempnam(sys_get_temp_dir(), 'linter_test_');
-		$content = <<<'PHP'
-<?php
-class SomeTest extends TestCase {
-    public function testSomething(): void {
-        $this->assertRedirect('/dashboard/index');
-    }
-}
-PHP;
-		file_put_contents($tempFile, $content);
-
-		$io = new ConsoleIo($this->out, $this->err);
-		$reflection = new \ReflectionClass($this->task);
-		$method = $reflection->getMethod('checkFile');
-
-		// Run with fix enabled
-		$method->invoke($this->task, $io, $tempFile, false, true);
-
-		$fixed = file_get_contents($tempFile);
-
-		// Test the complete method with proper whitespace preservation
-		$expected = <<<'PHP'
-<?php
-class SomeTest extends TestCase {
-    public function testSomething(): void {
-        $this->assertRedirect(['controller' => 'Dashboard', 'action' => 'index']);
+class SomeController extends Controller {
+    public function someAction() {
+        return $this->redirect(['controller' => 'Articles', 'action' => 'index', '?' => ['status' => 'published']]);
     }
 }
 PHP;
@@ -202,12 +169,10 @@ PHP;
 		$tempFile = tempnam(sys_get_temp_dir(), 'linter_test_');
 		$content = <<<'PHP'
 <?php
-class SomeTest extends TestCase {
-    public function testSomething(): void {
-        $this->get('/articles/view/' . $id);
-        $this->post('/users/' . $id . '/edit');
-        $this->assertRedirect('/products/single/' . $product->uuid);
-        $this->assertRedirect('/products/single?product_id=' . $product->id);
+class SomeController extends Controller {
+    public function someAction() {
+        return $this->redirect('/users/view/' . $id);
+        return $this->redirect('/path?id=' . $user->id);
     }
 }
 PHP;
@@ -224,6 +189,50 @@ PHP;
 
 		// Content should be unchanged - concatenated URLs are too complex to auto-fix
 		$this->assertSame($content, $fixed);
+
+		unlink($tempFile);
+	}
+
+	/**
+	 * Test autofix handles redirect without return
+	 *
+	 * @return void
+	 */
+	public function testAutofixHandlesRedirectWithoutReturn(): void {
+		$tempFile = tempnam(sys_get_temp_dir(), 'linter_test_');
+		$content = <<<'PHP'
+<?php
+class SomeController extends Controller {
+    public function someAction() {
+        if ($condition) {
+            $this->redirect('/users/index');
+        }
+    }
+}
+PHP;
+		file_put_contents($tempFile, $content);
+
+		$io = new ConsoleIo($this->out, $this->err);
+		$reflection = new \ReflectionClass($this->task);
+		$method = $reflection->getMethod('checkFile');
+
+		// Run with fix enabled
+		$method->invoke($this->task, $io, $tempFile, false, true);
+
+		$fixed = file_get_contents($tempFile);
+
+		// Test the complete method with proper whitespace preservation
+		$expected = <<<'PHP'
+<?php
+class SomeController extends Controller {
+    public function someAction() {
+        if ($condition) {
+            $this->redirect(['controller' => 'Users', 'action' => 'index']);
+        }
+    }
+}
+PHP;
+		$this->assertSame($expected, $fixed);
 
 		unlink($tempFile);
 	}

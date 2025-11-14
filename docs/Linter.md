@@ -67,7 +67,29 @@ See task list below to see which tasks support auto-fix
 
 ## Included Default Tasks
 
-The plugin includes seven default linter tasks that are active by default:
+The plugin includes eight default linter tasks that are active by default:
+
+### array-urls-in-controllers
+
+Checks controller files for string URLs in `redirect()` - enforces array format.
+
+* **Checks:** `src/Controller/` directory
+* **Purpose:** Enforce CakePHP routing array format instead of string URLs in controllers
+* **Auto-fix:** ✅ Supported (simple URLs only)
+
+**Example violation:**
+```php
+return $this->redirect('/dashboard/index');
+return $this->redirect('/articles/index?status=published');
+```
+
+**Auto-fixed to:**
+```php
+return $this->redirect(['controller' => 'Dashboard', 'action' => 'index']);
+return $this->redirect(['controller' => 'Articles', 'action' => 'index', '?' => ['status' => 'published']]);
+```
+
+**Limitation:** Concatenated URLs (e.g., `$this->redirect('/path/' . $variable)` or `$this->redirect('/path?id=' . $user->id)`) are not auto-fixable and will be skipped to avoid breaking code. These need to be manually converted.
 
 ### array-urls-in-tests
 

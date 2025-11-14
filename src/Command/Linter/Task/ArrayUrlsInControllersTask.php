@@ -10,20 +10,20 @@ use Cake\Http\UriFactory;
 use Cake\Routing\Router;
 use TestHelper\Command\Linter\AbstractLinterTask;
 
-class ArrayUrlsInTestsTask extends AbstractLinterTask {
+class ArrayUrlsInControllersTask extends AbstractLinterTask {
 
 	/**
      * @inheritDoc
      */
 	public function name(): string {
-		return 'array-urls-in-tests';
+		return 'array-urls-in-controllers';
 	}
 
 	/**
      * @inheritDoc
      */
 	public function description(): string {
-		return 'Check test files for string URLs in get(), post(), and assertRedirect() - enforce array format';
+		return 'Check controller files for string URLs in redirect() - enforce array format';
 	}
 
 	/**
@@ -39,7 +39,7 @@ class ArrayUrlsInTestsTask extends AbstractLinterTask {
      * @return array<int, string>
      */
 	public function defaultPaths(): array {
-		return ['tests/TestCase/Controller/'];
+		return ['src/Controller/'];
 	}
 
 	/**
@@ -49,7 +49,7 @@ class ArrayUrlsInTestsTask extends AbstractLinterTask {
      */
 	public function run(ConsoleIo $io, array $options = []): int {
 		$paths = $options['paths'] ?? $this->defaultPaths();
-		$files = $this->getFiles($paths, '*Test.php');
+		$files = $this->getFiles($paths, '*Controller.php');
 		$verbose = $options['verbose'] ?? false;
 		$fix = $options['fix'] ?? false;
 		$issues = 0;
@@ -62,7 +62,7 @@ class ArrayUrlsInTestsTask extends AbstractLinterTask {
 	}
 
 	/**
-     * Check a single file for string URLs in get(), post(), and assertRedirect() calls.
+     * Check a single file for string URLs in redirect() calls.
      *
      * @param \Cake\Console\ConsoleIo $io Console IO
      * @param string $file File path
@@ -90,52 +90,26 @@ class ArrayUrlsInTestsTask extends AbstractLinterTask {
 		$modified = false;
 
 		foreach ($lines as $lineNum => $line) {
-			// Check for $this->get('/some/url') or $this->get("/some/url")
+			// Check for $this->redirect('/some/url') or return $this->redirect('/some/url')
 			// Skip concatenated strings (e.g., '/path/' . $var) as they're too complex to auto-fix
-			if (preg_match('/\$this->(get|post)\(\s*([\'"])\/[^\'"]*\2\s*\./', $line)) {
+			if (preg_match('/\$this->redirect\(\s*([\'"])\/[^\'"]*\1\s*\./', $line)) {
 				// Skip concatenated URLs
 				continue;
 			}
 
-			if (preg_match('/\$this->(get|post)\(\s*([\'"])\//', $line, $matches)) {
-				$method = $matches[1];
+			if (preg_match('/\$this->redirect\(\s*([\'"])\//', $line, $matches)) {
 				$this->outputIssue(
 					$io,
 					$file,
 					$lineNum + 1,
-					"Use array format for {$method}() URL instead of string",
+					'Use array format for redirect() URL instead of string',
 					trim($line),
 					$verbose,
 				);
 				$issues++;
 
 				if ($fix) {
-					$lines[$lineNum] = $this->fixUrlToArray($line, $method);
-					$modified = true;
-					$io->verbose('  Fixed: ' . trim($lines[$lineNum]));
-				}
-			}
-
-			// Check for $this->assertRedirect('/some/url') or $this->assertRedirect("/some/url")
-			// Skip concatenated strings (e.g., '/path/' . $var) as they're too complex to auto-fix
-			if (preg_match('/\$this->assertRedirect\(\s*([\'"])\/[^\'"]*\1\s*\./', $line)) {
-				// Skip concatenated URLs
-				continue;
-			}
-
-			if (preg_match('/\$this->assertRedirect\(\s*([\'"])\//', $line)) {
-				$this->outputIssue(
-					$io,
-					$file,
-					$lineNum + 1,
-					'Use array format for assertRedirect() URL instead of string',
-					trim($line),
-					$verbose,
-				);
-				$issues++;
-
-				if ($fix) {
-					$lines[$lineNum] = $this->fixUrlToArray($line, 'assertRedirect');
+					$lines[$lineNum] = $this->fixUrlToArray($line);
 					$modified = true;
 					$io->verbose('  Fixed: ' . trim($lines[$lineNum]));
 				}
@@ -153,14 +127,13 @@ class ArrayUrlsInTestsTask extends AbstractLinterTask {
      * Convert a string URL to array format.
      *
      * @param string $line The line containing the URL
-     * @param string $method The method name (get, post, assertRedirect)
      *
      * @return string The fixed line
      */
-	protected function fixUrlToArray(string $line, string $method): string {
+	protected function fixUrlToArray(string $line): string {
 		// Extract the URL string - match the full quoted string including both quotes
 		// Capture leading whitespace to preserve indentation
-		$pattern = '/(.*?)(\$this->(?:' . preg_quote($method, '/') . '|assertRedirect)\(\s*)([\'"])([^\'"]*)\3/';
+		$pattern = '/(.*?)(\$this->redirect\(\s*)([\'"])([^\'"]*)\3/';
 		if (!preg_match($pattern, $line, $matches, PREG_OFFSET_CAPTURE)) {
 			return $line;
 		}
