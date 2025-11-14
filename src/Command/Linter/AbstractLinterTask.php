@@ -91,12 +91,14 @@ abstract class AbstractLinterTask implements LinterTaskInterface {
 	protected function outputIssue(ConsoleIo $io, string $file, int $line, string $issue, ?string $context = null): void {
 		$relativePath = $this->getRelativePath($file);
 
-		$error = $line ? "<error>{$relativePath}:{$line}</error>" : "<error>{$relativePath}</error>";
-		$io->out($error);
+		// Format: file:line (clickable in most IDEs and terminals)
+		$location = $line ? "{$relativePath}:{$line}" : $relativePath;
+		$io->out($location);
 		$io->out("  {$issue}");
 		if ($context !== null) {
 			$io->out("  Found: {$context}");
 		}
+		$io->out('');
 	}
 
 }
