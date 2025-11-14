@@ -9,44 +9,21 @@ Browse `/test-helper` to see all functionality available.
 * [Custom Linter Tasks](Linter.md) - Project-specific code quality checks
 
 ## Configuration
-- **TestHelper.command**: If you need a custom phpunit command to run with. Both `php phpunit.phar` and `vendor/bin/phpunit` work out of the box.
-- **TestHelper.coverage**: Set to `xdebug` if you have this enabled, it otherwise uses pcov by default.
-- **TestHelper.ignoreAuthorization**: Set to `true` to bypass authorization checks when using the CakePHP Authorization plugin. Default: `false`.
 
 ### Your own template
 The default template ships with bootstrap (5) and fontawesome icons.
 You can switch out the view templates with your own on project level as documented in the CakePHP docs.
 
-Overwrite the `test_cases` element if you want to support e.g. foundation and their modals.
+## Test Runner
+Select the app or plugins, the type of classes you want to test and then click on the "run icon" to test.
+If there is no test file yet, there should be a "add icon" to click which bakes one for you.
+
+### Configuration
+- **TestHelper.command**: If you need a custom phpunit command to run with. Both `php phpunit.phar` and `vendor/bin/phpunit` work out of the box.
+- **TestHelper.coverage**: Set to `xdebug` if you have this enabled, it otherwise uses pcov by default.
 
 
-## Troubleshooting
-
-### Authorization Plugin Errors
-
-If you are using the [CakePHP Authorization plugin](https://github.com/cakephp/authorization) and encounter `AuthorizationRequiredException` errors when accessing TestHelper routes, add this to your `config/bootstrap.php`:
-
-```php
-Configure::write('TestHelper.ignoreAuthorization', true);
-```
-
-This will skip authorization checks for all TestHelper routes, similar to how DebugKit handles authorization.
-
-### Generated code coverage is black&white
-If the assets don't work, make sure your Nginx/Apache (like CakeBox Vagrant VM by default) doesn't block hidden files.
-
-In your /sites-available/ configuration find and remove the following for your local development:
-
-    # deny access to hidden
-    location ~ /\. {
-        deny all;
-    }
-
-Afterwards your coverage should be colorful.
-
-### Missing CSRF Token Cookie 
-If you are using the CsrfProtectionMiddleware or alike, make sure to deactivate for such admin backends, as those are not supposed to be part of it.
-They also should only be accessible locally, anyway.
+![tests](img/test_runner.png)
 
 ## Other tools
 
@@ -108,3 +85,28 @@ By default it will only check your app level. You can use a combined composer co
 }
 ```
 Then run it as `composer fixture_check`.
+
+
+## Troubleshooting
+
+### Authorization Plugin Errors
+
+If you are using the [CakePHP Authorization plugin](https://github.com/cakephp/authorization) and encounter `AuthorizationRequiredException` errors when accessing TestHelper routes, add this to your `config/bootstrap.php`:
+
+```php
+Configure::write('TestHelper.ignoreAuthorization', true);
+```
+
+This will skip authorization checks for all TestHelper routes, similar to how DebugKit handles authorization.
+
+### Generated code coverage is black&white
+If the assets don't work, make sure your Nginx/Apache (like CakeBox Vagrant VM by default) doesn't block hidden files.
+
+In your /sites-available/ configuration find and remove the following for your local development:
+
+    # deny access to hidden
+    location ~ /\. {
+        deny all;
+    }
+
+Afterwards your coverage should be colorful.
