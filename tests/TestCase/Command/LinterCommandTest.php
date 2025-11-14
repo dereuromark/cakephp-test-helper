@@ -61,10 +61,13 @@ class LinterCommandTest extends TestCase {
 
 		$output = $this->out->output();
 		$this->assertStringContainsString('Available linter tasks:', $output);
+		$this->assertStringContainsString('array-urls-in-tests', $output);
+		$this->assertStringContainsString('deprecated-find-options', $output);
 		$this->assertStringContainsString('no-mixed-in-templates', $output);
-		$this->assertStringContainsString('use-orm-query', $output);
-		$this->assertStringContainsString('use-base-migration', $output);
+		$this->assertStringContainsString('post-link-within-forms', $output);
 		$this->assertStringContainsString('single-request-per-test', $output);
+		$this->assertStringContainsString('use-base-migration', $output);
+		$this->assertStringContainsString('use-orm-query', $output);
 	}
 
 	/**
