@@ -29,7 +29,7 @@ class UseOrmQueryTask extends AbstractLinterTask {
      * @return array<int, string>
      */
 	public function defaultPaths(): array {
-		return ['src/', 'tests/', 'plugins/'];
+		return ['src/', 'tests/'];
 	}
 
 	/**

@@ -8,6 +8,7 @@ use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
+use Cake\Core\Plugin;
 use Cake\TestSuite\ConnectionHelper;
 use ReflectionClass;
 use Shim\Command\Command;
@@ -97,6 +98,10 @@ class LinterCommand extends Command {
 				'help' => 'Enable CI mode (aliases test database connections)',
 				'boolean' => true,
 			])
+			->addOption('plugin', [
+				'help' => 'The plugin(s) to run. Defaults to the application otherwise. Supports wildcard `*` for partial match, `all` for all app plugins.',
+				'short' => 'p',
+			])
 			->addArgument('paths', [
 				'help' => 'Comma-separated paths to check. If not provided, uses task defaults.',
 				'required' => false,
@@ -136,6 +141,17 @@ class LinterCommand extends Command {
 
 		$paths = $args->getArgument('paths');
 		$pathsArray = $paths ? array_map('trim', explode(',', $paths)) : null;
+
+		// Handle plugin option
+		$plugin = $args->getOption('plugin');
+		$pluginNames = null;
+		if ($plugin) {
+			$pluginNames = $this->resolvePlugins((string)$plugin, $io);
+			if ($pluginNames === null) {
+				return static::CODE_ERROR;
+			}
+		}
+
 		$fix = (bool)$args->getOption('fix');
 
 		$totalIssues = 0;
@@ -145,16 +161,33 @@ class LinterCommand extends Command {
 			$io->out("<info>Running task: {$task->name()}</info>");
 			$io->verbose("  {$task->description()}");
 
+			// Skip tasks that don't support plugin mode when --plugin is used
+			if ($pluginNames !== null && !$task->supportsPluginMode()) {
+				$io->verbose('  Skipped: Task does not support plugin mode');
+				continue;
+			}
+
 			$options = [
 				'fix' => $fix,
 				'verbose' => $io->level() >= ConsoleIo::VERBOSE,
 			];
+
+			// Determine paths to check
 			if ($pathsArray !== null) {
+				// User provided explicit paths
 				$options['paths'] = $pathsArray;
+				$checkPaths = $pathsArray;
+			} elseif ($pluginNames !== null) {
+				// Plugin mode: prepend plugin paths to task defaults
+				$taskPaths = $task->defaultPaths();
+				$options['paths'] = $this->prependPluginPaths($pluginNames, $taskPaths);
+				$checkPaths = $options['paths'];
+			} else {
+				// Default: use task's default paths
+				$checkPaths = $task->defaultPaths();
 			}
 
 			// Show paths in verbose mode
-			$checkPaths = $pathsArray ?? $task->defaultPaths();
 			$io->verbose('  Checking paths: ' . implode(', ', $checkPaths));
 
 			$issues = $task->run($io, $options);
@@ -210,6 +243,9 @@ class LinterCommand extends Command {
 			$io->out('    Default paths: ' . implode(', ', $task->defaultPaths()));
 			if ($task->supportsAutoFix()) {
 				$io->out('    <info>Supports auto-fix</info>');
+			}
+			if (!$task->supportsPluginMode()) {
+				$io->out('    <comment>Does not support plugin mode</comment>');
 			}
 			$io->out('');
 		}
@@ -303,6 +339,101 @@ class LinterCommand extends Command {
 		$this->tasks = $tasks;
 
 		return $tasks;
+	}
+
+	/**
+     * Resolve plugin names based on plugin option
+     *
+     * @param string $pluginOption Plugin name, wildcard pattern, or "all"
+     * @param \Cake\Console\ConsoleIo $io Console IO
+     *
+     * @return array<string>|null Array of plugin names or null on error
+     */
+	protected function resolvePlugins(string $pluginOption, ConsoleIo $io): ?array {
+		// Get all app plugins (exclude vendor plugins)
+		$loadedPlugins = Plugin::loaded();
+		$appPlugins = [];
+		foreach ($loadedPlugins as $name) {
+			$path = Plugin::path($name);
+			$rootPath = str_replace(ROOT . DS, '', $path);
+			if (str_starts_with($rootPath, 'vendor' . DS)) {
+				continue;
+			}
+			$appPlugins[] = $name;
+		}
+
+		// Handle "all" - all app plugins
+		if ($pluginOption === 'all') {
+			if (empty($appPlugins)) {
+				$io->warning('No app plugins loaded.');
+
+				return [];
+			}
+
+			$io->verbose('Checking all plugins: ' . implode(', ', $appPlugins));
+
+			return $appPlugins;
+		}
+
+		// Handle wildcard pattern
+		if (str_contains($pluginOption, '*')) {
+			$matchedPlugins = array_filter($appPlugins, function ($plugin) use ($pluginOption) {
+				return fnmatch($pluginOption, $plugin);
+			});
+
+			if (empty($matchedPlugins)) {
+				$io->error("No plugins found matching pattern '{$pluginOption}'.");
+				$io->out('');
+				$io->out('Available app plugins:');
+				foreach ($appPlugins as $plugin) {
+					$io->out("  - {$plugin}");
+				}
+
+				return null;
+			}
+
+			$io->verbose('Checking plugins matching pattern: ' . implode(', ', $matchedPlugins));
+
+			return $matchedPlugins;
+		}
+
+		// Handle specific plugin
+		if (!Plugin::isLoaded($pluginOption)) {
+			$io->error("Plugin '{$pluginOption}' is not loaded.");
+			$io->out('');
+			$io->out('Available app plugins:');
+			foreach ($appPlugins as $plugin) {
+				$io->out("  - {$plugin}");
+			}
+
+			return null;
+		}
+
+		$io->verbose("Checking plugin: {$pluginOption}");
+
+		return [$pluginOption];
+	}
+
+	/**
+     * Prepend plugin paths to task paths
+     *
+     * For each plugin, prepend "plugins/PluginName/" to each task path.
+     * Example: ['Board'] + ['templates/', 'src/'] => ['plugins/Board/templates/', 'plugins/Board/src/']
+     *
+     * @param array<string> $pluginNames Plugin names
+     * @param array<string> $taskPaths Task default paths
+     *
+     * @return array<string> Combined paths
+     */
+	protected function prependPluginPaths(array $pluginNames, array $taskPaths): array {
+		$paths = [];
+		foreach ($pluginNames as $pluginName) {
+			foreach ($taskPaths as $taskPath) {
+				$paths[] = 'plugins/' . $pluginName . '/' . $taskPath;
+			}
+		}
+
+		return $paths;
 	}
 
 }

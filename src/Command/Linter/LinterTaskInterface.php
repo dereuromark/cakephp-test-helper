@@ -46,4 +46,14 @@ interface LinterTaskInterface {
      */
 	public function supportsAutoFix(): bool;
 
+	/**
+     * Whether this task can run in plugin mode
+     *
+     * When false, task will be skipped when --plugin option is used.
+     * Useful for tasks that only make sense at application level.
+     *
+     * @return bool
+     */
+	public function supportsPluginMode(): bool;
+
 }

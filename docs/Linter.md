@@ -36,6 +36,24 @@ Check specific paths:
 bin/cake linter src/,tests/
 ```
 
+Check a specific plugin:
+```bash
+bin/cake linter --plugin Board
+bin/cake linter -p Board
+```
+
+Check all loaded plugins:
+```bash
+bin/cake linter --plugin all
+bin/cake linter -p all
+```
+
+Check plugins with wildcard pattern:
+```bash
+bin/cake linter --plugin "My*"      # Match MyPlugin, MyOtherPlugin, etc.
+bin/cake linter -p "*Helper"        # Match IdeHelper, TestHelper, etc.
+```
+
 Show paths being checked and use absolute file paths (verbose mode):
 ```bash
 bin/cake linter -v
@@ -44,6 +62,37 @@ bin/cake linter -v
 Verbose mode shows:
 * Paths being checked
 * Full absolute file paths instead of relative paths (for better terminal/CLI clickability)
+* Which plugin(s) are being checked when using `--plugin` option
+
+### Plugin Mode
+
+Check specific plugins or all loaded plugins:
+
+```bash
+# Check a specific plugin
+bin/cake linter --plugin Board
+
+# Check all loaded plugins
+bin/cake linter --plugin all
+
+# Combine with task filter
+bin/cake linter --plugin Board --task duplicate-template-annotations
+
+# Combine with verbose mode
+bin/cake linter -p all -v
+```
+
+**How it works:**
+* Each task's default paths are prefixed with the plugin directory
+* Example: For plugin `Board`, if a task checks `templates/` and `src/Controller/`, it will check:
+  - `plugins/Board/templates/`
+  - `plugins/Board/src/Controller/`
+* `--plugin PluginName` checks one specific plugin
+* `--plugin all` checks all loaded app plugins (excludes vendor plugins)
+* `--plugin "Pattern*"` uses wildcard matching with `fnmatch()` (e.g., `"My*"`, `"*Helper"`)
+* Only app plugins are included - vendor plugins are automatically excluded
+* If a plugin is not loaded or pattern matches nothing, shows error with available plugins
+* Tasks can opt-out of plugin mode by returning `false` from `supportsPluginMode()` - they will be skipped when `--plugin` is used
 
 ### Auto-Fix Mode
 
@@ -129,7 +178,7 @@ $this->assertRedirect(['controller' => 'Dashboard', 'action' => 'index']);
 
 Detects deprecated `$options` array in `find()` calls - use named parameters instead.
 
-* **Checks:** `src/`, `tests/`, `plugins/` directories
+* **Checks:** `src/`, `tests/` directories
 * **Purpose:** Enforce spread operator for find() options in CakePHP 5.x
 * **Auto-fix:** ✅ Supported
 
@@ -200,7 +249,7 @@ Ensures template variables have specific type annotations, not `mixed`.
 
 Checks for incorrect generic Query imports which should use specific query types like `SelectQuery`
 
-* **Checks:** `src/`, `tests/`, `plugins/` directories
+* **Checks:** `src/`, `tests/` directories
 * **Purpose:** Enforce specific Query class imports for CakePHP 5.x
 
 **Example violations:**
@@ -339,6 +388,14 @@ class MyCustomTask extends AbstractLinterTask
     public function supportsAutoFix(): bool
     {
         return true; // Set to true if your task can auto-fix issues
+    }
+
+    /**
+     * Whether this task can run in plugin mode (optional, defaults to true)
+     */
+    public function supportsPluginMode(): bool
+    {
+        return false; // Set to false if task should only run at app level
     }
 
     /**
