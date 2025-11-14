@@ -48,7 +48,7 @@ class TestHelperAppController extends Controller {
 		// Handle Authorization plugin (CakePHP Authorization)
 		$authorizationService = $this->getRequest()->getAttribute('authorization');
 		if ($authorizationService instanceof AuthorizationService) {
-			if (Configure::read('TestHelper.ignoreAuthorization')) {
+			if (Configure::read('TestHelper.ignoreAuthorization') || Configure::read('debug')) {
 				$authorizationService->skipAuthorization();
 			} else {
 				Log::info(
