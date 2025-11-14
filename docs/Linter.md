@@ -2,6 +2,8 @@
 
 The TestHelper plugin provides a flexible linter system for running project-specific code quality checks. Unlike general-purpose tools (phpcs, phpstan, rector), these linters are designed for quick validation of project-specific conventions that don't fit into standard static analysis tools.
 
+![linter](img/linter_output.png)
+
 ## Why Linter Tasks?
 
 * **Cake rules**: Enforce CakePHP conventions and best practices (plugin based tasks)
