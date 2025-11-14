@@ -45,6 +45,21 @@ Verbose mode shows:
 * Paths being checked
 * Full absolute file paths instead of relative paths (for better terminal/CLI clickability)
 
+### Auto-Fix Mode
+
+Some linter tasks support automatic fixing of detected issues:
+
+```bash
+bin/cake linter --fix
+```
+
+Run auto-fix on a specific task:
+```bash
+bin/cake linter --task array-urls-in-tests --fix
+```
+
+See task list below to see which tasks support auto-fix
+
 ### Exit Codes
 
 * `0` - All checks passed, no issues found
@@ -52,7 +67,49 @@ Verbose mode shows:
 
 ## Included Default Tasks
 
-The plugin includes four default linter tasks that are active by default:
+The plugin includes seven default linter tasks that are active by default:
+
+### array-urls-in-tests
+
+Checks test files for string URLs in `get()`, `post()`, and `assertRedirect()` - enforces array format.
+
+* **Checks:** `tests/TestCase/Controller/` directory
+* **Purpose:** Enforce CakePHP routing array format instead of string URLs in tests
+* **Auto-fix:** ✅ Supported
+
+**Example violation:**
+```php
+$this->get('/suppliers/view/123');
+$this->post('/users/login?user=x');
+$this->assertRedirect('/dashboard/index');
+```
+
+**Auto-fixed to:**
+```php
+$this->get(['controller' => 'Suppliers', 'action' => 'view', 123]);
+$this->post(['controller' => 'Users', 'action' => 'login', '?' => ['user' => 'x']]);
+$this->assertRedirect(['controller' => 'Dashboard', 'action' => 'index']);
+```
+
+### deprecated-find-options
+
+Detects deprecated `$options` array in `find()` calls - use named parameters instead.
+
+* **Checks:** `src/`, `tests/`, `plugins/` directories
+* **Purpose:** Enforce spread operator for find() options in CakePHP 5.x
+* **Auto-fix:** ✅ Supported
+
+**Example violation:**
+```php
+$query->find('all', $options);
+$query->find('list', ['conditions' => ['active' => true]]);
+```
+
+**Auto-fixed to:**
+```php
+$query->find('all', ...$options);
+$query->find('list', ...['conditions' => ['active' => true]]);
+```
 
 ### no-mixed-in-templates
 
@@ -151,6 +208,30 @@ public function testLoginSubmit(): void
 }
 ```
 
+### post-link-within-forms
+
+Detects `postLink()` calls within `<form>` tags and ensures `block => true` parameter is set to prevent nested forms.
+
+* **Checks:** `templates/` directory
+* **Purpose:** Prevent HTML validation errors from nested forms
+* **Auto-fix:** ✅ Supported
+
+**Example violation:**
+```php
+<?= $this->Form->create($entity) ?>
+    <?= $this->Form->postLink('Delete', ['action' => 'delete', $entity->id]) ?>
+<?= $this->Form->end() ?>
+```
+
+**Auto-fixed to:**
+```php
+<?= $this->Form->create($entity) ?>
+    <?= $this->Form->postLink('Delete', ['action' => 'delete', $entity->id], ['block' => true]) ?>
+<?= $this->Form->end() ?>
+```
+
+**Why this matters:** By default, `postLink()` generates its own `<form>` element. When used inside another form, this creates invalid nested forms. Setting `'block' => true` makes `postLink()` output the form to a view block instead, which prevents nesting issues.
+
 ## Creating Custom Tasks
 
 ### Step 1: Create Task Class
@@ -193,6 +274,14 @@ class MyCustomTask extends AbstractLinterTask
     }
 
     /**
+     * Whether this task supports auto-fix (optional, defaults to false)
+     */
+    public function supportsAutoFix(): bool
+    {
+        return true; // Set to true if your task can auto-fix issues
+    }
+
+    /**
      * Run the linter task
      *
      * @param \Cake\Console\ConsoleIo $io Console IO
@@ -204,6 +293,7 @@ class MyCustomTask extends AbstractLinterTask
         $paths = $options['paths'] ?? $this->defaultPaths();
         $files = $this->getFiles($paths, '*.php');
         $verbose = $options['verbose'] ?? false;
+        $fix = $options['fix'] ?? false; // Check if auto-fix is enabled
         $issues = 0;
 
         foreach ($files as $file) {
@@ -214,6 +304,8 @@ class MyCustomTask extends AbstractLinterTask
 
             // Your custom validation logic here
             $lines = explode("\n", $content);
+            $modified = false;
+
             foreach ($lines as $lineNumber => $line) {
                 // Example: Check for TODO comments
                 if (preg_match('/TODO:/i', $line)) {
@@ -226,7 +318,19 @@ class MyCustomTask extends AbstractLinterTask
                         $verbose
                     );
                     $issues++;
+
+                    // Auto-fix example: Remove TODO comments
+                    if ($fix) {
+                        $lines[$lineNumber] = preg_replace('/TODO:/i', 'DONE:', $line);
+                        $modified = true;
+                        $io->verbose('  Fixed: ' . trim($lines[$lineNumber]));
+                    }
                 }
+            }
+
+            // Write back to file if modified
+            if ($modified) {
+                file_put_contents($file, implode("\n", $lines));
             }
         }
 

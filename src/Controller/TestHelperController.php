@@ -115,10 +115,33 @@ class TestHelperController extends TestHelperAppController {
 				continue;
 			}
 
+			// Count files in the main folder
 			$iterator = new DirectoryIterator($path);
 			foreach ($iterator as $fileInfo) {
 				if ($fileInfo->isFile() && $fileInfo->getExtension() === 'php') {
+					// Exclude base Controller.php for Controller type
+					if ($type === 'Controller' && $fileInfo->getFilename() === 'Controller.php') {
+						continue;
+					}
 					$count++;
+				}
+			}
+
+			// For Controllers, also count files in subdirectories that have Controller suffix
+			if ($type === 'Controller') {
+				foreach ($iterator as $fileInfo) {
+					if ($fileInfo->isDir() && !$fileInfo->isDot()) {
+						$subPath = $path . DS . $fileInfo->getFilename();
+						$subIterator = new DirectoryIterator($subPath);
+						foreach ($subIterator as $subFileInfo) {
+							if ($subFileInfo->isFile() && $subFileInfo->getExtension() === 'php') {
+								$filename = $subFileInfo->getFilename();
+								if (str_ends_with($filename, 'Controller.php') && $filename !== 'Controller.php') {
+									$count++;
+								}
+							}
+						}
+					}
 				}
 			}
 		}

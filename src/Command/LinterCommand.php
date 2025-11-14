@@ -11,7 +11,10 @@ use Cake\Core\Configure;
 use ReflectionClass;
 use Shim\Command\Command;
 use TestHelper\Command\Linter\LinterTaskInterface;
+use TestHelper\Command\Linter\Task\ArrayUrlsInTestsTask;
+use TestHelper\Command\Linter\Task\DeprecatedFindOptionsTask;
 use TestHelper\Command\Linter\Task\NoMixedInTemplatesTask;
+use TestHelper\Command\Linter\Task\PostLinkWithinFormsTask;
 use TestHelper\Command\Linter\Task\SingleRequestPerTestTask;
 use TestHelper\Command\Linter\Task\UseBaseMigrationTask;
 use TestHelper\Command\Linter\Task\UseOrmQueryTask;
@@ -37,10 +40,13 @@ class LinterCommand extends Command {
      * @var array<string, string>
      */
 	protected array $defaultTasks = [
+		ArrayUrlsInTestsTask::class => ArrayUrlsInTestsTask::class,
+		DeprecatedFindOptionsTask::class => DeprecatedFindOptionsTask::class,
 		NoMixedInTemplatesTask::class => NoMixedInTemplatesTask::class,
-		UseOrmQueryTask::class => UseOrmQueryTask::class,
-		UseBaseMigrationTask::class => UseBaseMigrationTask::class,
+		PostLinkWithinFormsTask::class => PostLinkWithinFormsTask::class,
 		SingleRequestPerTestTask::class => SingleRequestPerTestTask::class,
+		UseBaseMigrationTask::class => UseBaseMigrationTask::class,
+		UseOrmQueryTask::class => UseOrmQueryTask::class,
 	];
 
 	/**
@@ -119,6 +125,7 @@ class LinterCommand extends Command {
 		$fix = (bool)$args->getOption('fix');
 
 		$totalIssues = 0;
+		$autoFixableIssues = 0;
 		foreach ($tasks as $task) {
 			$io->out('');
 			$io->out("<info>Running task: {$task->name()}</info>");
@@ -142,7 +149,14 @@ class LinterCommand extends Command {
 			if ($issues === 0) {
 				$io->success('  ✓ No issues found');
 			} else {
-				$io->warning("  ✗ Found {$issues} issue(s)");
+				$message = "  ✗ Found {$issues} issue(s)";
+				if ($task->supportsAutoFix()) {
+					if (!$fix) {
+						$message .= ' (auto-fixable with --fix)';
+						$autoFixableIssues += $issues;
+					}
+				}
+				$io->warning($message);
 			}
 		}
 
@@ -154,7 +168,11 @@ class LinterCommand extends Command {
 			return static::CODE_SUCCESS;
 		}
 
-		$io->error("Linting failed with {$totalIssues} total issue(s).");
+		$message = "Linting failed with {$totalIssues} total issue(s).";
+		if ($autoFixableIssues > 0 && !$fix) {
+			$message .= " {$autoFixableIssues} can be auto-fixed with --fix.";
+		}
+		$io->error($message);
 
 		return static::CODE_ERROR;
 	}
