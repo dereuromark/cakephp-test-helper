@@ -77,7 +77,7 @@ This enables CI mode which aliases test database connections (e.g., `test` to `d
 
 ## Included Default Tasks
 
-The plugin includes eight default linter tasks that are active by default:
+The plugin includes nine default linter tasks that are active by default:
 
 ### array-urls-in-controllers
 
@@ -143,6 +143,32 @@ $query->find('list', ['conditions' => ['active' => true]]);
 ```php
 $query->find('all', ...$options);
 $query->find('list', ...['conditions' => ['active' => true]]);
+```
+
+### duplicate-template-annotations
+
+Detects duplicate `@var` annotations for the same variable in template files.
+
+* **Checks:** `templates/` directory
+* **Purpose:** Prevent duplicate variable annotations that can cause confusion and inconsistencies
+
+**Example violation:**
+```php
+<?php
+/**
+ * @var array<\Tickling\Model\Entity\TicklishSpot> $ticklishSpots
+ * @var mixed $ticklishSpots
+ */
+?>
+```
+
+**Should be:**
+```php
+<?php
+/**
+ * @var array<\Tickling\Model\Entity\TicklishSpot> $ticklishSpots
+ */
+?>
 ```
 
 ### no-mixed-in-templates

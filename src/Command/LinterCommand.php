@@ -15,6 +15,7 @@ use TestHelper\Command\Linter\LinterTaskInterface;
 use TestHelper\Command\Linter\Task\ArrayUrlsInControllersTask;
 use TestHelper\Command\Linter\Task\ArrayUrlsInTestsTask;
 use TestHelper\Command\Linter\Task\DeprecatedFindOptionsTask;
+use TestHelper\Command\Linter\Task\DuplicateTemplateAnnotationsTask;
 use TestHelper\Command\Linter\Task\NoMixedInTemplatesTask;
 use TestHelper\Command\Linter\Task\PostLinkWithinFormsTask;
 use TestHelper\Command\Linter\Task\SingleRequestPerTestTask;
@@ -45,6 +46,7 @@ class LinterCommand extends Command {
 		ArrayUrlsInControllersTask::class => ArrayUrlsInControllersTask::class,
 		ArrayUrlsInTestsTask::class => ArrayUrlsInTestsTask::class,
 		DeprecatedFindOptionsTask::class => DeprecatedFindOptionsTask::class,
+		DuplicateTemplateAnnotationsTask::class => DuplicateTemplateAnnotationsTask::class,
 		NoMixedInTemplatesTask::class => NoMixedInTemplatesTask::class,
 		PostLinkWithinFormsTask::class => PostLinkWithinFormsTask::class,
 		SingleRequestPerTestTask::class => SingleRequestPerTestTask::class,
