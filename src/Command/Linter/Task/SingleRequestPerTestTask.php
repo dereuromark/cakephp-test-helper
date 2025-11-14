@@ -40,10 +40,11 @@ class SingleRequestPerTestTask extends AbstractLinterTask {
 	public function run(ConsoleIo $io, array $options = []): int {
 		$paths = $options['paths'] ?? $this->defaultPaths();
 		$files = $this->getFiles($paths, '*Test.php');
+		$verbose = $options['verbose'] ?? false;
 		$issues = 0;
 
 		foreach ($files as $file) {
-			$issues += $this->checkFile($io, $file);
+			$issues += $this->checkFile($io, $file, $verbose);
 		}
 
 		return $issues;
@@ -54,10 +55,11 @@ class SingleRequestPerTestTask extends AbstractLinterTask {
      *
      * @param \Cake\Console\ConsoleIo $io Console IO
      * @param string $file File path
+     * @param bool $verbose Whether to show verbose output
      *
      * @return int Number of issues found
      */
-	protected function checkFile(ConsoleIo $io, string $file): int {
+	protected function checkFile(ConsoleIo $io, string $file, bool $verbose): int {
 		$content = file_get_contents($file);
 		if ($content === false) {
 			return 0;
@@ -91,6 +93,7 @@ class SingleRequestPerTestTask extends AbstractLinterTask {
 						$lineStart,
 						"Test method has {$total} request calls (get/post) - only 1 allowed per test",
 						"Found {$getCount} get() and {$postCount} post() calls",
+						$verbose,
 					);
 					$issues++;
 				}
