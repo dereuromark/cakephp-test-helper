@@ -648,9 +648,9 @@ public function run(ConsoleIo $io, array $options = []): int
 Add to your CI pipeline to enforce code quality:
 
 ```yaml
-# .github/workflows/ci.yml
+# Run for app and all plugins/*
 - name: Run Linter
-  run: bin/cake linter --ci
+  run: bin/cake linter --ci && bin/cake linter --ci -p all
 ```
 
 The `--ci` flag ensures test database connections are properly aliased for CI environments.
@@ -664,8 +664,12 @@ And for developers as quick-check in composer scripts:
             "phpcs",
             "phpstan",
             "bin/cake linter"
+            "bin/cake linter -p all"
         ],
-        "lint": "bin/cake linter"
+        "lint": [
+            "bin/cake linter",
+            "bin/cake linter -p all"
+        ],
     }
 }
 ```
