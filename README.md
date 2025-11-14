@@ -87,9 +87,7 @@ Supported class types:
 * [x] Forms
 * [x] Mailers
 
-Feel free to help out improving and completing this test helper plugin.
-
-* [Full Documentation](docs/README.md)
+[Full Documentation](docs/README.md)
 
 ## Custom Linter Tasks
 
