@@ -3,6 +3,7 @@
  * @var \Cake\View\View $this
  * @var string[] $plugins
  * @var string|null $namespace
+ * @var array<array<string, mixed>> $testTypes
  */
 
 use Cake\Core\Plugin;
@@ -76,36 +77,19 @@ $this->assign('title', 'Test Helper Dashboard');
 				</div>
 
 				<h6 class="fw-bold mt-3"><?php echo h($namespace ?: '[App]'); ?></h6>
-				<?php
-					$namespace = $namespace ?: 'app';
-
-					$testTypes = [
-						// Controller Layer
-						['icon' => 'controllers', 'label' => 'Controllers', 'action' => 'controller'],
-						['icon' => 'components', 'label' => 'Components', 'action' => 'component'],
-						// Model Layer
-						['icon' => 'tables', 'label' => 'Tables', 'action' => 'table'],
-						['icon' => 'entities', 'label' => 'Entities', 'action' => 'entity'],
-						['icon' => 'behaviors', 'label' => 'Behaviors', 'action' => 'behavior'],
-						// View Layer
-						['icon' => 'helpers', 'label' => 'Helpers', 'action' => 'helper'],
-						['icon' => 'cells', 'label' => 'Cells', 'action' => 'cell'],
-						// Console/Command Layer
-						['icon' => 'commands', 'label' => 'Commands', 'action' => 'command'],
-						['icon' => 'tasks', 'label' => 'Tasks', 'action' => 'task'],
-						['icon' => 'command-helpers', 'label' => 'Command Helpers', 'action' => 'commandHelper'],
-						// Other
-						['icon' => 'forms', 'label' => 'Forms', 'action' => 'form'],
-						['icon' => 'mailers', 'label' => 'Mailers', 'action' => 'mailer'],
-					];
-				?>
+				<?php $namespace = $namespace ?: 'app'; ?>
 				<div class="row g-2">
 					<?php foreach ($testTypes as $type) { ?>
 						<div class="col-6">
+							<?php
+								$isEmpty = $type['count'] === 0;
+								$btnClass = $isEmpty ? 'btn btn-sm btn-outline-secondary d-block text-start text-muted' : 'btn btn-sm btn-outline-success d-block text-start';
+								$label = $type['label'] . ($type['count'] > 0 ? ' <span class="badge bg-success">' . $type['count'] . '</span>' : ' <span class="badge bg-secondary">0</span>');
+							?>
 							<?php echo $this->Html->link(
-								$this->TestHelper->icon($type['icon']) . ' ' . $type['label'],
+								$this->TestHelper->icon($type['icon']) . ' ' . $label,
 								['controller' => 'TestCases', 'action' => $type['action'], '?' => ['namespace' => $namespace]],
-								['escape' => false, 'class' => 'btn btn-sm btn-outline-success d-block text-start'],
+								['escape' => false, 'class' => $btnClass],
 							); ?>
 						</div>
 					<?php } ?>
