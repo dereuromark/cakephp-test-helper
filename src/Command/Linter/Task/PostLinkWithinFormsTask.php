@@ -105,17 +105,36 @@ class PostLinkWithinFormsTask extends AbstractLinterTask {
 
 			// Check for postLink() within forms
 			if ($insideForm && preg_match('/\$this->Form->postLink\(/', $line)) {
-				// Check if this line or nearby lines have 'block' => true
+				// Find the complete postLink() call by tracking parentheses
+				$postLinkContent = '';
+				$depth = 0;
+				$started = false;
 				$hasBlockTrue = false;
 
-				// Check current line and next few lines for 'block' => true
-				for ($i = 0; $i < 5 && ($lineNum + $i) < count($lines); $i++) {
-					$checkLine = $lines[$lineNum + $i];
-					if (preg_match('/[\'"]block[\'"]\s*=>\s*true/', $checkLine)) {
-						$hasBlockTrue = true;
+				// Collect all lines for this postLink() call
+				for ($i = $lineNum; $i < count($lines); $i++) {
+					$currentLine = $lines[$i];
+					$postLinkContent .= $currentLine . "\n";
 
-						break;
+					// Track parenthesis depth
+					for ($j = 0; $j < strlen($currentLine); $j++) {
+						$char = $currentLine[$j];
+						if ($char === '(' && (strpos(substr($currentLine, 0, $j), 'postLink') !== false || $started)) {
+							$depth++;
+							$started = true;
+						} elseif ($char === ')' && $started) {
+							$depth--;
+							if ($depth === 0) {
+								// Found the closing parenthesis
+								break 2;
+							}
+						}
 					}
+				}
+
+				// Check if the complete postLink call has 'block' => true
+				if (preg_match('/[\'"]block[\'"]\s*=>\s*true/', $postLinkContent)) {
+					$hasBlockTrue = true;
 				}
 
 				if (!$hasBlockTrue) {

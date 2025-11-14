@@ -127,4 +127,39 @@ PHP;
 		unlink($tempFile);
 	}
 
+	/**
+	 * Test that multi-line postLink with block => true is not flagged
+	 *
+	 * @return void
+	 */
+	public function testMultiLinePostLinkWithBlockIsNotFlagged(): void {
+		$tempFile = tempnam(sys_get_temp_dir(), 'linter_test_');
+		$content = <<<'PHP'
+<?= $this->Form->create($entity) ?>
+<?= $this->Form->postLink(
+    __('TRUNCATE TABLE'),
+    ['action' => 'truncate'],
+    [
+        'class' => 'btn btn-danger',
+        'confirm' => __('Are you sure?'),
+        'block' => true,
+    ]
+) ?>
+<?= $this->Form->end() ?>
+PHP;
+		file_put_contents($tempFile, $content);
+
+		$io = new ConsoleIo($this->out, $this->err);
+		$reflection = new \ReflectionClass($this->task);
+		$method = $reflection->getMethod('checkFile');
+
+		// Run without fix
+		$issues = $method->invoke($this->task, $io, $tempFile, false, false);
+
+		// Should report 0 issues since 'block' => true is present
+		$this->assertSame(0, $issues);
+
+		unlink($tempFile);
+	}
+
 }
