@@ -164,6 +164,7 @@ class LinterCommand extends Command {
 			// Skip tasks that don't support plugin mode when --plugin is used
 			if ($pluginNames !== null && !$task->supportsPluginMode()) {
 				$io->verbose('  Skipped: Task does not support plugin mode');
+
 				continue;
 			}
 
