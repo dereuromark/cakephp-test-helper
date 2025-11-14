@@ -60,6 +60,16 @@ bin/cake linter --task array-urls-in-tests --fix
 
 See task list below to see which tasks support auto-fix
 
+### CI Mode
+
+For running in CI environments where test database connections are configured:
+
+```bash
+bin/cake linter --ci
+```
+
+This enables CI mode which aliases test database connections (e.g., `test` to `default`, `test_custom` to `custom`) to ensure the linter works correctly in CI pipelines where only test databases are available.
+
 ### Exit Codes
 
 * `0` - All checks passed, no issues found
@@ -557,8 +567,10 @@ Add to your CI pipeline to enforce code quality:
 ```yaml
 # .github/workflows/ci.yml
 - name: Run Linter
-  run: bin/cake linter
+  run: bin/cake linter --ci
 ```
+
+The `--ci` flag ensures test database connections are properly aliased for CI environments.
 
 And for developers as quick-check in composer scripts:
 

@@ -8,6 +8,7 @@ use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
+use Cake\TestSuite\ConnectionHelper;
 use ReflectionClass;
 use Shim\Command\Command;
 use TestHelper\Command\Linter\LinterTaskInterface;
@@ -90,6 +91,10 @@ class LinterCommand extends Command {
 				'short' => 'f',
 				'boolean' => true,
 			])
+			->addOption('ci', [
+				'help' => 'Enable CI mode (aliases test database connections)',
+				'boolean' => true,
+			])
 			->addArgument('paths', [
 				'help' => 'Comma-separated paths to check. If not provided, uses task defaults.',
 				'required' => false,
@@ -106,6 +111,11 @@ class LinterCommand extends Command {
      * @return int The exit code
      */
 	public function execute(Arguments $args, ConsoleIo $io): int {
+		// Enable CI mode if requested
+		if ($args->getOption('ci')) {
+			ConnectionHelper::addTestAliases();
+		}
+
 		$tasks = $this->discoverTasks();
 
 		if ($args->getOption('list')) {
