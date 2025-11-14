@@ -40,6 +40,7 @@ class NoMixedInTemplatesTask extends AbstractLinterTask {
 	public function run(ConsoleIo $io, array $options = []): int {
 		$paths = $options['paths'] ?? $this->defaultPaths();
 		$files = $this->getFiles($paths, '*.php');
+		$verbose = $options['verbose'] ?? false;
 		$issues = 0;
 
 		foreach ($files as $file) {
@@ -61,6 +62,7 @@ class NoMixedInTemplatesTask extends AbstractLinterTask {
 						$line,
 						"Template variable {$varName} must have a specific type annotation, not 'mixed'",
 						trim($match[0]),
+						$verbose,
 					);
 					$issues++;
 				}

@@ -40,6 +40,7 @@ class UseOrmQueryTask extends AbstractLinterTask {
 	public function run(ConsoleIo $io, array $options = []): int {
 		$paths = $options['paths'] ?? $this->defaultPaths();
 		$files = $this->getFiles($paths, '*.php');
+		$verbose = $options['verbose'] ?? false;
 		$issues = 0;
 
 		foreach ($files as $file) {
@@ -58,6 +59,7 @@ class UseOrmQueryTask extends AbstractLinterTask {
 						$lineNumber + 1,
 						'Use specific query type like "use Cake\ORM\Query\SelectQuery;" instead',
 						trim($line),
+						$verbose,
 					);
 					$issues++;
 				}

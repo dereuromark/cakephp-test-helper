@@ -40,6 +40,7 @@ class UseBaseMigrationTask extends AbstractLinterTask {
 	public function run(ConsoleIo $io, array $options = []): int {
 		$paths = $options['paths'] ?? $this->defaultPaths();
 		$files = $this->getFiles($paths, '*.php');
+		$verbose = $options['verbose'] ?? false;
 		$issues = 0;
 
 		foreach ($files as $file) {
@@ -59,6 +60,7 @@ class UseBaseMigrationTask extends AbstractLinterTask {
 						$lineNumber + 1,
 						'Use BaseMigration instead of deprecated AbstractMigration',
 						trim($line),
+						$verbose,
 					);
 					$issues++;
 				}
@@ -71,6 +73,7 @@ class UseBaseMigrationTask extends AbstractLinterTask {
 						$lineNumber + 1,
 						'Use BaseSeed instead of deprecated AbstractSeed',
 						trim($line),
+						$verbose,
 					);
 					$issues++;
 				}
@@ -83,6 +86,7 @@ class UseBaseMigrationTask extends AbstractLinterTask {
 						$lineNumber + 1,
 						'Class should extend BaseMigration instead of AbstractMigration',
 						trim($line),
+						$verbose,
 					);
 					$issues++;
 				}
@@ -95,6 +99,7 @@ class UseBaseMigrationTask extends AbstractLinterTask {
 						$lineNumber + 1,
 						'Class should extend BaseSeed instead of AbstractSeed',
 						trim($line),
+						$verbose,
 					);
 					$issues++;
 				}

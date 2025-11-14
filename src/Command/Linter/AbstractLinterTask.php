@@ -85,20 +85,29 @@ abstract class AbstractLinterTask implements LinterTaskInterface {
      * @param int $line Line number
      * @param string $issue Issue description
      * @param string|null $context Optional context
+     * @param bool $verbose Whether to show verbose output with full paths
      *
      * @return void
      */
-	protected function outputIssue(ConsoleIo $io, string $file, int $line, string $issue, ?string $context = null): void {
-		$relativePath = $this->getRelativePath($file);
+	protected function outputIssue(
+		ConsoleIo $io,
+		string $file,
+		int $line,
+		string $issue,
+		?string $context = null,
+		bool $verbose = false,
+	): void {
+		// Use full path in verbose mode for better terminal clickability
+		// Relative path otherwise for cleaner output in normal usage
+		$path = $verbose ? $file : $this->getRelativePath($file);
+		$location = $line ? "{$path}:{$line}" : $path;
 
-		// Format: file:line (clickable in most IDEs and terminals)
-		$location = $line ? "{$relativePath}:{$line}" : $relativePath;
-		$io->out($location);
+		$io->out('');
+		$io->out("<comment>{$location}</comment>");
 		$io->out("  {$issue}");
 		if ($context !== null) {
 			$io->out("  Found: {$context}");
 		}
-		$io->out('');
 	}
 
 }

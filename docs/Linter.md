@@ -34,10 +34,14 @@ Check specific paths:
 bin/cake linter src/,tests/
 ```
 
-Show paths being checked (verbose mode):
+Show paths being checked and use absolute file paths (verbose mode):
 ```bash
 bin/cake linter -v
 ```
+
+Verbose mode shows:
+* Paths being checked
+* Full absolute file paths instead of relative paths (for better terminal/CLI clickability)
 
 ### Exit Codes
 
@@ -193,6 +197,7 @@ class MyCustomTask extends AbstractLinterTask
     {
         $paths = $options['paths'] ?? $this->defaultPaths();
         $files = $this->getFiles($paths, '*.php');
+        $verbose = $options['verbose'] ?? false;
         $issues = 0;
 
         foreach ($files as $file) {
@@ -211,7 +216,8 @@ class MyCustomTask extends AbstractLinterTask
                         $file,
                         $lineNumber + 1,
                         'TODO comment found',
-                        trim($line)
+                        trim($line),
+                        $verbose
                     );
                     $issues++;
                 }
@@ -298,25 +304,8 @@ $this->outputIssue(
     $lineNumber,    // Line number (1-indexed, use 0 if no line is possible to set)
     'Issue description',
     'Code context',  // Optional: the problematic code
+    $verbose,       // Optional: whether to show full absolute paths (from options)
 );
-```
-
-### resolvePath()
-
-Convert relative paths to absolute:
-
-```php
-$fullPath = $this->resolvePath('src/Controller');
-// Returns: /var/www/app/src/Controller
-```
-
-### getRelativePath()
-
-Convert absolute paths to relative (from ROOT):
-
-```php
-$relativePath = $this->getRelativePath('/var/www/app/src/Controller/UsersController.php');
-// Returns: src/Controller/UsersController.php
 ```
 
 ## Advanced Examples

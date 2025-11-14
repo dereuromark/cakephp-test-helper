@@ -126,6 +126,7 @@ class LinterCommand extends Command {
 
 			$options = [
 				'fix' => $fix,
+				'verbose' => $io->level() >= ConsoleIo::VERBOSE,
 			];
 			if ($pathsArray !== null) {
 				$options['paths'] = $pathsArray;
