@@ -97,6 +97,8 @@ use Cake\ORM\Query;
 use Cake\ORM\Query\SelectQuery;
 ```
 
+Note: Not auto-fixed here, if found, use [upgrade tool](https://github.com/cakephp/upgrade) to auto-fix.
+
 ### use-base-migration
 
 Flags deprecated `AbstractMigration` and `AbstractSeed` usage, recommending `BaseMigration` and `BaseSeed`
@@ -117,6 +119,8 @@ use Migrations\BaseMigration;
 
 class CreateUsersTable extends BaseMigration
 ```
+
+Note: Not auto-fixed here, if found, use [upgrade tool](https://github.com/cakephp/upgrade) to auto-fix.
 
 ### single-request-per-test
 
