@@ -39,16 +39,24 @@ $this->assign('title', 'SQL to CakePHP Query Builder Converter');
 					]);
 					?>
 
-					<div class="alert alert-success mb-3">
-						<strong><?php echo $this->TestHelper->icon('next'); ?> Supported SQL Features:</strong>
-						<ul class="mb-0 mt-2">
-							<li><strong>SELECT:</strong> fields, aliases, DISTINCT, JOINs, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT, OFFSET, UNION/UNION ALL</li>
-							<li><strong>Functions:</strong> String (CONCAT, SUBSTRING, TRIM, UPPER, LOWER, COALESCE), Date (NOW, YEAR, MONTH, DATEDIFF), Aggregate (COUNT, SUM, AVG, MIN, MAX)</li>
-							<li><strong>Advanced:</strong> CASE expressions, subqueries (recursive), window functions (with guidance), CTEs (WITH clause)</li>
-							<li><strong>INSERT:</strong> Single and bulk INSERT (multiple rows)</li>
-							<li><strong>UPDATE:</strong> Single and multi-table UPDATE (with JOINs)</li>
-							<li><strong>DELETE:</strong> With full WHERE condition support</li>
-						</ul>
+					<div class="mb-3">
+						<button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#supportedFeatures" aria-expanded="false" aria-controls="supportedFeatures">
+							<?php echo $this->TestHelper->icon('next'); ?> Show Supported SQL Features
+						</button>
+					</div>
+
+					<div class="collapse" id="supportedFeatures">
+						<div class="alert alert-success mb-3">
+							<strong><?php echo $this->TestHelper->icon('next'); ?> Supported SQL Features (v2.0):</strong>
+							<ul class="mb-0 mt-2">
+								<li><strong>SELECT:</strong> fields, aliases, DISTINCT, JOINs, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT, OFFSET, UNION/UNION ALL</li>
+								<li><strong>Functions:</strong> String (CONCAT, SUBSTRING, TRIM, UPPER, LOWER, COALESCE), Date (NOW, YEAR, MONTH, DATEDIFF), Aggregate (COUNT, SUM, AVG, MIN, MAX)</li>
+								<li><strong>Advanced:</strong> CASE expressions, subqueries (recursive), window functions (with guidance), CTEs (WITH clause)</li>
+								<li><strong>INSERT:</strong> Single and bulk INSERT (multiple rows)</li>
+								<li><strong>UPDATE:</strong> Single and multi-table UPDATE (with JOINs)</li>
+								<li><strong>DELETE:</strong> With full WHERE condition support</li>
+							</ul>
+						</div>
 					</div>
 
 					<div class="mt-3">
