@@ -198,7 +198,8 @@ class SqlParserTest extends TestCase {
 		$this->assertSame('INSERT', $result['type']);
 		$this->assertSame('users', $result['table']);
 		$this->assertSame(['username', 'email'], $result['fields']);
-		$this->assertContains("'john'", $result['values']);
+		$this->assertCount(1, $result['values']);
+		$this->assertContains("'john'", $result['values'][0]);
 	}
 
 	/**
@@ -252,6 +253,164 @@ class SqlParserTest extends TestCase {
 		$this->assertNotEmpty($result['joins']);
 		$this->assertSame(['u.id'], $result['groupBy']);
 		$this->assertSame(20, $result['limit']);
+	}
+
+	/**
+	 * Test UNION query parsing
+	 *
+	 * @return void
+	 */
+	public function testUnionQuery(): void {
+		$sql = 'SELECT id, name FROM users UNION SELECT id, name FROM admins';
+		$result = $this->parser->parse($sql);
+
+		$this->assertSame('UNION', $result['type']);
+		$this->assertFalse($result['unionAll']);
+		$this->assertCount(2, $result['queries']);
+	}
+
+	/**
+	 * Test UNION ALL query parsing
+	 *
+	 * @return void
+	 */
+	public function testUnionAllQuery(): void {
+		$sql = 'SELECT id FROM users UNION ALL SELECT id FROM deleted_users';
+		$result = $this->parser->parse($sql);
+
+		$this->assertSame('UNION', $result['type']);
+		$this->assertTrue($result['unionAll']);
+		$this->assertCount(2, $result['queries']);
+	}
+
+	/**
+	 * Test bulk INSERT parsing
+	 *
+	 * @return void
+	 */
+	public function testBulkInsertParsing(): void {
+		$sql = "INSERT INTO users (name, email) VALUES ('Alice', 'alice@example.com'), ('Bob', 'bob@example.com')";
+		$result = $this->parser->parse($sql);
+
+		$this->assertSame('INSERT', $result['type']);
+		$this->assertSame('users', $result['table']);
+		$this->assertCount(2, $result['values']);
+		$this->assertSame(['name', 'email'], $result['fields']);
+	}
+
+	/**
+	 * Test complex field expressions with aggregates
+	 *
+	 * @return void
+	 */
+	public function testSelectWithAggregates(): void {
+		$sql = 'SELECT user_id, COUNT(*) AS total FROM posts GROUP BY user_id';
+		$result = $this->parser->parse($sql);
+
+		$this->assertSame('SELECT', $result['type']);
+		$this->assertIsArray($result['fields']);
+		$this->assertCount(2, $result['fields']);
+	}
+
+	/**
+	 * Test SELECT with mathematical expression
+	 *
+	 * @return void
+	 */
+	public function testSelectWithMathExpression(): void {
+		$sql = 'SELECT price * quantity AS total FROM line_items';
+		$result = $this->parser->parse($sql);
+
+		$this->assertSame('SELECT', $result['type']);
+		$this->assertIsArray($result['fields']);
+	}
+
+	/**
+	 * Test SELECT with ORM-style aliases
+	 *
+	 * @return void
+	 */
+	public function testSelectWithOrmStyleAliases(): void {
+		$sql = "SELECT
+			authors.id AS Authors__id,
+			authors.name AS Authors__name,
+			articles.id AS Articles__id,
+			articles.title AS Articles__title
+		FROM authors AS Authors
+		LEFT JOIN articles AS Articles ON articles.author_id = authors.id";
+
+		$result = $this->parser->parse($sql);
+
+		$this->assertSame('SELECT', $result['type']);
+		$this->assertTrue($result['hasOrmAliases']);
+		$this->assertCount(4, $result['fields']);
+
+		// Check that ORM aliases are flagged
+		$this->assertTrue($result['fields'][0]['isOrmAlias']);
+		$this->assertSame('Authors__id', $result['fields'][0]['alias']);
+		$this->assertTrue($result['fields'][1]['isOrmAlias']);
+		$this->assertSame('Authors__name', $result['fields'][1]['alias']);
+		$this->assertTrue($result['fields'][2]['isOrmAlias']);
+		$this->assertSame('Articles__id', $result['fields'][2]['alias']);
+		$this->assertTrue($result['fields'][3]['isOrmAlias']);
+		$this->assertSame('Articles__title', $result['fields'][3]['alias']);
+	}
+
+	/**
+	 * Test SELECT without ORM-style aliases
+	 *
+	 * @return void
+	 */
+	public function testSelectWithoutOrmStyleAliases(): void {
+		$sql = 'SELECT id, name AS username, email FROM users';
+		$result = $this->parser->parse($sql);
+
+		$this->assertSame('SELECT', $result['type']);
+		$this->assertFalse($result['hasOrmAliases']);
+
+		// Check that normal aliases are not flagged as ORM aliases
+		$this->assertFalse($result['fields'][1]['isOrmAlias']);
+		$this->assertSame('username', $result['fields'][1]['alias']);
+	}
+
+	/**
+	 * Test mixed ORM and non-ORM aliases
+	 *
+	 * @return void
+	 */
+	public function testSelectWithMixedAliases(): void {
+		$sql = 'SELECT users.id AS Users__id, name AS username, email FROM users';
+		$result = $this->parser->parse($sql);
+
+		$this->assertSame('SELECT', $result['type']);
+		$this->assertTrue($result['hasOrmAliases']);
+
+		// First field has ORM alias
+		$this->assertTrue($result['fields'][0]['isOrmAlias']);
+		// Second field has normal alias
+		$this->assertFalse($result['fields'][1]['isOrmAlias']);
+	}
+
+	/**
+	 * Test ORM aliases with JOINs and WHERE
+	 *
+	 * @return void
+	 */
+	public function testSelectWithOrmAliasesAndJoins(): void {
+		$sql = "SELECT
+			authors.id AS Authors__id,
+			articles.title AS Articles__title
+		FROM authors AS Authors
+		LEFT JOIN articles AS Articles ON articles.author_id = authors.id
+		WHERE authors.country = 'US'";
+
+		$result = $this->parser->parse($sql);
+
+		$this->assertSame('SELECT', $result['type']);
+		$this->assertTrue($result['hasOrmAliases']);
+		$this->assertSame('Authors', $result['fromAlias']);
+		$this->assertCount(1, $result['joins']);
+		$this->assertSame('Articles', $result['joins'][0]['alias']);
 	}
 
 }

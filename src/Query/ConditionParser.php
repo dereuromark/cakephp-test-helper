@@ -213,6 +213,14 @@ class ConditionParser {
 			return [$field . ' ' . $operator => $value];
 		}
 
+		// Handle EXISTS / NOT EXISTS
+		if (preg_match('/^(NOT\s+)?EXISTS\s*\((.+)\)$/is', $condition, $matches)) {
+			$operator = trim($matches[1]) ? 'NOT EXISTS' : 'EXISTS';
+			$subquery = trim($matches[2]);
+
+			return [$operator => $subquery]; // TODO: Parse subquery
+		}
+
 		// Handle comparison operators: !=, <>, >=, <=, >, <, =
 		$operators = ['!=', '<>', '>=', '<=', '>', '<', '='];
 		foreach ($operators as $op) {

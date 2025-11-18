@@ -235,4 +235,26 @@ class ConditionParserTest extends TestCase {
 		$this->assertStringContainsString("'status' => 'pending'", $result);
 	}
 
+	/**
+	 * Test EXISTS condition
+	 *
+	 * @return void
+	 */
+	public function testExistsCondition(): void {
+		$result = $this->parser->parse('EXISTS (SELECT 1 FROM posts WHERE posts.user_id = users.id)');
+		$this->assertIsArray($result);
+		$this->assertArrayHasKey('EXISTS', $result);
+	}
+
+	/**
+	 * Test NOT EXISTS condition
+	 *
+	 * @return void
+	 */
+	public function testNotExistsCondition(): void {
+		$result = $this->parser->parse('NOT EXISTS (SELECT 1 FROM posts WHERE posts.user_id = users.id)');
+		$this->assertIsArray($result);
+		$this->assertArrayHasKey('NOT EXISTS', $result);
+	}
+
 }
