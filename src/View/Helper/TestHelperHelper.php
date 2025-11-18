@@ -45,6 +45,7 @@ class TestHelperHelper extends Helper {
 			'demo' => 'fa-palette',
 			'loading' => 'fa-spinner',
 			'migrations' => 'fa-database',
+			'query-builder' => 'fa-code-branch',
 		];
 
 		$faClass = $iconMap[$icon] ?? 'fa-' . $icon;

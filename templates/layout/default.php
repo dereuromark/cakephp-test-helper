@@ -74,6 +74,9 @@
 						<?php echo $this->Html->link('Test Cases', ['plugin' => 'TestHelper', 'controller' => 'TestCases', 'action' => 'controller'], ['class' => 'nav-link']); ?>
 					</li>
 					<li class="nav-item">
+						<?php echo $this->Html->link('Query Builder', ['plugin' => 'TestHelper', 'controller' => 'QueryBuilder', 'action' => 'index'], ['class' => 'nav-link']); ?>
+					</li>
+					<li class="nav-item">
 						<?php echo $this->Html->link('Plugins', ['plugin' => 'TestHelper', 'controller' => 'Plugins', 'action' => 'index'], ['class' => 'nav-link']); ?>
 					</li>
 					<li class="nav-item">
