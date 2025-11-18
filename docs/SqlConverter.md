@@ -1,4 +1,4 @@
-# SQL to Query Builder Converter (v2.0)
+# SQL to Query Builder Converter
 
 Convert raw SQL queries to clean, production-ready CakePHP Query Builder code with just a few clicks!
 
@@ -437,36 +437,6 @@ Automatically detects field types:
 * `case` - CASE expressions
 * `math` - Mathematical expressions
 * `window_func` - Window functions
-
-## Version History
-
-### v2.0 (Current)
-* ✅ String/Date function conversion
-* ✅ CASE expression builder
-* ✅ Recursive subquery generation
-* ✅ Multi-table UPDATE support
-* ✅ Window function detection
-* ✅ CTE parsing
-* ✅ Syntax highlighting
-* ✅ Tabbed UI
-* ✅ Bug fixes (alias order, JOIN syntax, multiline parsing)
-
-### v1.2
-* ✅ Complex expressions
-* ✅ UNION queries
-* ✅ Bulk INSERT
-* ✅ EXISTS/NOT EXISTS
-* ✅ ORM alias detection
-
-### v1.1
-* ✅ WHERE/HAVING condition parser
-* ✅ JOIN support
-* ✅ Association suggestions
-
-### v1.0 (MVP)
-* ✅ Basic SELECT, INSERT, UPDATE, DELETE
-* ✅ Web UI
-* ✅ Dashboard integration
 
 ## Further Reading
 

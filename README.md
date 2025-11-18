@@ -21,7 +21,7 @@ With a browser backend generating tests or running them is just a simple mouse c
 You have an overview of your classes and the test classes to it. If there is one missing, you can easily "bake" it from this web backend. It internally uses [Bake](https://github.com/cakephp/bake/) plugin as well as your preferred theme.
 
 ### Further useful addons
-* **SQL to Query Builder Converter** - Convert raw SQL to CakePHP Query Builder code with full v2.0 features
+* **SQL to Query Builder Converter** - Convert raw SQL to CakePHP Query Builder code with full features
 * URL array generation from string URLs (respects routing, so it is basically also a reverse lookup)
 * Fixture validation tool (compares actual DB with the schema files: fields and attributes, constraints and indexes)
 * Model/entity/table comparison overview.
@@ -100,7 +100,7 @@ bin/cake linter
 
 See [Linter Documentation](docs/Linter.md) for details on creating custom tasks, configuration, and included default tasks.
 
-## SQL to Query Builder Converter (v2.0)
+## SQL to Query Builder Converter
 
 Convert raw SQL queries to CakePHP Query Builder code with just a click! Navigate to `/test-helper/query-builder` to access this powerful tool.
 
