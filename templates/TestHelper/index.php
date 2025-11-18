@@ -99,6 +99,23 @@ $this->assign('title', 'Test Helper Dashboard');
 	</div>
 </div>
 
+<!-- Query Builder Row -->
+<div class="row g-4 mt-2">
+	<div class="col-12">
+		<div class="card shadow-sm border-primary">
+			<div class="card-header bg-primary text-white">
+				<h5 class="mb-0"><?php echo $this->TestHelper->icon('query-builder'); ?> SQL to CakePHP Query Builder</h5>
+			</div>
+			<div class="card-body">
+				<p class="card-text">Convert raw SQL queries (MySQL) into CakePHP Query Builder code. Supports SELECT, INSERT, UPDATE, DELETE with JOINs, WHERE conditions, GROUP BY, ORDER BY, and more.</p>
+				<ul class="list-unstyled">
+					<li><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Open Query Builder Converter', ['controller' => 'QueryBuilder', 'action' => 'index'], ['escape' => false, 'class' => 'btn btn-primary']); ?></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+
 <!-- Additional Tools Row -->
 <div class="row g-4 mt-2">
 	<!-- Plugins Card -->
