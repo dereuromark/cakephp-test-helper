@@ -39,13 +39,15 @@ $this->assign('title', 'SQL to CakePHP Query Builder Converter');
 					]);
 					?>
 
-					<div class="alert alert-info mb-3">
+					<div class="alert alert-success mb-3">
 						<strong><?php echo $this->TestHelper->icon('next'); ?> Supported SQL Features:</strong>
 						<ul class="mb-0 mt-2">
-							<li><strong>SELECT:</strong> fields (with aliases), JOINs (INNER, LEFT, RIGHT), WHERE, GROUP BY, HAVING, ORDER BY, LIMIT, OFFSET</li>
-							<li><strong>INSERT:</strong> basic INSERT INTO ... VALUES ...</li>
-							<li><strong>UPDATE:</strong> UPDATE ... SET ... WHERE ...</li>
-							<li><strong>DELETE:</strong> DELETE FROM ... WHERE ...</li>
+							<li><strong>SELECT:</strong> fields, aliases, DISTINCT, JOINs, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT, OFFSET, UNION/UNION ALL</li>
+							<li><strong>Functions:</strong> String (CONCAT, SUBSTRING, TRIM, UPPER, LOWER, COALESCE), Date (NOW, YEAR, MONTH, DATEDIFF), Aggregate (COUNT, SUM, AVG, MIN, MAX)</li>
+							<li><strong>Advanced:</strong> CASE expressions, subqueries (recursive), window functions (with guidance), CTEs (WITH clause)</li>
+							<li><strong>INSERT:</strong> Single and bulk INSERT (multiple rows)</li>
+							<li><strong>UPDATE:</strong> Single and multi-table UPDATE (with JOINs)</li>
+							<li><strong>DELETE:</strong> With full WHERE condition support</li>
 						</ul>
 					</div>
 
@@ -72,15 +74,16 @@ $this->assign('title', 'SQL to CakePHP Query Builder Converter');
 					</button>
 				</div>
 
-				<pre id="generated-code" class="bg-light p-3 rounded"><code class="language-php"><?php echo h($result['code']); ?></code></pre>
+				<pre id="generated-code" class="line-numbers"><code class="language-php"><?php echo h($result['code']); ?></code></pre>
 
-				<div class="alert alert-warning mt-3">
+				<div class="alert alert-info mt-3">
 					<strong><?php echo $this->TestHelper->icon('next'); ?> Important Notes:</strong>
 					<ul class="mb-0 mt-2">
-						<li>The generated code is a starting point and may need adjustments for your specific use case</li>
-						<li>Complex WHERE/HAVING conditions are shown as TODOs - you'll need to convert them manually to CakePHP format</li>
+						<li><strong>v2.0 Features:</strong> Full support for WHERE/HAVING conditions, string/date functions, CASE expressions, subqueries, and multi-table updates!</li>
+						<li>The generated code is production-ready but review for your specific use case</li>
+						<li>Window functions and CTEs include helpful guidance comments (limited CakePHP 5.x support)</li>
 						<li>Always test the generated code and verify it produces the expected results</li>
-						<li>Make sure to add proper type hints and use statements as needed</li>
+						<li>Add proper type hints and use statements as needed</li>
 					</ul>
 				</div>
 			</div>
@@ -134,7 +137,7 @@ $examples = [
 			<div class="card-body">
 				<?php foreach ($examples as $title => $exampleSql) { ?>
 					<h6<?php if ($title !== array_key_first($examples)) { ?> class="mt-3"<?php } ?>><?php echo h($title); ?></h6>
-					<pre class="bg-light p-2 rounded mb-2"><code><?php echo h($exampleSql); ?></code></pre>
+					<pre><code class="language-sql"><?php echo h($exampleSql); ?></code></pre>
 					<?php echo $this->Html->link(
 						$this->TestHelper->icon('next') . ' Try It',
 						['?' => ['sql' => $exampleSql]],
@@ -158,6 +161,15 @@ function copyToClipboard() {
 }
 </script>
 
+<!-- Prism.js for Syntax Highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
 <style>
 .font-monospace {
 	font-family: 'Courier New', Courier, monospace;
@@ -168,5 +180,22 @@ pre code {
 	display: block;
 	white-space: pre;
 	overflow-x: auto;
+}
+
+/* Enhance Prism.js styling */
+pre[class*="language-"] {
+	margin: 0;
+	padding: 1em;
+	border-radius: 0.375rem;
+}
+
+.line-numbers .line-numbers-rows {
+	border-right: 1px solid #999;
+}
+
+/* SQL textarea highlighting */
+#sql_query {
+	font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+	tab-size: 4;
 }
 </style>

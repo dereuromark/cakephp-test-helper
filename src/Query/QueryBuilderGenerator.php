@@ -44,8 +44,44 @@ class QueryBuilderGenerator {
 			'UPDATE' => $this->generateUpdate($parsed),
 			'DELETE' => $this->generateDelete($parsed),
 			'UNION' => $this->generateUnion($parsed),
+			'CTE' => $this->generateCTE($parsed),
 			default => throw new RuntimeException('Unsupported query type: ' . $parsed['type']),
 		};
+	}
+
+	/**
+	 * Generate CTE (Common Table Expression) query
+	 *
+	 * @param array<string, mixed> $parsed Parsed structure
+	 * @return string Generated code
+	 */
+	protected function generateCTE(array $parsed): string {
+		$code = "// CTE (Common Table Expression) with WITH clause\n";
+		$code .= "// Note: CakePHP doesn't have native CTE support\n";
+		$code .= "// Options:\n\n";
+
+		$code .= "// Option 1: Use subqueries instead (recommended)\n";
+		$code .= "// Convert CTEs to subqueries in FROM or WHERE clauses\n\n";
+
+		$code .= "// Option 2: Use raw SQL\n";
+		$code .= "// \$connection = \$this->getConnection();\n";
+		$code .= "// \$statement = \$connection->execute(\"\n";
+		$code .= '//     WITH ' . ($parsed['ctes'][0]['raw'] ?? 'cte_name AS (...)') . "\n";
+		if (!empty($parsed['mainQuery'])) {
+			$code .= "//     /* main query follows */\n";
+		}
+		$code .= "// \");\n";
+		$code .= "// \$results = \$statement->fetchAll('assoc');\n\n";
+
+		$code .= "// Option 3: Break into separate queries\n";
+		$code .= "// Execute CTE query first, then use results in main query\n";
+
+		if (!empty($parsed['mainQuery'])) {
+			$code .= "\n\n// Main query (after CTE):\n";
+			$code .= $this->generate($parsed['mainQuery']);
+		}
+
+		return $code;
 	}
 
 	/**
@@ -316,6 +352,11 @@ class QueryBuilderGenerator {
 	 * @return string Generated code
 	 */
 	protected function generateUpdate(array $parsed): string {
+		// Check if multi-table update
+		if (!empty($parsed['isMultiTable'])) {
+			return $this->generateMultiTableUpdate($parsed);
+		}
+
 		$code = "// Option 1: Update via entity (recommended)\n";
 		$code .= "\$entity = \$this->get(\$id);\n";
 		$code .= "\$entity = \$this->patchEntity(\$entity, [\n";
@@ -347,6 +388,51 @@ class QueryBuilderGenerator {
 		}
 
 		$code .= "\n    ->execute();";
+
+		return $code;
+	}
+
+	/**
+	 * Generate multi-table UPDATE query
+	 *
+	 * @param array<string, mixed> $parsed Parsed structure
+	 * @return string Generated code
+	 */
+	protected function generateMultiTableUpdate(array $parsed): string {
+		$code = "// Multi-table UPDATE with JOINs\n";
+		$code .= "// Note: CakePHP doesn't support multi-table updates directly\n";
+		$code .= "// Recommended approach: Update tables separately within a transaction\n\n";
+
+		$code .= "// Option 1: Transaction with separate updates (recommended)\n";
+		$code .= "\$this->getConnection()->transactional(function () {\n";
+
+		// Group SET clauses by table
+		$tableUpdates = [];
+		foreach ($parsed['set'] as $field => $value) {
+			// Extract table from field (e.g., "users.last_login" -> "users")
+			if (str_contains($field, '.')) {
+				[$table, $fieldName] = explode('.', $field, 2);
+				$tableUpdates[$table][$fieldName] = $value;
+			} else {
+				$tableUpdates[$parsed['table']][$field] = $value;
+			}
+		}
+
+		foreach ($tableUpdates as $table => $fields) {
+			$code .= '    // Update ' . $table . "\n";
+			$code .= '    $this->' . $this->tableNameToAssociation($table) . "Table = \$this->fetchTable('" . $this->tableNameToAssociation($table) . "');\n";
+			$code .= '    $this->' . $this->tableNameToAssociation($table) . "Table->updateAll([\n";
+			foreach ($fields as $field => $value) {
+				$code .= "        '" . $field . "' => " . $value . ",\n";
+			}
+			$code .= "    ], [/* conditions */]);\n\n";
+		}
+
+		$code .= "});\n\n";
+
+		$code .= "// Option 2: Raw SQL (if absolutely necessary)\n";
+		$code .= "// \$connection = \$this->getConnection();\n";
+		$code .= '// $connection->execute("UPDATE ... JOIN ... SET ... WHERE ...");';
 
 		return $code;
 	}
@@ -504,10 +590,7 @@ class QueryBuilderGenerator {
 	protected function formatConditions(array|string $conditions, array $tableAliasMap = []): string {
 		// Handle subqueries
 		if (is_array($conditions) && isset($conditions['subqueries'])) {
-			// TODO: Generate subquery code
-			$condStr = $conditions['conditions'] ?? '';
-
-			return "\n            // TODO: Contains subqueries - convert manually\n            // " . str_replace("\n", "\n            // ", $condStr) . "\n        ";
+			return $this->formatConditionsWithSubqueries($conditions, $tableAliasMap);
 		}
 
 		// At this point, $conditions should be a string
@@ -523,6 +606,93 @@ class QueryBuilderGenerator {
 		$parsed = $this->conditionParser->parse($conditions);
 
 		return $this->conditionParser->formatAsPhpArray($parsed, 2);
+	}
+
+	/**
+	 * Format conditions that contain subqueries
+	 *
+	 * @param array<string, mixed> $conditionsWithSubqueries Conditions with subquery placeholders
+	 * @param array<string, string> $tableAliasMap Table alias mapping
+	 * @return string Formatted conditions
+	 */
+	protected function formatConditionsWithSubqueries(array $conditionsWithSubqueries, array $tableAliasMap = []): string {
+		$condStr = $conditionsWithSubqueries['conditions'] ?? '';
+		$subqueries = $conditionsWithSubqueries['subqueries'] ?? [];
+
+		if (empty($subqueries)) {
+			return $this->formatConditions($condStr, $tableAliasMap);
+		}
+
+		// Generate subquery variables
+		$code = "\n";
+		foreach ($subqueries as $placeholder => $subquerySql) {
+			$varName = '$subquery' . str_replace(['__SUBQUERY_', '__'], ['', ''], $placeholder);
+			$code .= "\n            " . $varName . ' = $this->find()';
+
+			// Parse and generate subquery
+			$subqueryParsed = (new SqlParser())->parse($subquerySql);
+			if ($subqueryParsed['type'] === 'SELECT') {
+				$code .= $this->generateSubqueryParts($subqueryParsed);
+			}
+
+			$code .= ';';
+		}
+
+		// Replace placeholders with subquery variables in conditions
+		foreach ($subqueries as $placeholder => $subquerySql) {
+			$varName = '$subquery' . str_replace(['__SUBQUERY_', '__'], ['', ''], $placeholder);
+			$condStr = str_replace($placeholder, $varName, $condStr);
+		}
+
+		$code .= "\n\n            ";
+
+		// Parse and format the modified conditions
+		$parsed = $this->conditionParser->parse($condStr);
+		$code .= $this->conditionParser->formatAsPhpArray($parsed, 2);
+
+		return $code;
+	}
+
+	/**
+	 * Generate subquery parts (SELECT, WHERE, etc.)
+	 *
+	 * @param array<string, mixed> $parsed Parsed subquery structure
+	 * @return string Generated code parts
+	 */
+	protected function generateSubqueryParts(array $parsed): string {
+		$code = '';
+		$originalIndent = $this->indentLevel;
+		$this->indentLevel = 4;
+
+		// Select fields
+		if (!empty($parsed['fields']) && $parsed['fields'] !== ['*']) {
+			$code .= "\n" . $this->indent() . '->select([';
+			$fields = [];
+			foreach ($parsed['fields'] as $field) {
+				if (is_array($field)) {
+					$fields[] = "'" . $field['field'] . "'";
+				} else {
+					$fields[] = "'" . $field . "'";
+				}
+			}
+			$code .= implode(', ', $fields) . '])';
+		}
+
+		// FROM - subqueries typically don't need explicit from()
+		if (!empty($parsed['from']) && $parsed['from'] !== 'dual') {
+			$code .= "\n" . $this->indent() . "->from('" . $parsed['from'] . "')";
+		}
+
+		// WHERE
+		if (!empty($parsed['where'])) {
+			$code .= "\n" . $this->indent() . '->where([';
+			$code .= $this->formatConditions($parsed['where']);
+			$code .= '])';
+		}
+
+		$this->indentLevel = $originalIndent;
+
+		return $code;
 	}
 
 	/**
@@ -682,9 +852,28 @@ class QueryBuilderGenerator {
 				return $this->formatCaseExpression($fieldExpr);
 			case 'math':
 				return $this->formatMathExpression($fieldExpr);
+			case 'window_func':
+				return $this->formatWindowFunction($fieldExpr);
 			default:
 				return "'" . $fieldExpr . "'";
 		}
+	}
+
+	/**
+	 * Format window function
+	 *
+	 * @param string $expr Window function expression
+	 * @return string CakePHP code with guidance
+	 */
+	protected function formatWindowFunction(string $expr): string {
+		$code = "'" . $expr . "'\n";
+		$code .= str_repeat(' ', 16) . '// TODO: Window functions have limited support in CakePHP 5.x\n';
+		$code .= str_repeat(' ', 16) . '// Options:\n';
+		$code .= str_repeat(' ', 16) . '// 1. Use raw SQL: $query->select(["row_num" => $query->newExpr("' . $expr . '")])\n';
+		$code .= str_repeat(' ', 16) . '// 2. Consider using subquery or post-processing in PHP\n';
+		$code .= str_repeat(' ', 16) . '// 3. For RANK/ROW_NUMBER, consider fetching and processing results';
+
+		return $code;
 	}
 
 	/**
@@ -721,8 +910,35 @@ class QueryBuilderGenerator {
 	 * @return string CakePHP code
 	 */
 	protected function formatFunction(string $expr): string {
-		// For now, return as TODO comment - full function parsing is complex
-		return "'" . $expr . "' // TODO: Convert function to CakePHP syntax";
+		// Parse function name and arguments
+		if (!preg_match('/^([A-Z_]+)\s*\((.*)\)\s*$/is', $expr, $matches)) {
+			return "'" . $expr . "' // TODO: Complex function - convert manually";
+		}
+
+		$funcName = strtoupper(trim($matches[1]));
+		$argsStr = trim($matches[2]);
+
+		// Map SQL functions to CakePHP equivalents
+		$result = match ($funcName) {
+			'CONCAT' => $this->formatConcatFunction($argsStr),
+			'CONCAT_WS' => $this->formatConcatWsFunction($argsStr),
+			'COALESCE' => $this->formatCoalesceFunction($argsStr),
+			'IFNULL' => $this->formatIfNullFunction($argsStr),
+			'SUBSTRING', 'SUBSTR' => $this->formatSubstringFunction($argsStr),
+			'UPPER' => $this->formatSimpleStringFunction('upper', $argsStr),
+			'LOWER' => $this->formatSimpleStringFunction('lower', $argsStr),
+			'TRIM' => $this->formatSimpleStringFunction('trim', $argsStr),
+			'LTRIM' => $this->formatSimpleStringFunction('ltrim', $argsStr),
+			'RTRIM' => $this->formatSimpleStringFunction('rtrim', $argsStr),
+			'LENGTH', 'CHAR_LENGTH' => $this->formatSimpleStringFunction('length', $argsStr),
+			'NOW', 'CURDATE', 'CURTIME' => $this->formatNowFunction($funcName),
+			'YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE', 'SECOND' => $this->formatDatePartFunction($funcName, $argsStr),
+			'DATE_FORMAT' => $this->formatDateFormatFunction($argsStr),
+			'DATEDIFF' => $this->formatDateDiffFunction($argsStr),
+			default => "'" . $expr . "' // TODO: " . $funcName . ' - no direct CakePHP equivalent',
+		};
+
+		return $result;
 	}
 
 	/**
@@ -732,7 +948,125 @@ class QueryBuilderGenerator {
 	 * @return string CakePHP code
 	 */
 	protected function formatCaseExpression(string $expr): string {
-		return "'" . $expr . "' // TODO: Convert CASE to QueryExpression";
+		// Parse CASE statement
+		$parsed = $this->parseCaseExpression($expr);
+		if (!$parsed) {
+			return "'" . $expr . "' // TODO: Complex CASE - convert manually";
+		}
+
+		$code = "\$query->newExpr()->case()\n";
+		$indent = str_repeat(' ', 16); // Adjust based on context
+
+		// Add WHEN clauses
+		foreach ($parsed['when'] as $when) {
+			$condition = $when['condition'];
+			$result = $when['result'];
+			$code .= $indent . '->when([' . $this->formatCaseCondition($condition) . "])\n";
+			$code .= $indent . '->then(' . $this->formatCaseValue($result) . ")\n";
+		}
+
+		// Add ELSE clause if present
+		if ($parsed['else']) {
+			$code .= $indent . '->else(' . $this->formatCaseValue($parsed['else']) . ')';
+		}
+
+		return $code;
+	}
+
+	/**
+	 * Parse CASE expression into structure
+	 *
+	 * @param string $expr CASE expression
+	 * @return array<string, mixed>|null Parsed structure or null if failed
+	 */
+	protected function parseCaseExpression(string $expr): ?array {
+		// Remove CASE and END keywords
+		$expr = (string)preg_replace('/^CASE\s+/i', '', $expr);
+		$expr = (string)preg_replace('/\s+END$/i', '', $expr);
+
+		if (!$expr) {
+			return null;
+		}
+
+		$result = [
+			'when' => [],
+			'else' => null,
+		];
+
+		// Extract ELSE clause first
+		if (preg_match('/\s+ELSE\s+(.+)$/is', $expr, $matches)) {
+			$result['else'] = trim($matches[1]);
+			$expr = (string)preg_replace('/\s+ELSE\s+.+$/is', '', $expr);
+		}
+
+		// Extract WHEN clauses
+		if (!preg_match_all('/WHEN\s+(.+?)\s+THEN\s+(.+?)(?=\s+WHEN|\s+ELSE|$)/is', $expr, $matches, PREG_SET_ORDER)) {
+			return null;
+		}
+
+		foreach ($matches as $match) {
+			$result['when'][] = [
+				'condition' => trim($match[1]),
+				'result' => trim($match[2]),
+			];
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Format CASE condition for QueryExpression
+	 *
+	 * @param string $condition Condition string
+	 * @return string Formatted condition
+	 */
+	protected function formatCaseCondition(string $condition): string {
+		// Try to parse as simple comparison
+		if (preg_match('/^(\w+)\s*(=|!=|<>|>|<|>=|<=)\s*(.+)$/', $condition, $matches)) {
+			$field = trim($matches[1]);
+			$operator = trim($matches[2]);
+			$value = trim($matches[3]);
+
+			// Map operators
+			$op = match ($operator) {
+				'=' => '',
+				'!=' => ' !=',
+				'<>' => ' !=',
+				'>' => ' >',
+				'<' => ' <',
+				'>=' => ' >=',
+				'<=' => ' <=',
+				default => '',
+			};
+
+			return "'" . $field . $op . "' => " . $this->formatCaseValue($value);
+		}
+
+		// For complex conditions, return as-is with TODO
+		return '/* TODO: Complex condition: ' . $condition . ' */';
+	}
+
+	/**
+	 * Format CASE result value
+	 *
+	 * @param string $value Result value
+	 * @return string Formatted value
+	 */
+	protected function formatCaseValue(string $value): string {
+		$value = trim($value);
+
+		// If it's a quoted string, return as-is
+		if (preg_match('/^[\'"].*[\'"]$/', $value)) {
+			return $value;
+		}
+
+		// If it's a number, return as-is
+		if (is_numeric($value)) {
+			return $value;
+		}
+
+		// Otherwise, it's a field name
+		return "'" . trim($value, '`"\'') . "'";
 	}
 
 	/**
@@ -838,6 +1172,248 @@ class QueryBuilderGenerator {
 		}
 
 		return $conditions;
+	}
+
+	/**
+	 * Parse function arguments from comma-separated string
+	 *
+	 * Handles nested functions and quoted strings
+	 *
+	 * @param string $argsStr Arguments string
+	 * @return array<int, string> Array of arguments
+	 */
+	protected function parseFunctionArguments(string $argsStr): array {
+		$args = [];
+		$current = '';
+		$depth = 0;
+		$inQuote = false;
+		$quoteChar = '';
+
+		for ($i = 0; $i < strlen($argsStr); $i++) {
+			$char = $argsStr[$i];
+
+			// Handle quotes
+			if (($char === '"' || $char === "'") && ($i === 0 || $argsStr[$i - 1] !== '\\')) {
+				if (!$inQuote) {
+					$inQuote = true;
+					$quoteChar = $char;
+				} elseif ($char === $quoteChar) {
+					$inQuote = false;
+					$quoteChar = '';
+				}
+			}
+
+			// Handle parentheses depth
+			if (!$inQuote) {
+				if ($char === '(') {
+					$depth++;
+				} elseif ($char === ')') {
+					$depth--;
+				}
+			}
+
+			// Split on comma at depth 0
+			if ($char === ',' && $depth === 0 && !$inQuote) {
+				$args[] = trim($current);
+				$current = '';
+			} else {
+				$current .= $char;
+			}
+		}
+
+		// Add last argument
+		if ($current !== '') {
+			$args[] = trim($current);
+		}
+
+		return $args;
+	}
+
+	/**
+	 * Format argument for CakePHP func() call
+	 *
+	 * @param string $arg Raw argument
+	 * @return string Formatted argument
+	 */
+	protected function formatFunctionArg(string $arg): string {
+		$arg = trim($arg);
+
+		// If it's a string literal, keep the quotes
+		if (preg_match('/^[\'"].*[\'"]$/', $arg)) {
+			return $arg;
+		}
+
+		// If it's a number, use as-is
+		if (is_numeric($arg)) {
+			return $arg;
+		}
+
+		// If it contains a function call, it's a nested function
+		if (preg_match('/^[A-Z_]+\s*\(/i', $arg)) {
+			return $arg; // Let it be handled as nested
+		}
+
+		// Otherwise, it's a field name - quote it
+		return "'" . trim($arg, '`"\'') . "'";
+	}
+
+	/**
+	 * Format CONCAT function
+	 *
+	 * @param string $argsStr Arguments string
+	 * @return string CakePHP code
+	 */
+	protected function formatConcatFunction(string $argsStr): string {
+		$args = $this->parseFunctionArguments($argsStr);
+		$formattedArgs = array_map([$this, 'formatFunctionArg'], $args);
+
+		return '$query->func()->concat([' . implode(', ', $formattedArgs) . '])';
+	}
+
+	/**
+	 * Format CONCAT_WS function
+	 *
+	 * @param string $argsStr Arguments string
+	 * @return string CakePHP code
+	 */
+	protected function formatConcatWsFunction(string $argsStr): string {
+		$args = $this->parseFunctionArguments($argsStr);
+		if (empty($args)) {
+			return "'CONCAT_WS()' // TODO: Invalid arguments";
+		}
+
+		$separator = array_shift($args);
+		$formattedArgs = array_map([$this, 'formatFunctionArg'], $args);
+
+		return '$query->func()->concat([' . implode(', ' . $separator . ', ', $formattedArgs) . '])';
+	}
+
+	/**
+	 * Format COALESCE function
+	 *
+	 * @param string $argsStr Arguments string
+	 * @return string CakePHP code
+	 */
+	protected function formatCoalesceFunction(string $argsStr): string {
+		$args = $this->parseFunctionArguments($argsStr);
+		$formattedArgs = array_map([$this, 'formatFunctionArg'], $args);
+
+		return '$query->func()->coalesce([' . implode(', ', $formattedArgs) . '])';
+	}
+
+	/**
+	 * Format IFNULL function
+	 *
+	 * @param string $argsStr Arguments string
+	 * @return string CakePHP code
+	 */
+	protected function formatIfNullFunction(string $argsStr): string {
+		// IFNULL is similar to COALESCE with 2 arguments
+		return $this->formatCoalesceFunction($argsStr);
+	}
+
+	/**
+	 * Format SUBSTRING function
+	 *
+	 * @param string $argsStr Arguments string
+	 * @return string CakePHP code
+	 */
+	protected function formatSubstringFunction(string $argsStr): string {
+		$args = $this->parseFunctionArguments($argsStr);
+
+		if (count($args) < 2) {
+			return "'SUBSTRING(...)' // TODO: Invalid arguments";
+		}
+
+		$field = $this->formatFunctionArg($args[0]);
+		$start = $args[1];
+		$length = $args[2] ?? null;
+
+		if ($length) {
+			return "\$query->func()->substring([$field, $start, $length])";
+		}
+
+		return "\$query->func()->substring([$field, $start])";
+	}
+
+	/**
+	 * Format simple string function (UPPER, LOWER, TRIM, etc.)
+	 *
+	 * @param string $funcName Function name
+	 * @param string $argsStr Arguments string
+	 * @return string CakePHP code
+	 */
+	protected function formatSimpleStringFunction(string $funcName, string $argsStr): string {
+		$arg = $this->formatFunctionArg($argsStr);
+
+		return '$query->func()->' . $funcName . '(' . $arg . ')';
+	}
+
+	/**
+	 * Format NOW/CURDATE/CURTIME function
+	 *
+	 * @param string $funcName Function name
+	 * @return string CakePHP code
+	 */
+	protected function formatNowFunction(string $funcName): string {
+		return match (strtoupper($funcName)) {
+			'NOW' => '$query->func()->now()',
+			'CURDATE' => '$query->func()->curdate()',
+			'CURTIME' => '$query->func()->curtime()',
+			default => "'$funcName()' // TODO: Use FrozenTime helper",
+		};
+	}
+
+	/**
+	 * Format date part extraction function (YEAR, MONTH, DAY, etc.)
+	 *
+	 * @param string $funcName Function name
+	 * @param string $argsStr Arguments string
+	 * @return string CakePHP code
+	 */
+	protected function formatDatePartFunction(string $funcName, string $argsStr): string {
+		$arg = $this->formatFunctionArg($argsStr);
+		$funcName = strtolower($funcName);
+
+		return '$query->func()->' . $funcName . '(' . $arg . ')';
+	}
+
+	/**
+	 * Format DATE_FORMAT function
+	 *
+	 * @param string $argsStr Arguments string
+	 * @return string CakePHP code
+	 */
+	protected function formatDateFormatFunction(string $argsStr): string {
+		$args = $this->parseFunctionArguments($argsStr);
+
+		if (count($args) < 2) {
+			return "'DATE_FORMAT(...)' // TODO: Invalid arguments";
+		}
+
+		$field = $this->formatFunctionArg($args[0]);
+		$format = $args[1];
+
+		return "\$query->func()->datePart('format', [$field, $format]) // TODO: Verify format string";
+	}
+
+	/**
+	 * Format DATEDIFF function
+	 *
+	 * @param string $argsStr Arguments string
+	 * @return string CakePHP code
+	 */
+	protected function formatDateDiffFunction(string $argsStr): string {
+		$args = $this->parseFunctionArguments($argsStr);
+
+		if (count($args) < 2) {
+			return "'DATEDIFF(...)' // TODO: Invalid arguments";
+		}
+
+		$date1 = $this->formatFunctionArg($args[0]);
+		$date2 = $this->formatFunctionArg($args[1]);
+
+		return "\$query->func()->dateDiff([$date1, $date2])";
 	}
 
 }

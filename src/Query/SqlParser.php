@@ -24,7 +24,12 @@ class SqlParser {
 		// Remove trailing semicolon if present
 		$sql = rtrim($sql, ';');
 
-		// Check for UNION queries first
+		// Check for CTE (WITH clause) first
+		if (preg_match('/^WITH\s+/i', $sql)) {
+			return $this->parseCTE($sql);
+		}
+
+		// Check for UNION queries
 		if ($this->isUnionQuery($sql)) {
 			return $this->parseUnion($sql);
 		}
@@ -305,6 +310,22 @@ class SqlParser {
 			}
 		}
 
+		// Window functions
+		$windowFunctions = [
+			'ROW_NUMBER', 'RANK', 'DENSE_RANK', 'NTILE', 'LAG', 'LEAD',
+			'FIRST_VALUE', 'LAST_VALUE', 'NTH_VALUE',
+		];
+		foreach ($windowFunctions as $func) {
+			if (preg_match('/^' . $func . '\s*\(/i', $upperField)) {
+				return 'window_func';
+			}
+		}
+
+		// Check for OVER clause (window function indicator)
+		if (preg_match('/\s+OVER\s*\(/i', $field)) {
+			return 'window_func';
+		}
+
 		// Mathematical expression (contains +, -, *, /, %)
 		if (preg_match('/[\+\-\*\/\%]/', $field) && !preg_match('/^[\'"].*[\'"]$/', $field)) {
 			return 'math';
@@ -507,13 +528,28 @@ class SqlParser {
 		$result = [
 			'type' => 'UPDATE',
 			'table' => null,
+			'tableAlias' => null,
+			'joins' => [],
 			'set' => [],
 			'where' => [],
+			'isMultiTable' => false,
 		];
 
-		// Extract table name
-		if (preg_match('/UPDATE\s+([^\s]+)/i', $sql, $matches)) {
+		// Check for multi-table UPDATE with JOINs
+		$hasJoin = preg_match('/UPDATE\s+.+?\s+(?:INNER\s+)?(?:LEFT\s+)?(?:RIGHT\s+)?JOIN/i', $sql);
+		$result['isMultiTable'] = $hasJoin;
+
+		// Extract table name and alias
+		if (preg_match('/UPDATE\s+([^\s]+)(?:\s+(?:AS\s+)?([^\s]+))?/i', $sql, $matches)) {
 			$result['table'] = $this->parseTableName($matches[1]);
+			if (isset($matches[2]) && !preg_match('/^(INNER|LEFT|RIGHT|JOIN|SET)/i', $matches[2])) {
+				$result['tableAlias'] = trim($matches[2]);
+			}
+		}
+
+		// Extract JOINs if present
+		if ($hasJoin) {
+			$result['joins'] = $this->parseJoins($sql);
 		}
 
 		// Extract SET clause
@@ -653,6 +689,38 @@ class SqlParser {
 		}
 
 		return $parts;
+	}
+
+	/**
+	 * Parse CTE (Common Table Expression) query
+	 *
+	 * @param string $sql SQL with WITH clause
+	 * @return array<string, mixed> Parsed structure
+	 */
+	protected function parseCTE(string $sql): array {
+		$result = [
+			'type' => 'CTE',
+			'ctes' => [],
+			'mainQuery' => null,
+		];
+
+		// Extract the main query after all CTEs
+		// Pattern: WITH cte1 AS (...), cte2 AS (...) SELECT/INSERT/UPDATE/DELETE ...
+		if (preg_match('/^WITH\s+(.+?)(?=\s+(?:SELECT|INSERT|UPDATE|DELETE)\s+)/is', $sql, $matches)) {
+			$cteSection = $matches[1];
+
+			// Extract main query
+			$mainQuerySql = (string)preg_replace('/^WITH\s+.+?(?=\s+(?:SELECT|INSERT|UPDATE|DELETE)\s+)/is', '', $sql);
+			$result['mainQuery'] = $this->parse(trim($mainQuerySql));
+
+			// Store raw CTE section
+			// Full CTE parsing is complex due to nested parentheses and multiple CTEs
+			$result['ctes'][] = [
+				'raw' => trim($cteSection),
+			];
+		}
+
+		return $result;
 	}
 
 }
