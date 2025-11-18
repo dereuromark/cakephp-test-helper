@@ -1,6 +1,7 @@
 # TestHelper Plugin Documentation
 
 Browse `/test-helper` to see all functionality available.
+* [SQL to Query Builder Converter](SqlConverter.md) - Convert raw SQL to CakePHP Query Builder code
 * URL generation and reverse lookup
 * Check plugin hooks
 * Check fixtures against tables (+ bake missing ones via click)
@@ -26,6 +27,36 @@ If there is no test file yet, there should be a "add icon" to click which bakes 
 ![tests](img/test_runner.png)
 
 ## Other tools
+
+### SQL to Query Builder Converter
+
+Navigate to `/test-helper/query-builder` to access the SQL converter.
+
+This powerful tool converts raw SQL queries into clean, production-ready CakePHP Query Builder code. It supports:
+
+* **All Query Types**: SELECT, INSERT, UPDATE, DELETE
+* **String Functions**: CONCAT, SUBSTRING, TRIM, UPPER, LOWER, COALESCE, LENGTH, REPLACE
+* **Date Functions**: NOW, YEAR, MONTH, DAY, DATE_FORMAT, DATEDIFF, DATE_ADD, DATE_SUB
+* **Aggregate Functions**: COUNT, SUM, AVG, MIN, MAX, GROUP_CONCAT
+* **Advanced SQL**: CASE expressions, subqueries (recursive), window functions, CTEs (WITH clause)
+* **Complex JOINs**: INNER, LEFT, RIGHT with AND/OR conditions
+* **Bulk Operations**: Multiple row INSERT, multi-table UPDATE
+
+**Features:**
+* Syntax highlighting for both SQL input and PHP output
+* Tabbed interface for easy navigation between generated code and debug info
+* Categorized examples (SELECT, INSERT, UPDATE, DELETE, Advanced)
+* One-click "Try It" buttons to test examples
+* Copy to clipboard functionality
+
+**Example Workflow:**
+1. Paste your SQL query into the form
+2. Click "Convert to CakePHP"
+3. Review the generated Query Builder code with syntax highlighting
+4. Copy the code to your project
+5. Try the provided examples to learn different SQL patterns
+
+See [SQL Converter Documentation](SqlConverter.md) for complete guide, examples, and detailed feature list.
 
 ### URL array generation from string URLs
 Check the backend entry page for the form to make reverse lookups for URL strings.
