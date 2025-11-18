@@ -182,7 +182,8 @@ class SqlParser {
 			$part = trim($part);
 
 			// Check for alias (AS keyword or space-separated)
-			if (preg_match('/^(.*?)\s+AS\s+([^\s]+)$/i', $part, $matches)) {
+			// Use /s modifier to make . match newlines (for multiline CASE expressions)
+			if (preg_match('/^(.*?)\s+AS\s+([^\s]+)$/is', $part, $matches)) {
 				$fieldExpr = trim($matches[1]);
 				$alias = trim($matches[2], '`"\'');
 				$isOrmAlias = $this->isOrmStyleAlias($alias);
@@ -192,8 +193,9 @@ class SqlParser {
 					'type' => $this->detectFieldType($fieldExpr),
 					'isOrmAlias' => $isOrmAlias,
 				];
-			} elseif (preg_match('/^(.*?)\s+([^\s\(]+)$/', $part, $matches) && !$this->isFunction($part)) {
+			} elseif (preg_match('/^(.*?)\s+([^\s\(]+)$/s', $part, $matches) && !$this->isFunction($part)) {
 				// Space-separated alias (but not for functions without AS)
+				// Use /s modifier for multiline expressions
 				$fieldExpr = trim($matches[1]);
 				$alias = trim($matches[2], '`"\'');
 				$isOrmAlias = $this->isOrmStyleAlias($alias);
@@ -556,7 +558,8 @@ class SqlParser {
 		if (preg_match('/SET\s+(.*?)(?:\s+WHERE|$)/is', $sql, $matches)) {
 			$setParts = $this->splitByComma($matches[1]);
 			foreach ($setParts as $setPart) {
-				if (preg_match('/^([^=]+)=(.+)$/', trim($setPart), $setMatch)) {
+				// Use /s modifier to handle multiline expressions like CASE
+				if (preg_match('/^([^=]+)=(.+)$/s', trim($setPart), $setMatch)) {
 					$field = trim($setMatch[1], '`"\' ');
 					$value = trim($setMatch[2]);
 					$result['set'][$field] = $value;

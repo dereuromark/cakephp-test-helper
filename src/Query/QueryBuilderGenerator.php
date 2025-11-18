@@ -178,20 +178,19 @@ class QueryBuilderGenerator {
 					$joinConditions = $this->normalizeConditionReferences($joinConditions, $tableAliasMap);
 				}
 
-				$code .= "\n" . $this->indent() . '->' . $joinMethod . "('" . $tableName . "'";
+				$code .= "\n" . $this->indent() . '->' . $joinMethod . '(';
 
 				if ($join['alias']) {
-					$code .= ', [';
-					$code .= "'alias' => '" . $join['alias'] . "', ";
-					$code .= "'conditions' => '" . $joinConditions . "'";
-					$code .= ']';
+					// Use array syntax for aliased joins: ['alias' => 'table']
+					$code .= "['" . $join['alias'] . "' => '" . $tableName . "']";
 				} else {
-					$code .= ', [';
-					$code .= "'conditions' => '" . $joinConditions . "'";
-					$code .= ']';
+					// Simple table name for non-aliased joins
+					$code .= "'" . $tableName . "'";
 				}
 
-				$code .= ')';
+				// Conditions as second parameter (string format)
+				$code .= ", '" . $joinConditions . "')";
+
 			}
 		}
 
@@ -362,7 +361,7 @@ class QueryBuilderGenerator {
 		$code .= "\$entity = \$this->patchEntity(\$entity, [\n";
 
 		foreach ($parsed['set'] as $field => $value) {
-			$code .= "    '" . $field . "' => " . $value . ",\n";
+			$code .= "    '" . $field . "' => " . $this->formatSetValue($value) . ",\n";
 		}
 
 		$code .= "]);\n\n";
@@ -376,7 +375,7 @@ class QueryBuilderGenerator {
 		$code .= "    ->set([\n";
 
 		foreach ($parsed['set'] as $field => $value) {
-			$code .= "        '" . $field . "' => " . $value . ",\n";
+			$code .= "        '" . $field . "' => " . $this->formatSetValue($value) . ",\n";
 		}
 
 		$code .= '    ])';
@@ -823,10 +822,10 @@ class QueryBuilderGenerator {
 			if ($hasOrmAliases && !empty($field['isOrmAlias'])) {
 				$cleanField = $this->convertOrmAliasedField($field);
 
-				return $expr . " => '" . $cleanField . "'";
+				return "'" . $cleanField . "' => " . $expr;
 			}
 
-			return $expr . " => '" . $field['alias'] . "'";
+			return "'" . $field['alias'] . "' => " . $expr;
 		}
 
 		return $expr;
@@ -1248,9 +1247,17 @@ class QueryBuilderGenerator {
 			return $arg;
 		}
 
-		// If it contains a function call, it's a nested function
-		if (preg_match('/^[A-Z_]+\s*\(/i', $arg)) {
-			return $arg; // Let it be handled as nested
+		// If it contains a function call, recursively convert it
+		if (preg_match('/^([A-Z_]+)\s*\(/i', $arg, $matches)) {
+			$funcName = strtoupper($matches[1]);
+			// Check if it's an aggregate function
+			$aggregateFunctions = ['COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'GROUP_CONCAT'];
+			if (in_array($funcName, $aggregateFunctions)) {
+				return $this->formatAggregateFunction($arg);
+			}
+
+			// Otherwise try general function formatting
+			return $this->formatFunction($arg);
 		}
 
 		// Otherwise, it's a field name - quote it
@@ -1414,6 +1421,54 @@ class QueryBuilderGenerator {
 		$date2 = $this->formatFunctionArg($args[1]);
 
 		return "\$query->func()->dateDiff([$date1, $date2])";
+	}
+
+	/**
+	 * Format SET value in UPDATE queries
+	 * Detects and converts CASE expressions, functions, etc.
+	 *
+	 * @param string $value Raw SET value
+	 * @return string Formatted value
+	 */
+	protected function formatSetValue(string $value): string {
+		$value = trim($value);
+
+		// Detect CASE expression
+		if (preg_match('/^CASE\s+/i', $value)) {
+			return $this->formatCaseExpression($value);
+		}
+
+		// Detect SQL functions
+		if (preg_match('/^([A-Z_]+)\s*\(/i', $value, $matches)) {
+			$funcName = strtoupper($matches[1]);
+
+			// Check for aggregate functions
+			$aggregateFunctions = ['COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'GROUP_CONCAT'];
+			if (in_array($funcName, $aggregateFunctions)) {
+				return $this->formatAggregateFunction($value);
+			}
+
+			// Check for string/date functions
+			return $this->formatFunction($value);
+		}
+
+		// Check if it's a subquery
+		if (preg_match('/^\s*\(\s*SELECT\s+/i', $value)) {
+			return "'$value' // TODO: Subquery - convert manually";
+		}
+
+		// If it's a string literal (quoted), return as-is
+		if (preg_match('/^[\'"].*[\'"]$/', $value)) {
+			return $value;
+		}
+
+		// If it's numeric, return as-is
+		if (is_numeric($value)) {
+			return $value;
+		}
+
+		// Otherwise, treat as field reference or expression
+		return "'" . trim($value, '`"\'') . "'";
 	}
 
 }
