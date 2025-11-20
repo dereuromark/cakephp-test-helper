@@ -11,6 +11,7 @@ use Cake\Core\Configure;
 use Cake\Core\Plugin;
 use Cake\TestSuite\ConnectionHelper;
 use ReflectionClass;
+use RuntimeException;
 use Shim\Command\Command;
 use TestHelper\Command\Linter\LinterTaskInterface;
 use TestHelper\Command\Linter\Task\ArrayUrlsInControllersTask;
@@ -18,6 +19,9 @@ use TestHelper\Command\Linter\Task\ArrayUrlsInTestsTask;
 use TestHelper\Command\Linter\Task\DeprecatedFindOptionsTask;
 use TestHelper\Command\Linter\Task\DuplicateTemplateAnnotationsTask;
 use TestHelper\Command\Linter\Task\NoMixedInTemplatesTask;
+use TestHelper\Command\Linter\Task\PluginComposerTypeTask;
+use TestHelper\Command\Linter\Task\PluginInstallerTask;
+use TestHelper\Command\Linter\Task\PluginNamingTask;
 use TestHelper\Command\Linter\Task\PostLinkWithinFormsTask;
 use TestHelper\Command\Linter\Task\SingleRequestPerTestTask;
 use TestHelper\Command\Linter\Task\UseBaseMigrationTask;
@@ -49,6 +53,9 @@ class LinterCommand extends Command {
 		DeprecatedFindOptionsTask::class => DeprecatedFindOptionsTask::class,
 		DuplicateTemplateAnnotationsTask::class => DuplicateTemplateAnnotationsTask::class,
 		NoMixedInTemplatesTask::class => NoMixedInTemplatesTask::class,
+		PluginComposerTypeTask::class => PluginComposerTypeTask::class,
+		PluginInstallerTask::class => PluginInstallerTask::class,
+		PluginNamingTask::class => PluginNamingTask::class,
 		PostLinkWithinFormsTask::class => PostLinkWithinFormsTask::class,
 		SingleRequestPerTestTask::class => SingleRequestPerTestTask::class,
 		UseBaseMigrationTask::class => UseBaseMigrationTask::class,
@@ -161,9 +168,24 @@ class LinterCommand extends Command {
 			$io->out("<info>Running task: {$task->name()}</info>");
 			$io->verbose("  {$task->description()}");
 
+			// Validate task configuration
+			if (!$task->supportsPluginMode() && $task->requiresPluginMode()) {
+				throw new RuntimeException(
+					"Task {$task->name()} has conflicting configuration: "
+					. 'cannot have supportsPluginMode=false and requiresPluginMode=true at the same time.',
+				);
+			}
+
 			// Skip tasks that don't support plugin mode when --plugin is used
 			if ($pluginNames !== null && !$task->supportsPluginMode()) {
 				$io->verbose('  Skipped: Task does not support plugin mode');
+
+				continue;
+			}
+
+			// Skip tasks that require plugin mode when --plugin is NOT used
+			if ($pluginNames === null && $task->requiresPluginMode()) {
+				$io->verbose('  Skipped: Task requires plugin mode (use --plugin)');
 
 				continue;
 			}

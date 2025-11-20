@@ -56,4 +56,14 @@ interface LinterTaskInterface {
      */
 	public function supportsPluginMode(): bool;
 
+	/**
+	 * Whether this task requires plugin mode
+	 *
+	 * When true, task will be skipped when --plugin option is NOT used.
+	 * Useful for tasks that only make sense for plugins.
+	 *
+	 * @return bool
+	 */
+	public function requiresPluginMode(): bool;
+
 }

@@ -26,6 +26,13 @@ abstract class AbstractLinterTask implements LinterTaskInterface {
 	}
 
 	/**
+     * @inheritDoc
+     */
+	public function requiresPluginMode(): bool {
+		return false;
+	}
+
+	/**
      * Get files matching pattern in given paths
      *
      * @param array<string> $paths Paths to scan
