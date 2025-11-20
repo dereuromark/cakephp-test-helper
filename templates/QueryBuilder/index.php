@@ -4,6 +4,7 @@
  * @var string $sqlQuery
  * @var array|null $result
  * @var string|null $error
+ * @var string $dialect
  */
 
 $this->assign('title', 'SQL to CakePHP Query Builder Converter');
@@ -27,10 +28,25 @@ $this->assign('title', 'SQL to CakePHP Query Builder Converter');
 			</div>
 			<div class="card-body">
 				<?php echo $this->Form->create(null, ['type' => 'post']); ?>
+					<div class="mb-3">
+						<?php
+						echo $this->Form->control('dialect', [
+							'type' => 'select',
+							'label' => 'Database Dialect',
+							'options' => [
+								'mysql' => 'MySQL / MariaDB',
+								'postgres' => 'PostgreSQL',
+							],
+							'default' => $dialect,
+							'class' => 'form-select',
+						]);
+						?>
+					</div>
+
 					<?php
 					echo $this->Form->control('sql_query', [
 						'type' => 'textarea',
-						'label' => 'Enter your SQL query (MySQL syntax)',
+						'label' => 'Enter your SQL query',
 						'placeholder' => "SELECT users.id, users.name, COUNT(posts.id) AS post_count\nFROM users\nLEFT JOIN posts ON posts.user_id = users.id\nWHERE users.active = 1\nGROUP BY users.id\nORDER BY post_count DESC\nLIMIT 10",
 						'class' => 'form-control font-monospace',
 						'rows' => 10,
@@ -47,7 +63,7 @@ $this->assign('title', 'SQL to CakePHP Query Builder Converter');
 
 					<div class="collapse" id="supportedFeatures">
 						<div class="alert alert-success mb-3">
-							<strong><?php echo $this->TestHelper->icon('next'); ?> Supported SQL Features (v2.0):</strong>
+							<strong><?php echo $this->TestHelper->icon('next'); ?> Supported SQL Features:</strong>
 							<ul class="mb-0 mt-2">
 								<li><strong>SELECT:</strong> fields, aliases, DISTINCT, JOINs, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT, OFFSET, UNION/UNION ALL</li>
 								<li><strong>Functions:</strong> String (CONCAT, SUBSTRING, TRIM, UPPER, LOWER, COALESCE), Date (NOW, YEAR, MONTH, DATEDIFF), Aggregate (COUNT, SUM, AVG, MIN, MAX)</li>
@@ -103,6 +119,17 @@ $this->assign('title', 'SQL to CakePHP Query Builder Converter');
 						</div>
 
 						<pre id="generated-code" class="line-numbers"><code class="language-php"><?php echo h($result['code']); ?></code></pre>
+
+						<?php if (!empty($result['optimizations'])) { ?>
+						<div class="alert alert-warning mt-3">
+							<strong>⚡ Optimization Suggestions:</strong>
+							<ul class="mb-0 mt-2">
+								<?php foreach ($result['optimizations'] as $optimization) { ?>
+									<li><?php echo h($optimization); ?></li>
+								<?php } ?>
+							</ul>
+						</div>
+						<?php } ?>
 
 						<div class="alert alert-info mt-3">
 							<strong><?php echo $this->TestHelper->icon('next'); ?> Important Notes:</strong>

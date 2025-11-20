@@ -413,4 +413,19 @@ class SqlParserTest extends TestCase {
 		$this->assertSame('Articles', $result['joins'][0]['alias']);
 	}
 
+	/**
+	 * Test PostgreSQL dialect support
+	 *
+	 * @return void
+	 */
+	public function testPostgresDialect(): void {
+		$parser = new SqlParser('postgres');
+		$sql = 'SELECT * FROM users WHERE active = true';
+		$result = $parser->parse($sql);
+
+		$this->assertSame('SELECT', $result['type']);
+		$this->assertSame(['*'], $result['fields']);
+		$this->assertSame('users', $result['from']);
+	}
+
 }

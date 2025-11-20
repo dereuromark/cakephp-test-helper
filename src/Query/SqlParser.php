@@ -12,6 +12,22 @@ use RuntimeException;
 class SqlParser {
 
 	/**
+	 * Database dialect
+	 *
+	 * @var string
+	 */
+	protected string $dialect = 'mysql';
+
+	/**
+	 * Constructor
+	 *
+	 * @param string $dialect Database dialect (mysql or postgres)
+	 */
+	public function __construct(string $dialect = 'mysql') {
+		$this->dialect = strtolower($dialect);
+	}
+
+	/**
 	 * Parse SQL query into structured array
 	 *
      * @param string $sql SQL query string

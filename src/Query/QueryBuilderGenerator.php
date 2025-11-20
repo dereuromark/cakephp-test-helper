@@ -22,9 +22,22 @@ class QueryBuilderGenerator {
 	protected int $indentLevel = 0;
 
 	/**
-	 * Constructor
+	 * @var string Database dialect
 	 */
-	public function __construct() {
+	protected string $dialect = 'mysql';
+
+	/**
+	 * @var array<string> Optimization suggestions
+	 */
+	protected array $optimizations = [];
+
+	/**
+	 * Constructor
+	 *
+	 * @param string $dialect Database dialect (mysql or postgres)
+	 */
+	public function __construct(string $dialect = 'mysql') {
+		$this->dialect = strtolower($dialect);
 		$this->conditionParser = new ConditionParser();
 	}
 
@@ -37,8 +50,9 @@ class QueryBuilderGenerator {
 	 */
 	public function generate(array $parsed): string {
 		$this->indentLevel = 0;
+		$this->optimizations = [];
 
-		return match ($parsed['type']) {
+		$code = match ($parsed['type']) {
 			'SELECT' => $this->generateSelect($parsed),
 			'INSERT' => $this->generateInsert($parsed),
 			'UPDATE' => $this->generateUpdate($parsed),
@@ -47,6 +61,20 @@ class QueryBuilderGenerator {
 			'CTE' => $this->generateCTE($parsed),
 			default => throw new RuntimeException('Unsupported query type: ' . $parsed['type']),
 		};
+
+		// Analyze query for optimization suggestions
+		$this->analyzeOptimizations($parsed);
+
+		return $code;
+	}
+
+	/**
+	 * Get optimization suggestions
+	 *
+	 * @return array<string>
+	 */
+	public function getOptimizations(): array {
+		return $this->optimizations;
 	}
 
 	/**
@@ -917,6 +945,32 @@ class QueryBuilderGenerator {
 		$funcName = strtoupper(trim($matches[1]));
 		$argsStr = trim($matches[2]);
 
+		// Check for PostgreSQL-specific functions if using postgres dialect
+		if ($this->dialect === 'postgres') {
+			$pgFunctions = [
+				'STRING_AGG',
+				'REGEXP_REPLACE',
+				'REGEXP_MATCHES',
+				'TO_CHAR',
+				'TO_DATE',
+				'TO_TIMESTAMP',
+				'AGE',
+				'JUSTIFY_DAYS',
+				'EXTRACT',
+				'DATE_TRUNC',
+				'ARRAY_AGG',
+				'ARRAY_TO_STRING',
+				'UNNEST',
+				'JSON_BUILD_OBJECT',
+				'JSON_AGG',
+				'JSONB_AGG',
+				'JSON_EXTRACT_PATH',
+			];
+			if (in_array($funcName, $pgFunctions, true)) {
+				return $this->formatPostgresFunction($expr);
+			}
+		}
+
 		// Map SQL functions to CakePHP equivalents
 		$result = match ($funcName) {
 			'CONCAT' => $this->formatConcatFunction($argsStr),
@@ -930,7 +984,7 @@ class QueryBuilderGenerator {
 			'LTRIM' => $this->formatSimpleStringFunction('ltrim', $argsStr),
 			'RTRIM' => $this->formatSimpleStringFunction('rtrim', $argsStr),
 			'LENGTH', 'CHAR_LENGTH' => $this->formatSimpleStringFunction('length', $argsStr),
-			'NOW', 'CURDATE', 'CURTIME' => $this->formatNowFunction($funcName),
+			'NOW', 'CURDATE', 'CURTIME', 'CURRENT_TIMESTAMP' => $this->formatNowFunction($funcName),
 			'YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE', 'SECOND' => $this->formatDatePartFunction($funcName, $argsStr),
 			'DATE_FORMAT' => $this->formatDateFormatFunction($argsStr),
 			'DATEDIFF' => $this->formatDateDiffFunction($argsStr),
@@ -1469,6 +1523,153 @@ class QueryBuilderGenerator {
 
 		// Otherwise, treat as field reference or expression
 		return "'" . trim($value, '`"\'') . "'";
+	}
+
+	/**
+	 * Analyze query for optimization suggestions
+	 *
+	 * @param array<string, mixed> $parsed Parsed SQL structure
+	 * @return void
+	 */
+	protected function analyzeOptimizations(array $parsed): void {
+		if ($parsed['type'] !== 'SELECT') {
+			return;
+		}
+
+		// Check for SELECT without LIMIT (potential large result set)
+		if (empty($parsed['limit'])) {
+			$this->optimizations[] = '⚠️ Consider adding LIMIT/pagination for large result sets';
+		}
+
+		// Check for JOINs (potential N+1 if fetching associations)
+		if (!empty($parsed['joins'])) {
+			$joinCount = count($parsed['joins']);
+			$this->optimizations[] = "💡 Query has {$joinCount} JOIN(s) - consider using contain() for associations to leverage CakePHP's eager loading";
+		}
+
+		// Check for WHERE conditions (suggest indexes)
+		if (!empty($parsed['where'])) {
+			$whereFields = $this->extractFieldsFromConditions($parsed['where']);
+			if ($whereFields) {
+				$fieldList = implode(', ', $whereFields);
+				$this->optimizations[] = "🔍 WHERE clause uses: {$fieldList} - ensure these fields are indexed for better performance";
+			}
+		}
+
+		// Check for GROUP BY (suggest covering indexes)
+		if (!empty($parsed['groupBy'])) {
+			$groupFields = is_array($parsed['groupBy']) ? implode(', ', $parsed['groupBy']) : $parsed['groupBy'];
+			$this->optimizations[] = "📊 GROUP BY on: {$groupFields} - consider composite indexes on grouped fields";
+		}
+
+		// Check for ORDER BY without index hint
+		if (!empty($parsed['orderBy'])) {
+			$orderFields = [];
+			foreach ($parsed['orderBy'] as $field => $direction) {
+				$orderFields[] = $field;
+			}
+			if ($orderFields) {
+				$fieldList = implode(', ', $orderFields);
+				$this->optimizations[] = "⬆️ ORDER BY on: {$fieldList} - ensure sort fields are indexed";
+			}
+		}
+
+		// Check for SELECT * (not recommended)
+		if (!empty($parsed['fields']) && in_array('*', $parsed['fields'], true)) {
+			$this->optimizations[] = '⚡ SELECT * detected - explicitly select only needed fields for better performance';
+		}
+
+		// Check for DISTINCT (can be expensive)
+		if (isset($parsed['distinct']) && $parsed['distinct'] === true) {
+			$this->optimizations[] = '⚠️ DISTINCT can be expensive - verify if it\'s necessary or if proper JOINs can avoid duplicates';
+		}
+	}
+
+	/**
+	 * Extract field names from WHERE conditions
+	 *
+	 * @param array<mixed>|string $conditions Conditions array or string
+	 * @return array<string>
+	 */
+	protected function extractFieldsFromConditions(array|string $conditions): array {
+		if (is_string($conditions)) {
+			// Try to extract field names from string conditions
+			preg_match_all('/(?:^|\s)([a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*|[a-z_][a-z0-9_]*)\s*(?:=|>|<|LIKE|IN|IS)/i', $conditions, $matches);
+
+			return array_unique($matches[1]);
+		}
+
+		$fields = [];
+		foreach ($conditions as $key => $value) {
+			if (is_string($key)) {
+				// Extract field name from operators like 'field >', 'field LIKE', etc.
+				$field = preg_replace('/\s+(>|<|>=|<=|!=|<>|LIKE|IN|IS|BETWEEN).*$/i', '', $key);
+				if ($field !== null) {
+					$fields[] = trim($field);
+				}
+			} elseif (is_array($value)) {
+				// Recursive for nested conditions
+				$fields = array_merge($fields, $this->extractFieldsFromConditions($value));
+			}
+		}
+
+		return array_unique($fields);
+	}
+
+	/**
+	 * Format PostgreSQL-specific function
+	 *
+	 * @param string $expr SQL function expression
+	 * @return string CakePHP code
+	 */
+	protected function formatPostgresFunction(string $expr): string {
+		// Parse function name and arguments
+		if (!preg_match('/^([A-Z_]+)\s*\((.*)\)\s*$/i', $expr, $matches)) {
+			return "'" . $expr . "' // TODO: Complex function - convert manually";
+		}
+
+		$funcName = strtoupper($matches[1]);
+		$argsString = trim($matches[2]);
+
+		// PostgreSQL-specific string functions
+		$postgresStringFuncs = [
+			'STRING_AGG' => 'postgres string_agg',
+			'REGEXP_REPLACE' => 'postgres regexp_replace',
+			'REGEXP_MATCHES' => 'postgres regexp_matches',
+			'TO_CHAR' => 'postgres to_char',
+			'TO_DATE' => 'postgres to_date',
+			'TO_TIMESTAMP' => 'postgres to_timestamp',
+			'AGE' => 'postgres age',
+			'JUSTIFY_DAYS' => 'postgres justify_days',
+			'EXTRACT' => 'postgres extract',
+			'DATE_TRUNC' => 'postgres date_trunc',
+		];
+
+		if (isset($postgresStringFuncs[$funcName])) {
+			$args = $this->parseFunctionArguments($argsString);
+			$argsList = implode(', ', array_map(fn ($a) => "'$a'", $args));
+
+			return "\$query->func()->{$funcName}([$argsList]) // PostgreSQL-specific function";
+		}
+
+		// ILIKE (case-insensitive LIKE in PostgreSQL)
+		if ($funcName === 'ILIKE') {
+			return "// Use 'field ILIKE' => 'pattern' in WHERE conditions (PostgreSQL only)";
+		}
+
+		// Array functions
+		$arrayFuncs = ['ARRAY_AGG', 'ARRAY_TO_STRING', 'UNNEST'];
+		if (in_array($funcName, $arrayFuncs, true)) {
+			return "// PostgreSQL array function: $funcName - consider using CakePHP's array type casting or raw SQL";
+		}
+
+		// JSON functions
+		$jsonFuncs = ['JSON_BUILD_OBJECT', 'JSON_AGG', 'JSONB_AGG', 'JSON_EXTRACT_PATH'];
+		if (in_array($funcName, $jsonFuncs, true)) {
+			return "\$query->func()->{$funcName}([...]) // PostgreSQL JSON function - may need raw SQL for complex operations";
+		}
+
+		return "'" . $expr . "' // TODO: PostgreSQL function '$funcName' - convert manually";
 	}
 
 }
