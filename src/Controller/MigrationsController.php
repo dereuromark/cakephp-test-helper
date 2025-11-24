@@ -2,6 +2,7 @@
 
 namespace TestHelper\Controller;
 
+use Cake\Core\Configure;
 use Cake\Datasource\ConnectionManager;
 use Cake\Event\EventInterface;
 use SebastianBergmann\Diff\Differ;
@@ -103,7 +104,7 @@ class MigrationsController extends TestHelperAppController {
 			if ($code === 0) {
 				/** @var \Cake\Database\Connection $connection */
 				$connection = ConnectionManager::get('default');
-				$connection->execute('DELETE FROM phinxlog WHERE `migration_name` = "Tmp";')->closeCursor();
+				$connection->execute('DELETE FROM ' . $this->getMigrationsTable() . ' WHERE `migration_name` = "Tmp";')->closeCursor();
 
 				$this->Flash->success('Tmp Migration file created');
 
@@ -237,7 +238,7 @@ SQL;
 
 			/** @var \Cake\Database\Connection $connection */
 			$connection = ConnectionManager::get('default');
-			$connection->execute('DELETE FROM phinxlog WHERE 1=1')->closeCursor();
+			$connection->execute('DELETE FROM ' . $this->getMigrationsTable() . ' WHERE 1=1')->closeCursor();
 
 			$command = 'bin/cake migrations mark_migrated';
 			exec('cd ' . ROOT . ' && ' . $command, $output, $code);
@@ -265,6 +266,17 @@ SQL;
 	 * @return \Cake\Http\Response|null|void
 	 */
 	public function cleanup() {
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function getMigrationsTable(): string {
+		if (Configure::read('Migrations.legacyTables') === false) {
+			return 'cake_migrations';
+		}
+
+		return 'phinxlog';
 	}
 
 }
