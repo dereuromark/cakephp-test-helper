@@ -29,7 +29,7 @@ class TestHelperAppController extends Controller {
 		$this->loadComponent('Flash');
 
 		// Set default layout for the plugin
-		$this->viewBuilder()->setLayout('TestHelper.default');
+		$this->viewBuilder()->setLayout('TestHelper.test_helper');
 	}
 
 	/**

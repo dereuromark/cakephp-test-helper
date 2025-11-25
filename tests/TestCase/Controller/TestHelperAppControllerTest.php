@@ -54,9 +54,9 @@ class TestHelperAppControllerTest extends TestCase {
 		// Test that Flash component is loaded
 		$this->assertTrue($this->TestHelperAppController->components()->has('Flash'));
 
-		// Test that the layout is set to TestHelper.default
+		// Test that the layout is set to TestHelper.test_helper
 		$layout = $this->TestHelperAppController->viewBuilder()->getLayout();
-		$this->assertSame('TestHelper.default', $layout);
+		$this->assertSame('TestHelper.test_helper', $layout);
 	}
 
 }
