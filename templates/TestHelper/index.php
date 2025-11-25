@@ -141,8 +141,9 @@ $this->assign('title', 'Test Helper Dashboard');
 			</div>
 			<div class="card-body">
 				<p class="card-text">Tools for managing database migrations and snapshots.</p>
-				<ul class="list-unstyled">
-					<li><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Migration Re-Do', ['controller' => 'Migrations'], ['escape' => false, 'class' => 'btn btn-sm btn-warning']); ?></li>
+				<ul class="list-unstyled mb-0">
+					<li class="mb-2"><?= $this->Html->link($this->TestHelper->icon('next') . ' Schema Drift Detection', ['controller' => 'Migrations', 'action' => 'driftCheck'], ['escape' => false, 'class' => 'btn btn-sm btn-warning']) ?></li>
+					<li><?= $this->Html->link($this->TestHelper->icon('next') . ' Migration Re-Do', ['controller' => 'Migrations'], ['escape' => false, 'class' => 'btn btn-sm btn-warning']) ?></li>
 				</ul>
 			</div>
 		</div>

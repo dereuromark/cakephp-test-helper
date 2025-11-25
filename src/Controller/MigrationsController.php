@@ -267,4 +267,180 @@ SQL;
 	public function cleanup() {
 	}
 
+	/**
+	 * Detect schema drift between migrations and actual database.
+	 *
+	 * Uses the `test` database as shadow to run migrations and compare
+	 * the resulting schema against the actual database.
+	 *
+	 * @return \Cake\Http\Response|null|void
+	 */
+	public function driftCheck() {
+		$testConfig = ConnectionManager::getConfig('test');
+		$defaultConfig = ConnectionManager::getConfig('default');
+
+		$drift = null;
+		$error = null;
+
+		// Validate test connection exists and is different from default
+		if (!$testConfig) {
+			$error = 'No "test" connection configured. A test database is required as shadow database.';
+		} else {
+			$testDatabase = $testConfig['database'] ?? null;
+			$defaultDatabase = $defaultConfig['database'] ?? null;
+			if ($testDatabase === $defaultDatabase) {
+				$error = 'Test database is the same as default database. This is not safe for drift detection.';
+			}
+		}
+
+		// Get available connections (exclude test, debug_kit, database_log, etc.)
+		$excludedConnections = ['test', 'debug_kit', 'database_log'];
+		$availableConnections = [];
+		$configured = ConnectionManager::configured();
+		foreach ($configured as $name) {
+			if (in_array($name, $excludedConnections, true)) {
+				continue;
+			}
+			$config = ConnectionManager::getConfig($name);
+			$database = $config['database'] ?? null;
+			// Skip if same database as test (would compare to itself)
+			if ($testConfig && $database === ($testConfig['database'] ?? null)) {
+				continue;
+			}
+			$availableConnections[] = $name;
+		}
+
+		$connectionName = $this->request->getQuery('connection', 'default');
+		if (!in_array($connectionName, $availableConnections, true)) {
+			$connectionName = $availableConnections[0] ?? 'default';
+		}
+
+		$dbConfig = ConnectionManager::getConfig($connectionName);
+		$database = $dbConfig['database'] ?? '';
+		$shadowDatabase = $testConfig['database'] ?? '';
+
+		$driver = $dbConfig['driver'] ?? '';
+		$isPostgres = str_contains($driver, 'Postgres');
+		$isMysql = str_contains($driver, 'Mysql');
+
+		if (!$isPostgres && !$isMysql && !$error) {
+			$error = 'Drift check currently only supports MySQL and PostgreSQL.';
+		}
+
+		/** @var \Cake\Database\Connection $connection */
+		$connection = ConnectionManager::get($connectionName);
+
+		// Detect which plugins need migrations by checking *_phinxlog tables in actual DB
+		$pluginsToMigrate = [];
+		if (!$error) {
+			/** @var \Cake\Database\Schema\Collection $actualSchemaCollection */
+			$actualSchemaCollection = $connection->getSchemaCollection();
+			$actualTables = $actualSchemaCollection->listTables();
+			foreach ($actualTables as $table) {
+				if (str_ends_with($table, '_phinxlog') && $table !== 'phinxlog') {
+					// Check if phinxlog table has entries (migrations were run)
+					$count = $connection->execute('SELECT COUNT(*) FROM ' . $table)->fetch();
+					if (!$count || $count[0] == 0) {
+						continue;
+					}
+
+					// Convert table name to plugin name (e.g., queue_phinxlog -> Queue)
+					$pluginName = str_replace('_phinxlog', '', $table);
+					$pluginName = str_replace('_', '', ucwords($pluginName, '_'));
+					$pluginsToMigrate[] = $pluginName;
+				}
+			}
+			sort($pluginsToMigrate);
+		}
+
+		// Handle POST actions
+		if ($this->request->is('post') && !$error) {
+			$action = $this->request->getData('action');
+
+			if ($action === 'run_migrations') {
+				/** @var \Cake\Database\Connection $testConnection */
+				$testConnection = ConnectionManager::get('test');
+
+				// Clear any existing tables in test DB
+				/** @var \Cake\Database\Schema\Collection $schemaCollection */
+				$schemaCollection = $testConnection->getSchemaCollection();
+				$existingTables = $schemaCollection->listTables();
+
+				if ($existingTables) {
+					if ($isMysql) {
+						$testConnection->execute('SET FOREIGN_KEY_CHECKS = 0')->closeCursor();
+						foreach ($existingTables as $table) {
+							$testConnection->execute('DROP TABLE IF EXISTS `' . $table . '`')->closeCursor();
+						}
+						$testConnection->execute('SET FOREIGN_KEY_CHECKS = 1')->closeCursor();
+					} elseif ($isPostgres) {
+						foreach ($existingTables as $table) {
+							$testConnection->execute('DROP TABLE IF EXISTS "' . $table . '" CASCADE')->closeCursor();
+						}
+					}
+				}
+
+				// Run app migrations on test database
+				$command = 'bin/cake migrations migrate -c test --no-lock';
+				exec('cd ' . ROOT . ' && ' . $command, $output, $code);
+
+				if ($code !== 0) {
+					$error = 'App migration failed: ' . implode("\n", $output);
+					$this->Flash->error($error);
+				} else {
+					// Run plugin migrations for detected plugins
+					$pluginMigrationErrors = [];
+					foreach ($pluginsToMigrate as $plugin) {
+						$pluginCommand = 'bin/cake migrations migrate -p ' . $plugin . ' -c test --no-lock';
+						$pluginOutput = [];
+						exec('cd ' . ROOT . ' && ' . $pluginCommand, $pluginOutput, $pluginCode);
+
+						if ($pluginCode !== 0) {
+							$pluginMigrationErrors[$plugin] = implode("\n", $pluginOutput);
+						}
+					}
+
+					if ($pluginMigrationErrors) {
+						$this->Flash->warning('Some plugin migrations failed: ' . implode(', ', array_keys($pluginMigrationErrors)));
+					}
+
+					$migratedCount = count($pluginsToMigrate) - count($pluginMigrationErrors);
+					$message = 'App migrations applied to test database.';
+					if ($pluginsToMigrate) {
+						$message .= ' Plugin migrations: ' . $migratedCount . '/' . count($pluginsToMigrate);
+					}
+					$this->Flash->success($message);
+
+					return $this->redirect(['?' => ['connection' => $connectionName, 'compare' => '1']]);
+				}
+			}
+		}
+
+		// Compare schemas if requested
+		if ($this->request->getQuery('compare') && !$error) {
+			/** @var \Cake\Database\Connection $testConnection */
+			$testConnection = ConnectionManager::get('test');
+
+			$expectedSchema = $this->Migrations->getStructuredSchema($testConnection);
+			$actualSchema = $this->Migrations->getStructuredSchema($connection);
+
+			$drift = $this->Migrations->compareSchemas($expectedSchema, $actualSchema);
+		}
+
+		$hasDrift = $drift !== null && $this->Migrations->hasDrift($drift);
+
+		$this->set(compact(
+			'availableConnections',
+			'connectionName',
+			'database',
+			'shadowDatabase',
+			'pluginsToMigrate',
+			'drift',
+			'hasDrift',
+			'error',
+			'isMysql',
+			'isPostgres',
+		));
+	}
+
 }
