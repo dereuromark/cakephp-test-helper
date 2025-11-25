@@ -91,7 +91,7 @@
 	<div class="container">
 		<!-- Flash Messages -->
 		<div class="flash-messages">
-			<?php echo $this->Flash->render(); ?>
+			<?php echo $this->Flash->render('flash', ['plugin' => 'TestHelper']); ?>
 		</div>
 
 		<!-- Page Content -->

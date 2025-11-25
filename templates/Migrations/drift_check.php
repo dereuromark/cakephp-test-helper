@@ -78,7 +78,7 @@ function formatColumnType(array $columnData): string {
 					<?php if ($conn === $connectionName) { ?>
 						<span class="btn btn-primary btn-sm"><?= h($conn) ?></span>
 					<?php } else { ?>
-						<?= $this->Html->link($conn, ['?' => ['connection' => $conn]], ['class' => 'btn btn-default btn-sm']) ?>
+						<?= $this->Html->link($conn, ['?' => ['connection' => $conn]], ['class' => 'btn btn-secondary btn-sm']) ?>
 					<?php } ?>
 				<?php } ?>
 			</p>
@@ -320,7 +320,7 @@ function formatColumnType(array $columnData): string {
 
 			<hr>
 			<p>
-				<?= $this->Html->link('Run Again', ['?' => ['connection' => $connectionName]], ['class' => 'btn btn-default']) ?>
+				<?= $this->Html->link('Run Again', ['?' => ['connection' => $connectionName]], ['class' => 'btn btn-secondary']) ?>
 			</p>
 		<?php } ?>
 	</div>
