@@ -2,6 +2,7 @@
 
 namespace TestHelper\Controller;
 
+use Exception;
 use TestHelper\Query\QueryBuilderGenerator;
 use TestHelper\Query\SqlParser;
 
@@ -40,7 +41,7 @@ class QueryBuilderController extends TestHelperAppController {
 					'code' => $cakePhpCode,
 					'optimizations' => $generator->getOptimizations(),
 				];
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				$error = $e->getMessage();
 				$this->Flash->error('Error parsing SQL: ' . $e->getMessage());
 			}

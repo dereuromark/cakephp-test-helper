@@ -6,6 +6,7 @@ namespace TestHelper\Test\TestCase\Command\Linter\Task;
 
 use Cake\Console\ConsoleIo;
 use Cake\TestSuite\TestCase;
+use ReflectionClass;
 use TestHelper\Command\Linter\Task\ArrayUrlsInControllersTask;
 use TestHelper\Test\TestSuite\ConsoleOutput;
 
@@ -98,7 +99,7 @@ PHP;
 		file_put_contents($tempFile, $content);
 
 		$io = new ConsoleIo($this->out, $this->err);
-		$reflection = new \ReflectionClass($this->task);
+		$reflection = new ReflectionClass($this->task);
 		$method = $reflection->getMethod('checkFile');
 
 		// Run with fix enabled
@@ -138,7 +139,7 @@ PHP;
 		file_put_contents($tempFile, $content);
 
 		$io = new ConsoleIo($this->out, $this->err);
-		$reflection = new \ReflectionClass($this->task);
+		$reflection = new ReflectionClass($this->task);
 		$method = $reflection->getMethod('checkFile');
 
 		// Run with fix enabled
@@ -179,7 +180,7 @@ PHP;
 		file_put_contents($tempFile, $content);
 
 		$io = new ConsoleIo($this->out, $this->err);
-		$reflection = new \ReflectionClass($this->task);
+		$reflection = new ReflectionClass($this->task);
 		$method = $reflection->getMethod('checkFile');
 
 		// Run with fix enabled
@@ -213,7 +214,7 @@ PHP;
 		file_put_contents($tempFile, $content);
 
 		$io = new ConsoleIo($this->out, $this->err);
-		$reflection = new \ReflectionClass($this->task);
+		$reflection = new ReflectionClass($this->task);
 		$method = $reflection->getMethod('checkFile');
 
 		// Run with fix enabled

@@ -2,6 +2,8 @@
 
 namespace TestHelper\Query;
 
+use Exception;
+
 /**
  * SQL Condition Parser
  *
@@ -25,7 +27,7 @@ class ConditionParser {
 		// Try to parse the conditions
 		try {
 			return $this->parseExpression($conditions);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			// If parsing fails, return as TODO comment
 			return $conditions;
 		}

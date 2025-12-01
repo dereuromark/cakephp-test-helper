@@ -8,6 +8,7 @@ use Cake\Console\ConsoleIo;
 use Cake\Http\ServerRequest;
 use Cake\Http\UriFactory;
 use Cake\Routing\Router;
+use Exception;
 use TestHelper\Command\Linter\AbstractLinterTask;
 
 class ArrayUrlsInControllersTask extends AbstractLinterTask {
@@ -221,7 +222,7 @@ class ArrayUrlsInControllersTask extends AbstractLinterTask {
 			}
 
 			return '[' . implode(', ', $arrayParts) . ']';
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			// Fallback: If routing fails, build basic array manually
 			$url = ltrim($url, '/');
 			$parts = array_filter(explode('/', explode('?', $url)[0]));
