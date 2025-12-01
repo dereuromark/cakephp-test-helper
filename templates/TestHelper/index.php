@@ -6,8 +6,6 @@
  * @var array<array<string, mixed>> $testTypes
  */
 
-use Cake\Core\Plugin;
-
 $this->assign('title', 'Test Helper Dashboard');
 ?>
 
@@ -61,22 +59,16 @@ $this->assign('title', 'Test Helper Dashboard');
 
 				<!-- Plugin Selector -->
 				<div class="mb-3">
-					<label class="form-label fw-bold">Select Plugin/App:</label>
-					<ul class="inline-list mb-0">
-						<li><?php echo $this->Html->link('[App]', ['?' => ['plugin' => null]], ['class' => 'btn btn-sm btn-outline-secondary']); ?></li>
-					<?php
-					foreach ($plugins as $plugin) {
-						$path = Plugin::path($plugin);
-						$path = str_replace(ROOT . DS, '', $path);
-						?>
-						<li><?php echo $this->Html->link($plugin, ['?' => ['plugin' => $plugin]], ['class' => 'btn btn-sm btn-outline-secondary']); ?></li>
-						<?php
-					}
-					?>
-					</ul>
+					<label for="plugin-select" class="form-label fw-bold">Select Plugin/App:</label>
+					<select id="plugin-select" class="form-select" onchange="window.location.href=this.value">
+						<option value="<?php echo $this->Url->build(['?' => ['plugin' => null]]); ?>"<?php echo !$namespace ? ' selected' : ''; ?>>[App]</option>
+						<?php foreach ($plugins as $plugin) { ?>
+							<option value="<?php echo $this->Url->build(['?' => ['plugin' => $plugin]]); ?>"<?php echo $namespace === $plugin ? ' selected' : ''; ?>><?php echo h($plugin); ?></option>
+						<?php } ?>
+					</select>
 				</div>
 
-				<h6 class="fw-bold mt-3"><?php echo h($namespace ?: '[App]'); ?></h6>
+				<h6 class="fw-bold"><?php echo h($namespace ?: '[App]'); ?></h6>
 				<?php $namespace = $namespace ?: 'app'; ?>
 				<div class="row g-2">
 					<?php foreach ($testTypes as $type) { ?>
@@ -94,6 +86,15 @@ $this->assign('title', 'Test Helper Dashboard');
 						</div>
 					<?php } ?>
 				</div>
+
+				<hr class="my-3">
+				<h6 class="fw-bold"><?php echo $this->TestHelper->icon('browse'); ?> Browse TestCase/</h6>
+				<p class="card-text small">Browse your TestCase directory structure, view individual test files and run specific test methods.</p>
+				<?php echo $this->Html->link(
+					$this->TestHelper->icon('next') . ' Browse Tests',
+					['controller' => 'TestCases', 'action' => 'browse', '?' => ['namespace' => $namespace]],
+					['escape' => false, 'class' => 'btn btn-sm btn-outline-primary'],
+				); ?>
 			</div>
 		</div>
 	</div>
