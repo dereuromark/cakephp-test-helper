@@ -10,16 +10,23 @@ class TestRunnerComponent extends Component {
 
 	/**
 	 * @param string $file
+	 * @param string|null $filter Optional filter for specific test method
 	 * @throws \RuntimeException
 	 * @return array
 	 */
-	public function run($file) {
+	public function run($file, ?string $filter = null) {
 		if (!file_exists(ROOT . DS . $file)) {
 			throw new RuntimeException('Invalid file: ' . $file);
 		}
 
 		$command = $this->getCommand();
 		$command .= ' ' . $file;
+
+		if ($filter) {
+			// Escape filter for shell and add --filter option
+			$command .= ' --filter ' . escapeshellarg($filter);
+		}
+
 		$command = str_replace(['/', '\\'], DS, $command);
 		chdir(ROOT);
 		exec($command, $output, $res);
