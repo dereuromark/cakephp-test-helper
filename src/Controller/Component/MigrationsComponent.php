@@ -372,12 +372,22 @@ class MigrationsComponent extends Component {
 	}
 
 	/**
-	 * Get the migration table name based on configuration.
+	 * Get the migration table name based on configuration or auto-detection.
 	 *
+	 * @param string $connectionName Connection name to check for table existence.
 	 * @return string
 	 */
-	public function getMigrationTableName(): string {
-		$useLegacy = (bool)Configure::read('Migrations.legacyTables');
+	public function getMigrationTableName(string $connectionName = 'default'): string {
+		$useLegacy = Configure::read('Migrations.legacyTables');
+		if ($useLegacy === null) {
+			// Auto-detect: check if cake_migrations table exists
+			/** @var \Cake\Database\Connection $connection */
+			$connection = ConnectionManager::get($connectionName);
+			/** @var \Cake\Database\Schema\Collection $schemaCollection */
+			$schemaCollection = $connection->getSchemaCollection();
+			$tables = $schemaCollection->listTables();
+			$useLegacy = !in_array('cake_migrations', $tables, true);
+		}
 
 		return $useLegacy ? 'phinxlog' : 'cake_migrations';
 	}

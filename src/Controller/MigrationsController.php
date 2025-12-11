@@ -103,7 +103,8 @@ class MigrationsController extends TestHelperAppController {
 			if ($code === 0) {
 				/** @var \Cake\Database\Connection $connection */
 				$connection = ConnectionManager::get('default');
-				$connection->execute('DELETE FROM phinxlog WHERE `migration_name` = "Tmp";')->closeCursor();
+				$migrationsTable = $this->Migrations->getMigrationTableName();
+				$connection->execute('DELETE FROM ' . $migrationsTable . ' WHERE `migration_name` = "Tmp";')->closeCursor();
 
 				$this->Flash->success('Tmp Migration file created');
 
@@ -237,7 +238,8 @@ SQL;
 
 			/** @var \Cake\Database\Connection $connection */
 			$connection = ConnectionManager::get('default');
-			$connection->execute('DELETE FROM phinxlog WHERE 1=1')->closeCursor();
+			$migrationsTable = $this->Migrations->getMigrationTableName();
+			$connection->execute('DELETE FROM ' . $migrationsTable . ' WHERE 1=1')->closeCursor();
 
 			$command = 'bin/cake migrations mark_migrated';
 			exec('cd ' . ROOT . ' && ' . $command, $output, $code);
