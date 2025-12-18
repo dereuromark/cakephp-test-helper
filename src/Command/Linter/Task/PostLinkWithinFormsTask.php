@@ -76,9 +76,9 @@ class PostLinkWithinFormsTask extends AbstractLinterTask {
 
 		// Detect line ending style
 		$eol = "\n";
-		if (strpos($content, "\r\n") !== false) {
+		if (str_contains($content, "\r\n")) {
 			$eol = "\r\n";
-		} elseif (strpos($content, "\r") !== false) {
+		} elseif (str_contains($content, "\r")) {
 			$eol = "\r";
 		}
 
@@ -119,7 +119,7 @@ class PostLinkWithinFormsTask extends AbstractLinterTask {
 					// Track parenthesis depth
 					for ($j = 0; $j < strlen($currentLine); $j++) {
 						$char = $currentLine[$j];
-						if ($char === '(' && (strpos(substr($currentLine, 0, $j), 'postLink') !== false || $started)) {
+						if ($char === '(' && (str_contains(substr($currentLine, 0, $j), 'postLink') || $started)) {
 							$depth++;
 							$started = true;
 						} elseif ($char === ')' && $started) {
@@ -211,7 +211,7 @@ class PostLinkWithinFormsTask extends AbstractLinterTask {
 						$thirdParamStart = $paramStarts[2];
 						// Check if third param starts with [
 						$thirdParam = trim(substr($rest, $thirdParamStart, $i - $thirdParamStart));
-						if (strpos($thirdParam, '[') === 0) {
+						if (str_starts_with($thirdParam, '[')) {
 							// It's an array, add our option at the start
 							$beforeArray = substr($line, 0, $start + $thirdParamStart);
 							$arrayContent = substr($line, $start + $thirdParamStart);

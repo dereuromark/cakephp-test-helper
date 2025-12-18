@@ -76,9 +76,9 @@ class DeprecatedFindOptionsTask extends AbstractLinterTask {
 
 		// Detect line ending style
 		$eol = "\n";
-		if (strpos($content, "\r\n") !== false) {
+		if (str_contains($content, "\r\n")) {
 			$eol = "\r\n";
-		} elseif (strpos($content, "\r") !== false) {
+		} elseif (str_contains($content, "\r")) {
 			$eol = "\r";
 		}
 
