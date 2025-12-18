@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TestHelper\Command;
 
+use Cake\Command\Command;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
@@ -12,7 +13,6 @@ use Cake\Core\Plugin;
 use Cake\TestSuite\ConnectionHelper;
 use ReflectionClass;
 use RuntimeException;
-use Shim\Command\Command;
 use TestHelper\Command\Linter\LinterTaskInterface;
 use TestHelper\Command\Linter\Task\ArrayUrlsInControllersTask;
 use TestHelper\Command\Linter\Task\ArrayUrlsInTestsTask;
