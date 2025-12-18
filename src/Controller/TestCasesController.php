@@ -3,6 +3,7 @@
 namespace TestHelper\Controller;
 
 use Cake\Core\App;
+use Cake\Core\Configure;
 use Cake\Core\Plugin;
 use Cake\Http\Response;
 use DirectoryIterator;
@@ -509,7 +510,7 @@ class TestCasesController extends TestHelperAppController {
 			$arguments .= '--' . $key . ' ' . $option;
 		}
 
-		$command = 'cd ' . ROOT . ' && php bin/cake.php bake ' . $arguments;
+		$command = 'cd ' . ROOT . ' && ' . $this->getPhpBinary() . ' bin/cake.php bake ' . $arguments;
 		exec($command, $output, $return);
 
 		if ($return !== 0) {
@@ -519,6 +520,13 @@ class TestCasesController extends TestHelperAppController {
 		$this->Flash->success((string)json_encode($output));
 
 		return $return === 0;
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function getPhpBinary(): string {
+		return Configure::read('TestHelper.php') ?: 'php';
 	}
 
 	/**
