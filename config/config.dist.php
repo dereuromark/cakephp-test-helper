@@ -2,6 +2,7 @@
 
 return [
 	'TestHelper' => [
+		'php' => null, // Custom PHP binary path, e.g. '/usr/bin/php8.2'
 		'command' => null,
 		'coverage' => null,
 

@@ -56,7 +56,7 @@ class TestRunnerComponent extends Component {
 		$testFile = str_replace(['/', '\\'], DS, $testFile);
 
 		if (Configure::read('TestHelper.coverage') !== 'xdebug') {
-			$command = 'XDEBUG_MODE=coverage php -d ' . ROOT . ' ' . $command;
+			$command = 'XDEBUG_MODE=coverage ' . $this->getPhpBinary() . ' -d ' . ROOT . ' ' . $command;
 		}
 
 		$command .= ' ' . $file;
@@ -100,10 +100,17 @@ HTML;
 		}
 
 		if (file_exists(ROOT . DS . 'phpunit.phar')) {
-			return 'php phpunit.phar';
+			return $this->getPhpBinary() . ' phpunit.phar';
 		}
 
 		return 'vendor/bin/phpunit';
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function getPhpBinary(): string {
+		return Configure::read('TestHelper.php') ?: 'php';
 	}
 
 }

@@ -3,6 +3,7 @@
 namespace TestHelper\Controller\Component;
 
 use Cake\Controller\Component;
+use Cake\Core\Configure;
 use Cake\Core\Plugin;
 use DirectoryIterator;
 
@@ -25,7 +26,7 @@ class TestGeneratorComponent extends Component {
 	 */
 	public function generate(string $name, string $type, ?string $plugin, array $options = []) {
 		$prefix = null;
-		if (strpos($name, '/') !== false) {
+		if (str_contains($name, '/')) {
 			[$prefix, $name] = explode('/', $name, 2);
 		}
 
@@ -47,7 +48,7 @@ class TestGeneratorComponent extends Component {
 			$arguments .= '--' . $key . ' ' . $option;
 		}
 
-		$command = 'cd ' . ROOT . ' && php bin/cake.php bake ' . $arguments;
+		$command = 'cd ' . ROOT . ' && ' . $this->getPhpBinary() . ' bin/cake.php bake ' . $arguments;
 		exec($command, $output, $return);
 
 		if ($return !== 0) {
@@ -80,7 +81,7 @@ class TestGeneratorComponent extends Component {
 			$arguments .= '--' . $key . ' ' . $option;
 		}
 
-		$command = 'cd ' . ROOT . ' && php bin/cake.php bake ' . $arguments;
+		$command = 'cd ' . ROOT . ' && ' . $this->getPhpBinary() . ' bin/cake.php bake ' . $arguments;
 		if (PHP_SAPI !== 'cli') {
 			exec($command, $output, $return);
 		} else {
@@ -136,6 +137,13 @@ class TestGeneratorComponent extends Component {
 		}
 
 		return $names;
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function getPhpBinary(): string {
+		return Configure::read('TestHelper.php') ?: 'php';
 	}
 
 }
