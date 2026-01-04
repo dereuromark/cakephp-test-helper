@@ -37,6 +37,13 @@ if (!defined('TESTS')) {
 class FixtureCheckCommand extends Command {
 
 	/**
+	 * @return string
+	 */
+	public static function getDescription(): string {
+		return 'Compare DB and fixture schema columns.';
+	}
+
+	/**
 	 * Configuration read from Configure
 	 *
 	 * @var array<string, mixed>
