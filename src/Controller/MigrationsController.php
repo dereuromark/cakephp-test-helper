@@ -218,17 +218,27 @@ SQL;
 		if ($this->request->is('post') && $this->request->getData('confirm')) {
 			// Archive old migration files instead of deleting them
 			$migrationsPath = CONFIG . 'Migrations';
-			$archivePath = CONFIG . 'MigrationsArchive' . DS . date('Ymd_His');
+			$archivePath = CONFIG . 'MigrationsArchive';
+
+			// Empty archive folder first if it exists
+			if (is_dir($archivePath)) {
+				$oldArchiveFiles = array_diff(scandir($archivePath), ['.', '..']);
+				foreach ($oldArchiveFiles as $file) {
+					$filePath = $archivePath . DS . $file;
+					if (is_file($filePath)) {
+						unlink($filePath);
+					}
+				}
+			} else {
+				mkdir($archivePath, 0755, true);
+			}
+
+			// Move current migrations to archive
 			if (is_dir($migrationsPath)) {
 				$files = array_values(array_diff(scandir($migrationsPath), ['.', '..']));
 				$files = array_filter($files, fn ($file) => is_file($migrationsPath . DS . $file));
-				if ($files) {
-					if (!is_dir($archivePath)) {
-						mkdir($archivePath, 0755, true);
-					}
-					foreach ($files as $file) {
-						rename($migrationsPath . DS . $file, $archivePath . DS . $file);
-					}
+				foreach ($files as $file) {
+					rename($migrationsPath . DS . $file, $archivePath . DS . $file);
 				}
 			}
 
