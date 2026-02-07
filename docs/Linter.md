@@ -150,6 +150,20 @@ return $this->redirect(['controller' => 'Articles', 'action' => 'index', '?' => 
 
 **Limitation:** Concatenated URLs (e.g., `$this->redirect('/path/' . $variable)` or `$this->redirect('/path?id=' . $user->id)`) are not auto-fixable and will be skipped to avoid breaking code. These need to be manually converted.
 
+**Configuration:** You can allow specific string URLs that should not trigger warnings:
+```php
+// config/app.php
+return [
+    'TestHelper' => [
+        'Linter' => [
+            'ArrayUrlsInControllers' => [
+                'allowedStringUrls' => ['/'],
+            ],
+        ],
+    ],
+];
+```
+
 ### array-urls-in-tests
 
 Checks test files for string URLs in `get()`, `post()`, and `assertRedirect()` - enforces array format.
@@ -173,6 +187,20 @@ $this->assertRedirect(['controller' => 'Dashboard', 'action' => 'index']);
 ```
 
 **Limitation:** Concatenated URLs (e.g., `$this->get('/path/' . $variable)` or `$this->assertRedirect('/path?param=' . $value)`) are not auto-fixable and will be skipped to avoid breaking code. These need to be manually converted.
+
+**Configuration:** You can allow specific string URLs that should not trigger warnings:
+```php
+// config/app.php
+return [
+    'TestHelper' => [
+        'Linter' => [
+            'ArrayUrlsInTests' => [
+                'allowedStringUrls' => ['/'],
+            ],
+        ],
+    ],
+];
+```
 
 ### deprecated-find-options
 

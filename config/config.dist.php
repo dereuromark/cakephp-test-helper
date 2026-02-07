@@ -14,6 +14,13 @@ return [
 			'tasks' => [
 				// ...
 			],
+			// Allow specific string URLs that should not trigger warnings
+			'ArrayUrlsInTests' => [
+				'allowedStringUrls' => [],
+			],
+			'ArrayUrlsInControllers' => [
+				'allowedStringUrls' => [],
+			],
 		],
 	],
 ];

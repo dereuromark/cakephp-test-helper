@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TestHelper\Command\Linter\Task;
 
 use Cake\Console\ConsoleIo;
+use Cake\Core\Configure;
 use Cake\Http\ServerRequest;
 use Cake\Http\UriFactory;
 use Cake\Routing\Router;
@@ -12,6 +13,14 @@ use Exception;
 use TestHelper\Command\Linter\AbstractLinterTask;
 
 class ArrayUrlsInTestsTask extends AbstractLinterTask {
+
+	/**
+	 * Allowed string URLs that should not trigger warnings.
+	 * Empty by default. Configure via TestHelper.Linter.ArrayUrlsInTests.allowedStringUrls
+	 *
+	 * @var array<string>
+	 */
+	protected array $allowedStringUrls = [];
 
 	/**
      * @inheritDoc
@@ -44,11 +53,13 @@ class ArrayUrlsInTestsTask extends AbstractLinterTask {
 	}
 
 	/**
-     * @inheritDoc
-     *
-     * @param array<string, mixed> $options
-     */
+	 * @inheritDoc
+	 *
+	 * @param array<string, mixed> $options
+	 */
 	public function run(ConsoleIo $io, array $options = []): int {
+		$this->loadConfig();
+
 		$paths = $options['paths'] ?? $this->defaultPaths();
 		$files = $this->getFiles($paths, '*Test.php');
 		$verbose = $options['verbose'] ?? false;
@@ -60,6 +71,45 @@ class ArrayUrlsInTestsTask extends AbstractLinterTask {
 		}
 
 		return $issues;
+	}
+
+	/**
+	 * Load configuration for this task.
+	 *
+	 * @return void
+	 */
+	protected function loadConfig(): void {
+		$allowedUrls = Configure::read('TestHelper.Linter.ArrayUrlsInTests.allowedStringUrls');
+		if (is_array($allowedUrls)) {
+			$this->allowedStringUrls = $allowedUrls;
+		}
+	}
+
+	/**
+	 * Check if a URL string is in the allowed list.
+	 *
+	 * @param string $url The URL to check
+	 *
+	 * @return bool
+	 */
+	protected function isAllowedUrl(string $url): bool {
+		return in_array($url, $this->allowedStringUrls, true);
+	}
+
+	/**
+	 * Extract URL from a line matching get/post/assertRedirect pattern.
+	 *
+	 * @param string $line The line to extract from
+	 *
+	 * @return string|null The extracted URL or null if not found
+	 */
+	protected function extractUrl(string $line): ?string {
+		// Match get(), post(), or assertRedirect() with a quoted URL
+		if (preg_match('/\$this->(?:get|post|assertRedirect)\(\s*([\'"])([^\'"]*)\1/', $line, $matches)) {
+			return $matches[2];
+		}
+
+		return null;
 	}
 
 	/**
@@ -99,6 +149,12 @@ class ArrayUrlsInTestsTask extends AbstractLinterTask {
 			}
 
 			if (preg_match('/\$this->(get|post)\(\s*([\'"])\//', $line, $matches)) {
+				// Check if URL is in the allowed list
+				$url = $this->extractUrl($line);
+				if ($url !== null && $this->isAllowedUrl($url)) {
+					continue;
+				}
+
 				$method = $matches[1];
 				$this->outputIssue(
 					$io,
@@ -125,6 +181,11 @@ class ArrayUrlsInTestsTask extends AbstractLinterTask {
 			}
 
 			if (preg_match('/\$this->assertRedirect\(\s*([\'"])\//', $line)) {
+				// Check if URL is in the allowed list
+				$url = $this->extractUrl($line);
+				if ($url !== null && $this->isAllowedUrl($url)) {
+					continue;
+				}
 				$this->outputIssue(
 					$io,
 					$file,
