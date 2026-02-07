@@ -136,7 +136,15 @@ function formatColumnType(array $columnData): string {
 
 		<?php if ($drift !== null) { ?>
 			<hr>
-			<h2>Drift Report</h2>
+			<div class="clearfix">
+				<div class="btn-group float-end" style="float: right;">
+					<span class="btn btn-default btn-sm disabled">Export:</span>
+					<?= $this->Html->link('JSON', ['?' => ['connection' => $connectionName, 'compare' => '1', 'format' => 'json']], ['class' => 'btn btn-secondary btn-sm', 'target' => '_blank']) ?>
+					<?= $this->Html->link('Markdown', ['?' => ['connection' => $connectionName, 'compare' => '1', 'format' => 'markdown']], ['class' => 'btn btn-secondary btn-sm', 'target' => '_blank']) ?>
+					<?= $this->Html->link('Text', ['?' => ['connection' => $connectionName, 'compare' => '1', 'format' => 'text']], ['class' => 'btn btn-secondary btn-sm', 'target' => '_blank']) ?>
+				</div>
+				<h2>Drift Report</h2>
+			</div>
 
 			<?php if (!$hasDrift) { ?>
 				<div class="alert alert-success">
