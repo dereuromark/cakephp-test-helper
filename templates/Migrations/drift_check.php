@@ -5,7 +5,8 @@
  * @var string $connectionName
  * @var string $database
  * @var string $shadowDatabase
- * @var array<string> $pluginsToMigrate
+ * @var array<array<string, string>> $migrationsToRun
+ * @var bool $migrationsFromConfig
  * @var array|null $drift
  * @var bool $hasDrift
  * @var string|null $error
@@ -114,14 +115,23 @@ function formatColumnType(array $columnData): string {
 			<p>The <code>test</code> database is used as shadow: migrations are run fresh, then compared against your selected connection.</p>
 
 			<h3>Migrations to Run</h3>
-			<ul>
-				<li><strong>App</strong> (main application)</li>
-				<?php foreach ($pluginsToMigrate as $plugin) { ?>
-					<li><?= h($plugin) ?></li>
+			<ol>
+				<?php foreach ($migrationsToRun as $migration) { ?>
+					<?php $isApp = empty($migration) || !isset($migration['plugin']); ?>
+					<li><?= $isApp ? '<strong>App</strong> (main application)' : h($migration['plugin']) ?></li>
 				<?php } ?>
-			</ul>
-			<?php if (!$pluginsToMigrate) { ?>
-				<p class="text-muted"><small>No plugin migrations detected (based on *_phinxlog tables).</small></p>
+			</ol>
+			<?php if ($migrationsFromConfig) { ?>
+				<p class="text-info">
+					<small>Order configured via <code>TestHelper.migrations</code> in your app config.</small>
+				</p>
+			<?php } else { ?>
+				<p class="text-muted">
+					<small>
+						Order auto-detected (plugins first, then app).
+						To customize the order, set <code>TestHelper.migrations</code> in your app config.
+					</small>
+				</p>
 			<?php } ?>
 
 			<?php if ($drift === null) { ?>

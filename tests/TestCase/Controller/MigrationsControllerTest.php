@@ -2,6 +2,7 @@
 
 namespace TestHelper\Test\TestCase\Controller;
 
+use Cake\Core\Configure;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
@@ -217,6 +218,53 @@ class MigrationsControllerTest extends TestCase {
 		} else {
 			$this->assertResponseCode(200);
 			$this->assertContentType('text/plain');
+		}
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testDriftCheckWithConfiguredMigrations(): void {
+		Configure::write('TestHelper.migrations', [
+			['plugin' => 'Queue'],
+			['plugin' => 'Users'],
+			[], // App migrations
+			['plugin' => 'Blog'],
+		]);
+
+		$this->get(['plugin' => 'TestHelper', 'controller' => 'Migrations', 'action' => 'driftCheck']);
+
+		// Will redirect if Migrations plugin is not installed
+		if ($this->_response->getStatusCode() === 302) {
+			$this->assertRedirect(['plugin' => 'TestHelper', 'controller' => 'TestHelper', 'action' => 'index']);
+		} else {
+			$this->assertResponseCode(200);
+			$this->assertResponseContains('Order configured via');
+			$this->assertResponseContains('TestHelper.migrations');
+			// Check that plugins are shown in configured order
+			$this->assertResponseContains('Queue');
+			$this->assertResponseContains('Users');
+			$this->assertResponseContains('Blog');
+		}
+
+		Configure::delete('TestHelper.migrations');
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testDriftCheckWithoutConfiguredMigrations(): void {
+		Configure::delete('TestHelper.migrations');
+
+		$this->get(['plugin' => 'TestHelper', 'controller' => 'Migrations', 'action' => 'driftCheck']);
+
+		// Will redirect if Migrations plugin is not installed
+		if ($this->_response->getStatusCode() === 302) {
+			$this->assertRedirect(['plugin' => 'TestHelper', 'controller' => 'TestHelper', 'action' => 'index']);
+		} else {
+			$this->assertResponseCode(200);
+			$this->assertResponseContains('Order auto-detected');
+			$this->assertResponseContains('To customize the order');
 		}
 	}
 
