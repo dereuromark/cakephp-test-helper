@@ -216,13 +216,29 @@ SQL;
 		$tmpDatabase = $database . '_tmp';
 
 		if ($this->request->is('post') && $this->request->getData('confirm')) {
-			// Remove old migration files
+			// Archive old migration files instead of deleting them
 			$migrationsPath = CONFIG . 'Migrations';
+			$archivePath = CONFIG . 'MigrationsArchive';
+
+			// Empty archive folder first if it exists
+			if (is_dir($archivePath)) {
+				$oldArchiveFiles = array_diff(scandir($archivePath), ['.', '..']);
+				foreach ($oldArchiveFiles as $file) {
+					$filePath = $archivePath . DS . $file;
+					if (is_file($filePath)) {
+						unlink($filePath);
+					}
+				}
+			} else {
+				mkdir($archivePath, 0755, true);
+			}
+
+			// Move current migrations to archive
 			if (is_dir($migrationsPath)) {
 				$files = array_values(array_diff(scandir($migrationsPath), ['.', '..']));
 				$files = array_filter($files, fn ($file) => is_file($migrationsPath . DS . $file));
 				foreach ($files as $file) {
-					unlink($migrationsPath . DS . $file);
+					rename($migrationsPath . DS . $file, $archivePath . DS . $file);
 				}
 			}
 
