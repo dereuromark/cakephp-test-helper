@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TestHelper\Test\TestCase\Command\Linter\Task;
 
 use Cake\Console\ConsoleIo;
+use Cake\Core\Configure;
 use Cake\TestSuite\TestCase;
 use ReflectionClass;
 use TestHelper\Command\Linter\Task\ArrayUrlsInControllersTask;
@@ -41,6 +42,8 @@ class ArrayUrlsInControllersTaskTest extends TestCase {
 	 */
 	public function tearDown(): void {
 		parent::tearDown();
+
+		Configure::delete('TestHelper.Linter.ArrayUrlsInControllers');
 	}
 
 	/**
@@ -234,6 +237,91 @@ class SomeController extends Controller {
 }
 PHP;
 		$this->assertSame($expected, $fixed);
+
+		unlink($tempFile);
+	}
+
+	/**
+	 * Test allowed string URLs are skipped
+	 *
+	 * @return void
+	 */
+	public function testAllowedStringUrlsAreSkipped(): void {
+		Configure::write('TestHelper.Linter.ArrayUrlsInControllers.allowedStringUrls', ['/']);
+
+		$tempFile = tempnam(sys_get_temp_dir(), 'linter_test_');
+		$content = <<<'PHP'
+<?php
+class SomeController extends Controller {
+    public function someAction() {
+        return $this->redirect('/');
+    }
+    public function anotherAction() {
+        return $this->redirect('/dashboard/index');
+    }
+}
+PHP;
+		file_put_contents($tempFile, $content);
+
+		$io = new ConsoleIo($this->out, $this->err);
+		$reflection = new ReflectionClass($this->task);
+
+		// Call loadConfig first
+		$loadConfigMethod = $reflection->getMethod('loadConfig');
+		$loadConfigMethod->invoke($this->task);
+
+		// Then check the file
+		$checkFileMethod = $reflection->getMethod('checkFile');
+		$issues = $checkFileMethod->invoke($this->task, $io, $tempFile, false, false);
+
+		// Only the /dashboard/index should be flagged, not the root URL
+		$this->assertSame(1, $issues);
+
+		$output = $this->out->output();
+		$this->assertStringContainsString('/dashboard/index', $output);
+		$this->assertStringNotContainsString("redirect('/')", $output);
+
+		unlink($tempFile);
+	}
+
+	/**
+	 * Test multiple allowed string URLs are skipped
+	 *
+	 * @return void
+	 */
+	public function testMultipleAllowedStringUrlsAreSkipped(): void {
+		Configure::write('TestHelper.Linter.ArrayUrlsInControllers.allowedStringUrls', ['/', '/login']);
+
+		$tempFile = tempnam(sys_get_temp_dir(), 'linter_test_');
+		$content = <<<'PHP'
+<?php
+class SomeController extends Controller {
+    public function homeAction() {
+        return $this->redirect('/');
+    }
+    public function authAction() {
+        return $this->redirect('/login');
+    }
+    public function dashboardAction() {
+        return $this->redirect('/dashboard/index');
+    }
+}
+PHP;
+		file_put_contents($tempFile, $content);
+
+		$io = new ConsoleIo($this->out, $this->err);
+		$reflection = new ReflectionClass($this->task);
+
+		// Call loadConfig first
+		$loadConfigMethod = $reflection->getMethod('loadConfig');
+		$loadConfigMethod->invoke($this->task);
+
+		// Then check the file
+		$checkFileMethod = $reflection->getMethod('checkFile');
+		$issues = $checkFileMethod->invoke($this->task, $io, $tempFile, false, false);
+
+		// Only the /dashboard/index should be flagged
+		$this->assertSame(1, $issues);
 
 		unlink($tempFile);
 	}

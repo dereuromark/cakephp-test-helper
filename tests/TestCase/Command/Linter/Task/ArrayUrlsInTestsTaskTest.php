@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TestHelper\Test\TestCase\Command\Linter\Task;
 
 use Cake\Console\ConsoleIo;
+use Cake\Core\Configure;
 use Cake\TestSuite\TestCase;
 use ReflectionClass;
 use TestHelper\Command\Linter\Task\ArrayUrlsInTestsTask;
@@ -32,6 +33,17 @@ class ArrayUrlsInTestsTaskTest extends TestCase {
 		$this->out = new ConsoleOutput();
 		$this->err = new ConsoleOutput();
 		$this->task = new ArrayUrlsInTestsTask();
+	}
+
+	/**
+	 * tearDown method
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void {
+		parent::tearDown();
+
+		Configure::delete('TestHelper.Linter.ArrayUrlsInTests');
 	}
 
 	/**
@@ -225,6 +237,87 @@ PHP;
 
 		// Content should be unchanged - concatenated URLs are too complex to auto-fix
 		$this->assertSame($content, $fixed);
+
+		unlink($tempFile);
+	}
+
+	/**
+	 * Test allowed string URLs are skipped
+	 *
+	 * @return void
+	 */
+	public function testAllowedStringUrlsAreSkipped(): void {
+		Configure::write('TestHelper.Linter.ArrayUrlsInTests.allowedStringUrls', ['/']);
+
+		$tempFile = tempnam(sys_get_temp_dir(), 'linter_test_');
+		$content = <<<'PHP'
+<?php
+class SomeTest extends TestCase {
+    public function testSomething(): void {
+        $this->get('/');
+        $this->assertRedirect('/');
+        $this->get('/dashboard/index');
+    }
+}
+PHP;
+		file_put_contents($tempFile, $content);
+
+		$io = new ConsoleIo($this->out, $this->err);
+		$reflection = new ReflectionClass($this->task);
+
+		// Call loadConfig first
+		$loadConfigMethod = $reflection->getMethod('loadConfig');
+		$loadConfigMethod->invoke($this->task);
+
+		// Then check the file
+		$checkFileMethod = $reflection->getMethod('checkFile');
+		$issues = $checkFileMethod->invoke($this->task, $io, $tempFile, false, false);
+
+		// Only the /dashboard/index should be flagged, not the root URL
+		$this->assertSame(1, $issues);
+
+		$output = $this->out->output();
+		$this->assertStringContainsString('/dashboard/index', $output);
+		$this->assertStringNotContainsString("get('/')", $output);
+
+		unlink($tempFile);
+	}
+
+	/**
+	 * Test multiple allowed string URLs are skipped
+	 *
+	 * @return void
+	 */
+	public function testMultipleAllowedStringUrlsAreSkipped(): void {
+		Configure::write('TestHelper.Linter.ArrayUrlsInTests.allowedStringUrls', ['/', '/login']);
+
+		$tempFile = tempnam(sys_get_temp_dir(), 'linter_test_');
+		$content = <<<'PHP'
+<?php
+class SomeTest extends TestCase {
+    public function testSomething(): void {
+        $this->get('/');
+        $this->post('/login');
+        $this->assertRedirect('/');
+        $this->get('/dashboard/index');
+    }
+}
+PHP;
+		file_put_contents($tempFile, $content);
+
+		$io = new ConsoleIo($this->out, $this->err);
+		$reflection = new ReflectionClass($this->task);
+
+		// Call loadConfig first
+		$loadConfigMethod = $reflection->getMethod('loadConfig');
+		$loadConfigMethod->invoke($this->task);
+
+		// Then check the file
+		$checkFileMethod = $reflection->getMethod('checkFile');
+		$issues = $checkFileMethod->invoke($this->task, $io, $tempFile, false, false);
+
+		// Only the /dashboard/index should be flagged
+		$this->assertSame(1, $issues);
 
 		unlink($tempFile);
 	}
