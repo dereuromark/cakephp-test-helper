@@ -10,6 +10,16 @@ return [
 		// when using the CakePHP Authorization plugin
 		'ignoreAuthorization' => true,
 
+		// Custom migration order for drift-check (like Migrator's runMany format).
+		// Use [] for app migrations. Order matters for foreign key constraints.
+		// If not set, auto-detects: plugins first (alphabetically), then app.
+		// 'migrations' => [
+		//     ['plugin' => 'Queue'],
+		//     ['plugin' => 'Users'],
+		//     ['plugin' => 'Blog'],
+		//     [], // App migrations
+		// ],
+
 		'Linter' => [
 			'tasks' => [
 				// ...

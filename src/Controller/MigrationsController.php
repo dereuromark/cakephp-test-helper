@@ -2,6 +2,7 @@
 
 namespace TestHelper\Controller;
 
+use Cake\Core\Configure;
 use Cake\Datasource\ConnectionManager;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
@@ -391,27 +392,29 @@ SQL;
 		/** @var \Cake\Database\Connection $connection */
 		$connection = ConnectionManager::get($connectionName);
 
-		// Detect which plugins need migrations by checking *_phinxlog tables in actual DB
-		$pluginsToMigrate = [];
-		if (!$error) {
-			/** @var \Cake\Database\Schema\Collection $actualSchemaCollection */
-			$actualSchemaCollection = $connection->getSchemaCollection();
-			$actualTables = $actualSchemaCollection->listTables();
-			foreach ($actualTables as $table) {
-				if (str_ends_with($table, '_phinxlog') && $table !== 'phinxlog') {
-					// Check if phinxlog table has entries (migrations were run)
-					$count = $connection->execute('SELECT COUNT(*) FROM ' . $table)->fetch();
-					if (!$count || $count[0] == 0) {
-						continue;
-					}
+		// Check for configured migration order (like Migrator's runMany format)
+		/** @var array<array<string, string>>|null $configuredMigrations */
+		$configuredMigrations = Configure::read('TestHelper.migrations');
+		$migrationsFromConfig = $configuredMigrations !== null;
 
-					// Convert table name to plugin name (e.g., queue_phinxlog -> Queue)
-					$pluginName = str_replace('_phinxlog', '', $table);
-					$pluginName = str_replace('_', '', ucwords($pluginName, '_'));
-					$pluginsToMigrate[] = $pluginName;
+		// Build ordered list of migrations to run
+		// Format: [['plugin' => 'PluginName'], [], ['plugin' => 'OtherPlugin']]
+		// Empty array [] represents app migrations
+		$migrationsToRun = [];
+		if (!$error) {
+			if ($migrationsFromConfig) {
+				// Use configured order
+				$migrationsToRun = $configuredMigrations;
+			} else {
+				// Auto-detect: plugins first (alphabetically), then app last
+				// Supports both legacy (*_phinxlog) and modern (cake_migrations) formats
+				$detectedPlugins = $this->Migrations->getPluginsWithMigrations($connectionName);
+				foreach ($detectedPlugins as $pluginName) {
+					$migrationsToRun[] = ['plugin' => $pluginName];
 				}
+
+				$migrationsToRun[] = []; // App migrations last
 			}
-			sort($pluginsToMigrate);
 		}
 
 		// Handle POST actions
@@ -441,35 +444,38 @@ SQL;
 					}
 				}
 
-				// Run app migrations on test database
-				$command = 'bin/cake migrations migrate -c test --no-lock';
-				exec('cd ' . ROOT . ' && ' . $command, $output, $code);
+				// Run migrations in configured/detected order
+				$migrationErrors = [];
+				$successCount = 0;
 
-				if ($code !== 0) {
-					$error = 'App migration failed: ' . implode("\n", $output);
-					$this->Flash->error($error);
+				foreach ($migrationsToRun as $migration) {
+					$isApp = empty($migration) || !isset($migration['plugin']);
+					$label = $isApp ? 'App' : $migration['plugin'];
+
+					if ($isApp) {
+						$command = 'bin/cake migrations migrate -c test --no-lock';
+					} else {
+						$command = 'bin/cake migrations migrate -p ' . $migration['plugin'] . ' -c test --no-lock';
+					}
+
+					$output = [];
+					exec('cd ' . ROOT . ' && ' . $command, $output, $code);
+
+					if ($code !== 0) {
+						$migrationErrors[$label] = implode("\n", $output);
+					} else {
+						$successCount++;
+					}
+				}
+
+				if ($migrationErrors) {
+					$this->Flash->warning('Some migrations failed: ' . implode(', ', array_keys($migrationErrors)));
+				}
+
+				$message = sprintf('Migrations applied: %d/%d', $successCount, count($migrationsToRun));
+				if ($migrationErrors) {
+					$this->Flash->error($message);
 				} else {
-					// Run plugin migrations for detected plugins
-					$pluginMigrationErrors = [];
-					foreach ($pluginsToMigrate as $plugin) {
-						$pluginCommand = 'bin/cake migrations migrate -p ' . $plugin . ' -c test --no-lock';
-						$pluginOutput = [];
-						exec('cd ' . ROOT . ' && ' . $pluginCommand, $pluginOutput, $pluginCode);
-
-						if ($pluginCode !== 0) {
-							$pluginMigrationErrors[$plugin] = implode("\n", $pluginOutput);
-						}
-					}
-
-					if ($pluginMigrationErrors) {
-						$this->Flash->warning('Some plugin migrations failed: ' . implode(', ', array_keys($pluginMigrationErrors)));
-					}
-
-					$migratedCount = count($pluginsToMigrate) - count($pluginMigrationErrors);
-					$message = 'App migrations applied to test database.';
-					if ($pluginsToMigrate) {
-						$message .= ' Plugin migrations: ' . $migratedCount . '/' . count($pluginsToMigrate);
-					}
 					$this->Flash->success($message);
 
 					return $this->redirect(['?' => ['connection' => $connectionName, 'compare' => '1']]);
@@ -501,7 +507,8 @@ SQL;
 			'connectionName',
 			'database',
 			'shadowDatabase',
-			'pluginsToMigrate',
+			'migrationsToRun',
+			'migrationsFromConfig',
 			'drift',
 			'hasDrift',
 			'error',
