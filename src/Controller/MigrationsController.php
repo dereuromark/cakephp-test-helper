@@ -431,6 +431,12 @@ SQL;
 
 		$hasDrift = $drift !== null && $this->Migrations->hasDrift($drift);
 
+		// Handle export formats
+		$format = $this->request->getQuery('format');
+		if ($format && $drift !== null) {
+			return $this->exportDrift($format, $drift, $connectionName, $database, $shadowDatabase, $hasDrift, $error);
+		}
+
 		$this->set(compact(
 			'availableConnections',
 			'connectionName',
@@ -443,6 +449,359 @@ SQL;
 			'isMysql',
 			'isPostgres',
 		));
+	}
+
+	/**
+	 * Export drift data in various formats.
+	 *
+	 * @param string $format Export format (json, markdown, text)
+	 * @param array<string, array<int, array<string, mixed>>> $drift
+	 * @param string $connectionName
+	 * @param string $database
+	 * @param string $shadowDatabase
+	 * @param bool $hasDrift
+	 * @param string|null $error
+	 * @return \Cake\Http\Response
+	 */
+	protected function exportDrift(
+		string $format,
+		array $drift,
+		string $connectionName,
+		string $database,
+		string $shadowDatabase,
+		bool $hasDrift,
+		?string $error,
+	): \Cake\Http\Response {
+		return match ($format) {
+			'json' => $this->exportJson($drift, $connectionName, $database, $shadowDatabase, $hasDrift, $error),
+			'markdown', 'md' => $this->exportMarkdown($drift, $connectionName, $database, $shadowDatabase, $hasDrift, $error),
+			'text', 'txt' => $this->exportText($drift, $connectionName, $database, $shadowDatabase, $hasDrift, $error),
+			default => $this->exportJson($drift, $connectionName, $database, $shadowDatabase, $hasDrift, $error),
+		};
+	}
+
+	/**
+	 * Export drift data as JSON.
+	 *
+	 * @param array<string, array<int, array<string, mixed>>> $drift
+	 * @param string $connectionName
+	 * @param string $database
+	 * @param string $shadowDatabase
+	 * @param bool $hasDrift
+	 * @param string|null $error
+	 * @return \Cake\Http\Response
+	 */
+	protected function exportJson(
+		array $drift,
+		string $connectionName,
+		string $database,
+		string $shadowDatabase,
+		bool $hasDrift,
+		?string $error,
+	): \Cake\Http\Response {
+		$data = [
+			'connection' => $connectionName,
+			'database' => $database,
+			'shadowDatabase' => $shadowDatabase,
+			'hasDrift' => $hasDrift,
+			'error' => $error,
+			'drift' => $drift,
+			'generatedAt' => date('c'),
+		];
+
+		return $this->response
+			->withType('application/json')
+			->withStringBody((string)json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+	}
+
+	/**
+	 * Export drift data as Markdown.
+	 *
+	 * @param array<string, array<int, array<string, mixed>>> $drift
+	 * @param string $connectionName
+	 * @param string $database
+	 * @param string $shadowDatabase
+	 * @param bool $hasDrift
+	 * @param string|null $error
+	 * @return \Cake\Http\Response
+	 */
+	protected function exportMarkdown(
+		array $drift,
+		string $connectionName,
+		string $database,
+		string $shadowDatabase,
+		bool $hasDrift,
+		?string $error,
+	): \Cake\Http\Response {
+		$lines = [];
+		$lines[] = '# Schema Drift Report';
+		$lines[] = '';
+		$lines[] = sprintf('**Database:** `%s` (connection: `%s`)', $database, $connectionName);
+		$lines[] = sprintf('**Shadow Database:** `%s`', $shadowDatabase);
+		$lines[] = sprintf('**Generated:** %s', date('Y-m-d H:i:s'));
+		$lines[] = '';
+
+		if ($error) {
+			$lines[] = '## Error';
+			$lines[] = '';
+			$lines[] = $error;
+			$lines[] = '';
+		} elseif (!$hasDrift) {
+			$lines[] = '## Status: No Drift Detected ✓';
+			$lines[] = '';
+			$lines[] = 'The database schema matches the expected schema from migrations.';
+			$lines[] = '';
+		} else {
+			$lines[] = '## Status: Drift Detected ⚠';
+			$lines[] = '';
+
+			// Extra tables
+			if (!empty($drift['extra_tables'])) {
+				$lines[] = '### Extra Tables (in database but not in migrations)';
+				$lines[] = '';
+				foreach ($drift['extra_tables'] as $table) {
+					$lines[] = sprintf('- `%s`', $table['table']);
+					$lines[] = sprintf('  - Columns: %s', implode(', ', array_map(fn ($c) => "`{$c}`", $table['columns'])));
+				}
+				$lines[] = '';
+			}
+
+			// Missing tables
+			if (!empty($drift['missing_tables'])) {
+				$lines[] = '### Missing Tables (in migrations but not in database)';
+				$lines[] = '';
+				foreach ($drift['missing_tables'] as $table) {
+					$lines[] = sprintf('- `%s`', $table['table']);
+					$lines[] = sprintf('  - Columns: %s', implode(', ', array_map(fn ($c) => "`{$c}`", $table['columns'])));
+				}
+				$lines[] = '';
+			}
+
+			// Column differences
+			if (!empty($drift['column_diffs'])) {
+				$lines[] = '### Column Differences';
+				$lines[] = '';
+				foreach ($drift['column_diffs'] as $diff) {
+					$type = $diff['type'];
+					$table = $diff['table'];
+					$column = $diff['column'];
+
+					if ($type === 'extra') {
+						$lines[] = sprintf('- **EXTRA** `%s.%s`', $table, $column);
+						$lines[] = sprintf('  - Actual: `%s`', $this->formatColumnDef($diff['actual']));
+					} elseif ($type === 'missing') {
+						$lines[] = sprintf('- **MISSING** `%s.%s`', $table, $column);
+						$lines[] = sprintf('  - Expected: `%s`', $this->formatColumnDef($diff['expected']));
+					} elseif ($type === 'mismatch') {
+						$lines[] = sprintf('- **MISMATCH** `%s.%s`', $table, $column);
+						foreach ($diff['differences'] as $attr => $vals) {
+							$lines[] = sprintf('  - %s: expected `%s`, actual `%s`', $attr, json_encode($vals['expected']), json_encode($vals['actual']));
+						}
+					}
+				}
+				$lines[] = '';
+			}
+
+			// Index differences
+			if (!empty($drift['index_diffs'])) {
+				$lines[] = '### Index Differences';
+				$lines[] = '';
+				foreach ($drift['index_diffs'] as $diff) {
+					$type = strtoupper($diff['type']);
+					$table = $diff['table'];
+					$index = $diff['index'];
+					$lines[] = sprintf('- **%s** `%s.%s`', $type, $table, $index);
+				}
+				$lines[] = '';
+			}
+
+			// Constraint differences
+			if (!empty($drift['constraint_diffs'])) {
+				$lines[] = '### Constraint Differences';
+				$lines[] = '';
+				foreach ($drift['constraint_diffs'] as $diff) {
+					$type = strtoupper($diff['type']);
+					$table = $diff['table'];
+					$constraint = $diff['constraint'];
+					$lines[] = sprintf('- **%s** `%s.%s`', $type, $table, $constraint);
+				}
+				$lines[] = '';
+			}
+		}
+
+		// Add summary for AI
+		if ($hasDrift) {
+			$lines[] = '---';
+			$lines[] = '';
+			$lines[] = '## Summary for Migration';
+			$lines[] = '';
+			$lines[] = 'To fix this drift, you may need to create a migration that:';
+			$lines[] = '';
+
+			if (!empty($drift['extra_tables'])) {
+				$lines[] = '- **Remove extra tables** or add them to migrations if intentional:';
+				foreach ($drift['extra_tables'] as $table) {
+					$lines[] = sprintf('  - `%s`', $table['table']);
+				}
+			}
+
+			if (!empty($drift['missing_tables'])) {
+				$lines[] = '- **Create missing tables**:';
+				foreach ($drift['missing_tables'] as $table) {
+					$lines[] = sprintf('  - `%s`', $table['table']);
+				}
+			}
+
+			if (!empty($drift['column_diffs'])) {
+				$extra = array_filter($drift['column_diffs'], fn ($d) => $d['type'] === 'extra');
+				$missing = array_filter($drift['column_diffs'], fn ($d) => $d['type'] === 'missing');
+				$mismatch = array_filter($drift['column_diffs'], fn ($d) => $d['type'] === 'mismatch');
+
+				if ($extra) {
+					$lines[] = '- **Remove extra columns** or add them to migrations:';
+					foreach ($extra as $diff) {
+						$lines[] = sprintf('  - `%s.%s`', $diff['table'], $diff['column']);
+					}
+				}
+				if ($missing) {
+					$lines[] = '- **Add missing columns**:';
+					foreach ($missing as $diff) {
+						$lines[] = sprintf('  - `%s.%s` (%s)', $diff['table'], $diff['column'], $this->formatColumnDef($diff['expected']));
+					}
+				}
+				if ($mismatch) {
+					$lines[] = '- **Fix column type mismatches**:';
+					foreach ($mismatch as $diff) {
+						$attrs = implode(', ', array_keys($diff['differences']));
+						$lines[] = sprintf('  - `%s.%s` (%s)', $diff['table'], $diff['column'], $attrs);
+					}
+				}
+			}
+
+			$lines[] = '';
+		}
+
+		return $this->response
+			->withType('text/markdown')
+			->withHeader('Content-Disposition', 'inline; filename="drift-report.md"')
+			->withStringBody(implode("\n", $lines));
+	}
+
+	/**
+	 * Export drift data as plain text.
+	 *
+	 * @param array<string, array<int, array<string, mixed>>> $drift
+	 * @param string $connectionName
+	 * @param string $database
+	 * @param string $shadowDatabase
+	 * @param bool $hasDrift
+	 * @param string|null $error
+	 * @return \Cake\Http\Response
+	 */
+	protected function exportText(
+		array $drift,
+		string $connectionName,
+		string $database,
+		string $shadowDatabase,
+		bool $hasDrift,
+		?string $error,
+	): \Cake\Http\Response {
+		$lines = [];
+		$lines[] = 'SCHEMA DRIFT REPORT';
+		$lines[] = str_repeat('=', 60);
+		$lines[] = sprintf('Database: %s (%s)', $database, $connectionName);
+		$lines[] = sprintf('Shadow: %s', $shadowDatabase);
+		$lines[] = sprintf('Status: %s', $hasDrift ? 'DRIFT DETECTED' : 'OK');
+		$lines[] = '';
+
+		if ($error) {
+			$lines[] = 'ERROR: ' . $error;
+		} elseif ($hasDrift) {
+			if (!empty($drift['extra_tables'])) {
+				$lines[] = 'EXTRA TABLES:';
+				foreach ($drift['extra_tables'] as $table) {
+					$lines[] = '  + ' . $table['table'];
+				}
+				$lines[] = '';
+			}
+
+			if (!empty($drift['missing_tables'])) {
+				$lines[] = 'MISSING TABLES:';
+				foreach ($drift['missing_tables'] as $table) {
+					$lines[] = '  - ' . $table['table'];
+				}
+				$lines[] = '';
+			}
+
+			if (!empty($drift['column_diffs'])) {
+				$lines[] = 'COLUMN DIFFS:';
+				foreach ($drift['column_diffs'] as $diff) {
+					$prefix = match ($diff['type']) {
+						'extra' => '+',
+						'missing' => '-',
+						'mismatch' => '~',
+						default => '?',
+					};
+					$lines[] = sprintf('  %s %s.%s (%s)', $prefix, $diff['table'], $diff['column'], $diff['type']);
+				}
+				$lines[] = '';
+			}
+
+			if (!empty($drift['index_diffs'])) {
+				$lines[] = 'INDEX DIFFS:';
+				foreach ($drift['index_diffs'] as $diff) {
+					$prefix = match ($diff['type']) {
+						'extra' => '+',
+						'missing' => '-',
+						'mismatch' => '~',
+						default => '?',
+					};
+					$lines[] = sprintf('  %s %s.%s', $prefix, $diff['table'], $diff['index']);
+				}
+				$lines[] = '';
+			}
+
+			if (!empty($drift['constraint_diffs'])) {
+				$lines[] = 'CONSTRAINT DIFFS:';
+				foreach ($drift['constraint_diffs'] as $diff) {
+					$prefix = match ($diff['type']) {
+						'extra' => '+',
+						'missing' => '-',
+						'mismatch' => '~',
+						default => '?',
+					};
+					$lines[] = sprintf('  %s %s.%s', $prefix, $diff['table'], $diff['constraint']);
+				}
+			}
+		}
+
+		return $this->response
+			->withType('text/plain')
+			->withStringBody(implode("\n", $lines));
+	}
+
+	/**
+	 * Format column definition for display.
+	 *
+	 * @param array<string, mixed> $col
+	 * @return string
+	 */
+	protected function formatColumnDef(array $col): string {
+		$type = $col['type'] ?? 'unknown';
+		$length = $col['length'] ?? null;
+		$null = ($col['null'] ?? false) ? 'NULL' : 'NOT NULL';
+
+		$def = $type;
+		if ($length) {
+			$def .= "({$length})";
+		}
+		$def .= ' ' . $null;
+
+		if (isset($col['default'])) {
+			$def .= ' DEFAULT ' . json_encode($col['default']);
+		}
+
+		return $def;
 	}
 
 }
