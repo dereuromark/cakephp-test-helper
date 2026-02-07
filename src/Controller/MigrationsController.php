@@ -102,6 +102,13 @@ class MigrationsController extends TestHelperAppController {
 			exec('cd ' . ROOT . ' && ' . $command, $output, $code);
 			$this->Flash->info(print_r($output, true) . ' (code ' . $code . ')');
 			if ($code === 0) {
+				// Post-process: remove excluded tables from generated migration
+				/** @var array<string> $excludedTables */
+				$excludedTables = $this->request->getData('excluded_tables') ?? [];
+				if ($excludedTables) {
+					$this->removeExcludedTablesFromMigration($excludedTables);
+				}
+
 				/** @var \Cake\Database\Connection $connection */
 				$connection = ConnectionManager::get('default');
 				$migrationsTable = $this->Migrations->getMigrationTableName();
@@ -115,7 +122,42 @@ class MigrationsController extends TestHelperAppController {
 			$this->Flash->error('Something went wrong');
 		}
 
-		$this->set(compact('files'));
+		// Get plugins with migrations for table exclusion UI
+		$plugins = $this->Migrations->getPluginsWithMigrations();
+		$allTables = $this->Migrations->getApplicationTables();
+
+		$this->set(compact('files', 'plugins', 'allTables'));
+	}
+
+	/**
+	 * Remove excluded tables from the generated migration file.
+	 *
+	 * @param array<string> $excludedTables Tables to exclude
+	 * @return void
+	 */
+	protected function removeExcludedTablesFromMigration(array $excludedTables): void {
+		$migrationsTmpPath = CONFIG . 'MigrationsTmp';
+		$migrationFiles = glob($migrationsTmpPath . '/*_ReInit.php');
+
+		if (!$migrationFiles) {
+			return;
+		}
+
+		$migrationFile = $migrationFiles[0];
+		$content = file_get_contents($migrationFile);
+
+		if ($content === false) {
+			return;
+		}
+
+		foreach ($excludedTables as $table) {
+			// Remove $this->table('tablename') blocks
+			// Pattern matches from $this->table('tablename') to the next ->create(); or ->update();
+			$pattern = '/\$this->table\([\'"]' . preg_quote($table, '/') . '[\'"].*?\)[\s\S]*?->(?:create|update)\(\);[\r\n]*/';
+			$content = (string)preg_replace($pattern, '', $content);
+		}
+
+		file_put_contents($migrationFile, $content);
 	}
 
 	/**

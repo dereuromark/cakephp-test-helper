@@ -335,4 +335,64 @@ class MigrationsComponentTest extends TestCase {
 		$this->assertSame('mismatch', $drift['constraint_diffs'][0]['type']);
 	}
 
+	/**
+	 * @return void
+	 */
+	public function testIsIgnoredTablePhinxlog(): void {
+		$this->assertTrue($this->component->isIgnoredTable('phinxlog'));
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testIsIgnoredTableCakeMigrations(): void {
+		$this->assertTrue($this->component->isIgnoredTable('cake_migrations'));
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testIsIgnoredTableCakeSeeds(): void {
+		$this->assertTrue($this->component->isIgnoredTable('cake_seeds'));
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testIsIgnoredTablePluginPhinxlog(): void {
+		$this->assertTrue($this->component->isIgnoredTable('queue_phinxlog'));
+		$this->assertTrue($this->component->isIgnoredTable('file_storage_phinxlog'));
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testIsIgnoredTableRegularTable(): void {
+		$this->assertFalse($this->component->isIgnoredTable('users'));
+		$this->assertFalse($this->component->isIgnoredTable('articles'));
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testGetPluginsWithMigrations(): void {
+		$result = $this->component->getPluginsWithMigrations();
+
+		$this->assertIsArray($result);
+		// Result may be empty if no plugins with migrations are detected
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testGetApplicationTables(): void {
+		$result = $this->component->getApplicationTables();
+
+		$this->assertIsArray($result);
+		// Verify migration tracking tables are not included
+		$this->assertNotContains('phinxlog', $result);
+		$this->assertNotContains('cake_migrations', $result);
+		$this->assertNotContains('cake_seeds', $result);
+	}
+
 }

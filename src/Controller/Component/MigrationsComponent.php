@@ -87,7 +87,7 @@ class MigrationsComponent extends Component {
 	 * @param string $tableName
 	 * @return bool
 	 */
-	protected function isIgnoredTable(string $tableName): bool {
+	public function isIgnoredTable(string $tableName): bool {
 		if (in_array($tableName, $this->ignoredTables, true)) {
 			return true;
 		}
@@ -390,6 +390,72 @@ class MigrationsComponent extends Component {
 		}
 
 		return $useLegacy ? 'phinxlog' : 'cake_migrations';
+	}
+
+	/**
+	 * Get list of plugins with migrations.
+	 * Supports both legacy (*_phinxlog) and modern (cake_migrations with plugin column) formats.
+	 *
+	 * @param string $connectionName Connection name
+	 * @return array<string> List of plugin names
+	 */
+	public function getPluginsWithMigrations(string $connectionName = 'default'): array {
+		$plugins = [];
+
+		/** @var \Cake\Database\Connection $connection */
+		$connection = ConnectionManager::get($connectionName);
+		/** @var \Cake\Database\Schema\Collection $schemaCollection */
+		$schemaCollection = $connection->getSchemaCollection();
+		$tables = $schemaCollection->listTables();
+
+		// Modern format: check cake_migrations table for plugin column
+		if (in_array('cake_migrations', $tables, true)) {
+			$result = $connection->execute(
+				"SELECT DISTINCT plugin FROM cake_migrations WHERE plugin IS NOT NULL AND plugin != ''",
+			)->fetchAll('assoc');
+			foreach ($result as $row) {
+				$plugins[] = $row['plugin'];
+			}
+		}
+
+		// Legacy format: check *_phinxlog tables
+		foreach ($tables as $table) {
+			if (str_ends_with($table, '_phinxlog') && $table !== 'phinxlog') {
+				$count = $connection->execute('SELECT COUNT(*) FROM ' . $table)->fetch();
+				if ($count && $count[0] > 0) {
+					$pluginName = str_replace('_phinxlog', '', $table);
+					$pluginName = str_replace('_', '', ucwords($pluginName, '_'));
+					if (!in_array($pluginName, $plugins, true)) {
+						$plugins[] = $pluginName;
+					}
+				}
+			}
+		}
+
+		sort($plugins);
+
+		return $plugins;
+	}
+
+	/**
+	 * Get all application tables (excluding migration tracking tables).
+	 *
+	 * @param string $connectionName Connection name
+	 * @return array<string> List of table names
+	 */
+	public function getApplicationTables(string $connectionName = 'default'): array {
+		/** @var \Cake\Database\Connection $connection */
+		$connection = ConnectionManager::get($connectionName);
+		/** @var \Cake\Database\Schema\Collection $schemaCollection */
+		$schemaCollection = $connection->getSchemaCollection();
+		$allTables = $schemaCollection->listTables();
+
+		// Filter out migration tracking tables
+		$tables = array_values(array_filter($allTables, fn (string $t): bool => !$this->isIgnoredTable($t)));
+
+		sort($tables);
+
+		return $tables;
 	}
 
 }
