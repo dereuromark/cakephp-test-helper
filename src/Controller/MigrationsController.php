@@ -4,6 +4,7 @@ namespace TestHelper\Controller;
 
 use Cake\Datasource\ConnectionManager;
 use Cake\Event\EventInterface;
+use Cake\Http\Response;
 use SebastianBergmann\Diff\Differ;
 use SebastianBergmann\Diff\Output\DiffOnlyOutputBuilder;
 
@@ -471,7 +472,7 @@ SQL;
 		string $shadowDatabase,
 		bool $hasDrift,
 		?string $error,
-	): \Cake\Http\Response {
+	): Response {
 		return match ($format) {
 			'json' => $this->exportJson($drift, $connectionName, $database, $shadowDatabase, $hasDrift, $error),
 			'markdown', 'md' => $this->exportMarkdown($drift, $connectionName, $database, $shadowDatabase, $hasDrift, $error),
@@ -498,7 +499,7 @@ SQL;
 		string $shadowDatabase,
 		bool $hasDrift,
 		?string $error,
-	): \Cake\Http\Response {
+	): Response {
 		$data = [
 			'connection' => $connectionName,
 			'database' => $database,
@@ -532,7 +533,7 @@ SQL;
 		string $shadowDatabase,
 		bool $hasDrift,
 		?string $error,
-	): \Cake\Http\Response {
+	): Response {
 		$lines = [];
 		$lines[] = '# Schema Drift Report';
 		$lines[] = '';
@@ -705,7 +706,7 @@ SQL;
 		string $shadowDatabase,
 		bool $hasDrift,
 		?string $error,
-	): \Cake\Http\Response {
+	): Response {
 		$lines = [];
 		$lines[] = 'SCHEMA DRIFT REPORT';
 		$lines[] = str_repeat('=', 60);
