@@ -28,7 +28,7 @@
 		"dereuromark/cakephp-shim": "^3.8.2",
 		"fig-r/psr2r-sniffer": "dev-master",
 		"phpunit/phpunit": "^11.5 || ^12.1 || ^13.0",
-		"sebastian/diff": "^5.0.0 || ^6.0.0 || ^7.0.0"
+		"sebastian/diff": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
 	},
 	"minimum-stability": "stable",
 	"prefer-stable": true,
