@@ -1,6 +1,6 @@
 {
 	"name": "dereuromark/cakephp-test-helper",
-	"description": "TestHelper plugin for CakePHP",
+	"description": "A CakePHP plugin for generating test cases and debugging tests with standalone UI",
 	"license": "MIT",
 	"type": "cakephp-plugin",
 	"keywords": [
@@ -12,7 +12,9 @@
 		"generate",
 		"dev",
 		"admin-panel",
-		"standalone-ui"
+		"standalone-ui",
+		"debugging",
+		"cli"
 	],
 	"authors": [
 		{
