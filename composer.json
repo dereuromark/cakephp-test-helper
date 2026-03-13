@@ -10,7 +10,9 @@
 		"tests",
 		"coverage",
 		"generate",
-		"dev"
+		"dev",
+		"admin-panel",
+		"standalone-ui"
 	],
 	"authors": [
 		{
