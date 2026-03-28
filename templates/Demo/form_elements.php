@@ -48,9 +48,9 @@
 <fieldset>
 	<legend>Date and Time Inputs</legend>
 
-	<?php echo $this->Form->control('date', ['type' => 'date']); ?>
-	<?php echo $this->Form->control('time', ['type' => 'time']); ?>
-	<?php echo $this->Form->control('datetime', ['type' => 'datetime-local', 'label' => 'DateTime Local']); ?>
+	<?php echo $this->Form->control('date', ['type' => 'text', 'class' => 'form-control datepicker', 'placeholder' => 'YYYY-MM-DD']); ?>
+	<?php echo $this->Form->control('time', ['type' => 'text', 'class' => 'form-control timepicker', 'placeholder' => 'HH:MM']); ?>
+	<?php echo $this->Form->control('datetime', ['type' => 'text', 'class' => 'form-control datetimepicker', 'label' => 'DateTime', 'placeholder' => 'YYYY-MM-DD HH:MM']); ?>
 	<?php echo $this->Form->control('month', ['type' => 'month']); ?>
 	<?php echo $this->Form->control('week', ['type' => 'week']); ?>
 </fieldset>
