@@ -44,6 +44,10 @@
 			padding: 15px;
 			border-radius: 4px;
 			border: 1px solid #dee2e6;
+			overflow-x: auto;
+			white-space: pre-wrap;
+			word-wrap: break-word;
+			max-width: 100%;
 		}
 		.flash-message {
 			margin-bottom: 20px;
