@@ -519,7 +519,8 @@ class QueryBuilderGenerator {
 		$code .= $this->generateSelectQueryParts($firstQuery);
 
 		// Generate union calls for remaining queries
-		for ($i = 1; $i < count($parsed['queries']); $i++) {
+		$queriesCount = count($parsed['queries']);
+		for ($i = 1; $i < $queriesCount; $i++) {
 			$unionQuery = $parsed['queries'][$i];
 			$code .= "\n" . $this->indent() . '->' . $method . '(function (\\Cake\\ORM\\Query\\SelectQuery $query) {';
 			$code .= "\n" . $this->indent(2) . 'return $query';
@@ -1242,7 +1243,8 @@ class QueryBuilderGenerator {
 		$inQuote = false;
 		$quoteChar = '';
 
-		for ($i = 0; $i < strlen($argsStr); $i++) {
+		$argsLength = strlen($argsStr);
+		for ($i = 0; $i < $argsLength; $i++) {
 			$char = $argsStr[$i];
 
 			// Handle quotes

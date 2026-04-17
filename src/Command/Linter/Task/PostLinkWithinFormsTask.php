@@ -112,12 +112,14 @@ class PostLinkWithinFormsTask extends AbstractLinterTask {
 				$hasBlockTrue = false;
 
 				// Collect all lines for this postLink() call
-				for ($i = $lineNum; $i < count($lines); $i++) {
+				$linesCount = count($lines);
+				for ($i = $lineNum; $i < $linesCount; $i++) {
 					$currentLine = $lines[$i];
 					$postLinkContent .= $currentLine . "\n";
 
 					// Track parenthesis depth
-					for ($j = 0; $j < strlen($currentLine); $j++) {
+					$currentLineLength = strlen($currentLine);
+					for ($j = 0; $j < $currentLineLength; $j++) {
 						$char = $currentLine[$j];
 						if ($char === '(' && (str_contains(substr($currentLine, 0, $j), 'postLink') || $started)) {
 							$depth++;

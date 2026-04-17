@@ -325,7 +325,8 @@ class ArrayUrlsInTestsTask extends AbstractLinterTask {
 			$arrayParts[] = "'action' => '" . ($parts[1] ?? 'index') . "'";
 
 			// Add remaining parts as pass parameters
-			for ($i = 2; $i < count($parts); $i++) {
+			$partsCount = count($parts);
+			for ($i = 2; $i < $partsCount; $i++) {
 				if (is_numeric($parts[$i])) {
 					$arrayParts[] = $parts[$i];
 				} else {
