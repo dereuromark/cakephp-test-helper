@@ -34,7 +34,7 @@ $plugins = Plugin::loaded();
 			<?php echo $this->Html->link(
 				$this->TestHelper->icon('home') . ' TestCase',
 				['action' => 'browse', '?' => ['namespace' => $namespace]],
-				['escape' => false],
+				['escapeTitle' => false],
 			); ?>
 		</li>
 		<?php foreach ($breadcrumb as $index => $crumb) { ?>
@@ -63,7 +63,7 @@ $plugins = Plugin::loaded();
 		echo $this->Html->link(
 			$this->TestHelper->icon('back') . ' Back',
 			['action' => 'browse', '?' => array_filter(['namespace' => $namespace, 'path' => $parentPath ?: null])],
-			['escape' => false, 'class' => 'btn btn-outline-secondary btn-sm'],
+			['escapeTitle' => false, 'class' => 'btn btn-outline-secondary btn-sm'],
 		);
 		?>
 	</div>

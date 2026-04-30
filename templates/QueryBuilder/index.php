@@ -16,7 +16,7 @@ $this->assign('title', 'SQL to CakePHP Query Builder Converter');
 	<?php echo $this->Html->link(
 		$this->TestHelper->icon('dashboard') . ' Back to Dashboard',
 		['controller' => 'TestHelper', 'action' => 'index'],
-		['escape' => false, 'class' => 'btn btn-sm btn-secondary'],
+		['escapeTitle' => false, 'class' => 'btn btn-sm btn-secondary'],
 	); ?>
 </div>
 
@@ -237,7 +237,7 @@ $examples = [
 								<?php echo $this->Html->link(
 									$this->TestHelper->icon('next') . ' Try It',
 									['?' => ['sql' => $exampleSql]],
-									['escape' => false, 'class' => 'btn btn-sm btn-outline-primary mb-2'],
+									['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-primary mb-2'],
 								); ?>
 							</div>
 						<?php } ?>
