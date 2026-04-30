@@ -22,7 +22,7 @@
 			<?php echo $this->Html->link(
 				$this->TestHelper->icon('home') . ' TestCase',
 				['action' => 'browse', '?' => ['namespace' => $namespace]],
-				['escape' => false],
+				['escapeTitle' => false],
 			); ?>
 		</li>
 		<?php foreach ($breadcrumb as $crumb) { ?>
@@ -47,7 +47,7 @@
 	echo $this->Html->link(
 		$this->TestHelper->icon('back') . ' Back to directory',
 		['action' => 'browse', '?' => array_filter(['namespace' => $namespace, 'path' => $parentPath ?: null])],
-		['escape' => false, 'class' => 'btn btn-outline-secondary btn-sm me-2'],
+		['escapeTitle' => false, 'class' => 'btn btn-outline-secondary btn-sm me-2'],
 	);
 	?>
 	<?php echo $this->Html->link(

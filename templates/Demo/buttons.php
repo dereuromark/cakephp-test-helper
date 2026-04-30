@@ -161,7 +161,7 @@
 		<h3>Basic Links</h3>
 		<p><?php echo $this->Html->link('Simple Link', '#'); ?></p>
 		<p><?php echo $this->Html->link('Link with Class', '#', ['class' => 'btn btn-primary']); ?></p>
-		<p><?php echo $this->Html->link('Link with Icon', '#', ['class' => 'btn btn-secondary', 'escape' => false]); ?></p>
+		<p><?php echo $this->Html->link('Link with Icon', '#', ['class' => 'btn btn-secondary', 'escapeTitle' => false]); ?></p>
 
 		<h3>Links with Confirm</h3>
 		<p><?php echo $this->Html->link('Delete Item', '#', [
@@ -174,7 +174,7 @@
 		<p><?php echo $this->Html->link('External with Icon', 'https://example.com', [
 			'target' => '_blank',
 			'class' => 'btn btn-outline-primary',
-			'escape' => false,
+			'escapeTitle' => false,
 		]); ?> <i class="fas fa-external-link-alt"></i></p>
 	</div>
 
