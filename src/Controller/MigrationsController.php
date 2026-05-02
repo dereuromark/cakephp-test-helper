@@ -6,6 +6,7 @@ use Cake\Core\Configure;
 use Cake\Datasource\ConnectionManager;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
+use InvalidArgumentException;
 use SebastianBergmann\Diff\Differ;
 use SebastianBergmann\Diff\Output\DiffOnlyOutputBuilder;
 
@@ -56,18 +57,23 @@ class MigrationsController extends TestHelperAppController {
 	 */
 	public function tmpDb() {
 		$dbConfig = ConnectionManager::getConfig('default');
-		$database = $dbConfig['database'] ?? [];
+		$database = $dbConfig['database'] ?? '';
 
 		$tmpDatabase = $database . '_tmp';
+		$this->assertValidIdentifier($tmpDatabase, 'database');
 
 		/** @var \Cake\Database\Connection $connection */
 		$connection = ConnectionManager::get('default');
-		$result = $connection->execute('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \'' . $tmpDatabase . '\';')->fetch();
+		$result = $connection->execute(
+			'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?',
+			[$tmpDatabase],
+		)->fetch();
 		if ($result) {
 			return $this->redirect(['action' => 'snapshot']);
 		}
 		if ($this->request->is('post')) {
-			$connection->execute('CREATE DATABASE IF NOT EXISTS ' . $tmpDatabase . ';')->closeCursor();
+			$quoted = $connection->getDriver()->quoteIdentifier($tmpDatabase);
+			$connection->execute('CREATE DATABASE IF NOT EXISTS ' . $quoted)->closeCursor();
 
 			$this->Flash->success('Tmp DB created');
 
@@ -113,7 +119,12 @@ class MigrationsController extends TestHelperAppController {
 				/** @var \Cake\Database\Connection $connection */
 				$connection = ConnectionManager::get('default');
 				$migrationsTable = $this->Migrations->getMigrationTableName();
-				$connection->execute('DELETE FROM ' . $migrationsTable . ' WHERE `migration_name` = "Tmp";')->closeCursor();
+				$this->assertValidIdentifier($migrationsTable, 'migrations table');
+				$quotedTable = $connection->getDriver()->quoteIdentifier($migrationsTable);
+				$connection->execute(
+					'DELETE FROM ' . $quotedTable . ' WHERE migration_name = ?',
+					['Tmp'],
+				)->closeCursor();
 
 				$this->Flash->success('Tmp Migration file created');
 
@@ -166,8 +177,9 @@ class MigrationsController extends TestHelperAppController {
 	 */
 	public function snapshotTest() {
 		$dbConfig = ConnectionManager::getConfig('default');
-		$database = $dbConfig['database'] ?? [];
+		$database = $dbConfig['database'] ?? '';
 		$tmpDatabase = $database . '_tmp';
+		$this->assertValidIdentifier($tmpDatabase, 'database');
 
 		$files = [];
 		$migrationsTmpPath = CONFIG . 'MigrationsTmp';
@@ -177,13 +189,7 @@ class MigrationsController extends TestHelperAppController {
 		}
 
 		if ($this->request->is('post') && $this->request->getData('test')) {
-			$connectionConfig = [
-				'database' => $tmpDatabase,
-			] + $dbConfig;
-			$connectionName = 'tmp';
-			if (!ConnectionManager::getConfig($connectionName)) {
-				ConnectionManager::setConfig($connectionName, $connectionConfig);
-			}
+			$this->ensureTmpConnection($tmpDatabase, $dbConfig);
 
 			/** @var \Cake\Database\Connection $connection */
 			$connection = ConnectionManager::get('tmp');
@@ -192,19 +198,16 @@ class MigrationsController extends TestHelperAppController {
 			$schemaCollection = $connection->getSchemaCollection();
 			$sources = $schemaCollection->listTables();
 			if ($sources) {
-				$tableTruncates = 'DROP TABLE ' . implode(';' . PHP_EOL . 'DROP TABLE ', $sources) . ';';
-
-				$sql = <<<SQL
-SET FOREIGN_KEY_CHECKS = 0;
-
-$tableTruncates
-
-SET FOREIGN_KEY_CHECKS = 1;
-SQL;
-				$connection->execute($sql);
+				$driver = $connection->getDriver();
+				$connection->execute('SET FOREIGN_KEY_CHECKS = 0')->closeCursor();
+				foreach ($sources as $source) {
+					$this->assertValidIdentifier($source, 'table');
+					$connection->execute('DROP TABLE ' . $driver->quoteIdentifier($source))->closeCursor();
+				}
+				$connection->execute('SET FOREIGN_KEY_CHECKS = 1')->closeCursor();
 			}
 
-			$command = 'bin/cake migrations migrate -s MigrationsTmp -c "mysql://root@127.0.0.1/' . $tmpDatabase . '" --no-lock';
+			$command = 'bin/cake migrations migrate -s MigrationsTmp -c tmp --no-lock';
 			exec('cd ' . ROOT . ' && ' . $command, $output, $code);
 			$this->Flash->info(print_r($output, true) . ' (code ' . $code . ')');
 			if ($code === 0) {
@@ -224,8 +227,9 @@ SQL;
 	 */
 	public function seedTest() {
 		$dbConfig = ConnectionManager::getConfig('default');
-		$database = $dbConfig['database'] ?? [];
+		$database = $dbConfig['database'] ?? '';
 		$tmpDatabase = $database . '_tmp';
+		$this->assertValidIdentifier($tmpDatabase, 'database');
 
 		$seeds = [];
 		$seedsPath = CONFIG . 'Seeds';
@@ -235,7 +239,9 @@ SQL;
 		}
 
 		if ($this->request->is('post') && $this->request->getData('test')) {
-			$command = 'bin/cake migrations seed -c "mysql://root@127.0.0.1/' . $tmpDatabase . '"';
+			$this->ensureTmpConnection($tmpDatabase, $dbConfig);
+
+			$command = 'bin/cake migrations seed -c tmp';
 			exec('cd ' . ROOT . ' && ' . $command, $output, $code);
 			$this->Flash->info(print_r($output, true) . ' (code ' . $code . ')');
 			if ($code === 0) {
@@ -299,7 +305,9 @@ SQL;
 			/** @var \Cake\Database\Connection $connection */
 			$connection = ConnectionManager::get('default');
 			$migrationsTable = $this->Migrations->getMigrationTableName();
-			$connection->execute('DELETE FROM ' . $migrationsTable . ' WHERE 1=1')->closeCursor();
+			$this->assertValidIdentifier($migrationsTable, 'migrations table');
+			$quotedTable = $connection->getDriver()->quoteIdentifier($migrationsTable);
+			$connection->execute('DELETE FROM ' . $quotedTable . ' WHERE 1=1')->closeCursor();
 
 			$command = 'bin/cake migrations mark_migrated';
 			exec('cd ' . ROOT . ' && ' . $command, $output, $code);
@@ -431,15 +439,18 @@ SQL;
 				$existingTables = $schemaCollection->listTables();
 
 				if ($existingTables) {
+					$testDriver = $testConnection->getDriver();
 					if ($isMysql) {
 						$testConnection->execute('SET FOREIGN_KEY_CHECKS = 0')->closeCursor();
 						foreach ($existingTables as $table) {
-							$testConnection->execute('DROP TABLE IF EXISTS `' . $table . '`')->closeCursor();
+							$this->assertValidIdentifier($table, 'table');
+							$testConnection->execute('DROP TABLE IF EXISTS ' . $testDriver->quoteIdentifier($table))->closeCursor();
 						}
 						$testConnection->execute('SET FOREIGN_KEY_CHECKS = 1')->closeCursor();
 					} elseif ($isPostgres) {
 						foreach ($existingTables as $table) {
-							$testConnection->execute('DROP TABLE IF EXISTS "' . $table . '" CASCADE')->closeCursor();
+							$this->assertValidIdentifier($table, 'table');
+							$testConnection->execute('DROP TABLE IF EXISTS ' . $testDriver->quoteIdentifier($table) . ' CASCADE')->closeCursor();
 						}
 					}
 				}
@@ -844,6 +855,39 @@ SQL;
 		return $this->response
 			->withType('text/plain')
 			->withStringBody(implode("\n", $lines));
+	}
+
+	/**
+	 * Validate that an identifier (database, table, column name) only contains
+	 * safe characters. Used as a defense-in-depth check before identifiers are
+	 * interpolated into SQL or shell commands.
+	 *
+	 * @param string $identifier The identifier to validate.
+	 * @param string $kind Human-readable kind for the error message.
+	 * @throws \InvalidArgumentException When the identifier contains unsafe characters.
+	 * @return void
+	 */
+	protected function assertValidIdentifier(string $identifier, string $kind = 'identifier'): void {
+		if ($identifier === '' || !preg_match('/^[A-Za-z0-9_]+$/', $identifier)) {
+			throw new InvalidArgumentException(sprintf('Invalid %s name: %s', $kind, $identifier));
+		}
+	}
+
+	/**
+	 * Ensure the dedicated `tmp` connection is configured so migrations and
+	 * seeds can be invoked via `-c tmp` instead of an inline DSN. This avoids
+	 * the previous hardcoded `mysql://root...` connection string.
+	 *
+	 * @param string $tmpDatabase Validated tmp database name.
+	 * @param array<string, mixed> $dbConfig Default connection config to inherit from.
+	 * @return void
+	 */
+	protected function ensureTmpConnection(string $tmpDatabase, array $dbConfig): void {
+		if (ConnectionManager::getConfig('tmp')) {
+			return;
+		}
+		$connectionConfig = ['database' => $tmpDatabase] + $dbConfig;
+		ConnectionManager::setConfig('tmp', $connectionConfig);
 	}
 
 	/**

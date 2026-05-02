@@ -21,16 +21,59 @@ class MigrationsComponent extends Component {
 	 * @return string
 	 */
 	public function getSchema(string $database): string {
-		$dbConfig = ConnectionManager::getConfig('default');
-		$command = 'cd ' . ROOT . ' && mysqldump --host=' . ($dbConfig['host'] ?? 'localhost') . ' --user="' . $dbConfig['username'] . '" --password="' . $dbConfig['password'] . '" --no-data ' . $database;
-		exec($command, $output, $code);
-		if ($code !== 0) {
-			$this->getController()->Flash->error(print_r($output, true));
-		}
-		array_pop($output);
-		$content = trim(implode(PHP_EOL, $output));
+		$dbConfig = ConnectionManager::getConfig('default') ?? [];
+		$host = (string)($dbConfig['host'] ?? 'localhost');
+		$user = (string)($dbConfig['username'] ?? '');
+		$password = (string)($dbConfig['password'] ?? '');
 
-		return $content;
+		// Validate database name as defense in depth: it is also passed unquoted as an
+		// argument to mysqldump and we want to reject anything outside [A-Za-z0-9_].
+		if ($database === '' || !preg_match('/^[A-Za-z0-9_]+$/', $database)) {
+			$this->getController()->Flash->error('Invalid database name: ' . $database);
+
+			return '';
+		}
+
+		$command = 'cd ' . escapeshellarg(ROOT) . ' && mysqldump'
+			. ' --host=' . escapeshellarg($host)
+			. ' --user=' . escapeshellarg($user)
+			. ' --no-data '
+			. escapeshellarg($database);
+
+		// Pass the password via MYSQL_PWD env var so it never appears on the
+		// process command line (visible in `ps`/`/proc`).
+		$descriptors = [
+			0 => ['pipe', 'r'],
+			1 => ['pipe', 'w'],
+			2 => ['pipe', 'w'],
+		];
+		$env = ['MYSQL_PWD' => $password] + $_ENV + $_SERVER;
+		// Restrict to scalar values for proc_open env.
+		$env = array_filter($env, fn ($v): bool => is_scalar($v));
+
+		$process = proc_open($command, $descriptors, $pipes, null, $env);
+		if (!is_resource($process)) {
+			$this->getController()->Flash->error('Could not run mysqldump');
+
+			return '';
+		}
+
+		fclose($pipes[0]);
+		$stdout = (string)stream_get_contents($pipes[1]);
+		fclose($pipes[1]);
+		$stderr = (string)stream_get_contents($pipes[2]);
+		fclose($pipes[2]);
+		$code = proc_close($process);
+
+		if ($code !== 0) {
+			$this->getController()->Flash->error($stderr !== '' ? $stderr : ('mysqldump failed (code ' . $code . ')'));
+		}
+
+		$lines = $stdout === '' ? [] : explode("\n", rtrim($stdout, "\n"));
+		// Drop the trailing "Dump completed on ..." line (timestamp would defeat schema diffs).
+		array_pop($lines);
+
+		return trim(implode(PHP_EOL, $lines));
 	}
 
 	/**
