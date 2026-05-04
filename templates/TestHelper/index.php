@@ -39,7 +39,7 @@ $this->assign('title', 'Test Helper Dashboard');
 					]);
 					?>
 					<div class="mt-3">
-						<?php echo $this->Form->submit(__('Submit'), ['class' => 'btn btn-primary']); ?>
+						<?php echo $this->Form->submit('Submit', ['class' => 'btn btn-primary']); ?>
 					</div>
 				<?php echo $this->Form->end(); ?>
 
