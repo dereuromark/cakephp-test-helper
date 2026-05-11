@@ -60,6 +60,13 @@
 			display: inline-block;
 			margin-right: 10px;
 		}
+
+		/* Lighter placeholder so it doesn't get mistaken for real content */
+		.form-control::placeholder,
+		.form-select::placeholder {
+			color: #adb5bd;
+			opacity: 1;
+		}
 	</style>
 </head>
 <body>
