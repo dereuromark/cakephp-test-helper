@@ -1,3 +1,7 @@
+---
+description: Fixes for common TestHelper issues — Authorization plugin errors and black-and-white coverage reports.
+---
+
 # Troubleshooting
 
 ## Authorization plugin errors

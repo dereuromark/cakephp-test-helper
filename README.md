@@ -10,6 +10,8 @@
 
 Browser based addons for your test driven development.
 
+📖 **[Documentation](https://dereuromark.github.io/cakephp-test-helper/)**
+
 Note: This branch is for **CakePHP 5.1+**. See [version map](https://github.com/dereuromark/cakephp-test-helper/wiki#cakephp-version-map) for details.
 
 ## Motivation
@@ -100,7 +102,7 @@ The plugin includes a flexible linter system for running project-specific code q
 bin/cake linter
 ```
 
-See [Linter Documentation](docs/Linter.md) for details on creating custom tasks, configuration, and included default tasks.
+See [Linter Documentation](docs/linter.md) for details on creating custom tasks, configuration, and included default tasks.
 
 ## SQL to Query Builder Converter
 
@@ -141,7 +143,7 @@ $query = $this->find()
     ->having(['COUNT(posts.id) >' => 5]);
 ```
 
-See [SQL Converter Documentation](docs/SqlConverter.md) for complete guide and examples.
+See [SQL Converter Documentation](docs/sql-converter.md) for complete guide and examples.
 
 ## Limitations
 Executing the tests and coverage from the web backend usually can not work for long-running tests due to the timeout issues.

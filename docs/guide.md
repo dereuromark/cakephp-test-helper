@@ -1,24 +1,35 @@
+---
+description: Overview of the TestHelper developer backend for CakePHP and its tools, plus installation steps.
+---
+
 # Overview
 
 TestHelper adds a browseable developer backend at `/test-helper` for your CakePHP app,
 collecting several day-to-day tools in one place.
 
+![TestHelper dashboard](img/dashboard.png)
+
 ::: tip
 Everything here is a development aid — mount it behind your admin/dev gate. See
-[Configuration](/Configuration) for the authorization and back-link options.
+[Configuration](/configuration) for the authorization and back-link options.
 :::
 
 ## Tools
 
 | Tool | What it does |
 |------|--------------|
-| [Association vs DB Audit](/Associations) | Compare declared associations against the real database foreign keys, with copy-paste fixes |
-| [SQL to Query Builder](/SqlConverter) | Convert raw SQL into CakePHP Query Builder code |
-| [Test Runner](/TestRunner) | Run tests and view results/coverage in the backend; bake missing test files |
-| [Fixture Check](/FixtureCheck) | Compare fixtures against the live DB schema |
-| [URL Tools](/UrlTools) | Generate URL arrays from string URLs (reverse lookup) |
-| [Plugin Info](/Plugins) | Inspect plugins, their hooks, and suggested improvements |
-| [Custom Linter Tasks](/Linter) | Project-specific code-quality checks via `bin/cake linter` |
+| [Association vs DB Audit](/associations) | Compare declared associations against the real database foreign keys, with copy-paste fixes |
+| [SQL to Query Builder](/sql-converter) | Convert raw SQL into CakePHP Query Builder code |
+| [Test Runner](/test-runner) | Run tests and view results/coverage in the backend; bake missing test files |
+| [Fixture Check](/fixture-check) | Compare fixtures against the live DB schema |
+| [URL Tools](/url-tools) | Generate URL arrays from string URLs (reverse lookup) |
+| [Plugin Info](/plugins) | Inspect plugins, their hooks, and suggested improvements |
+| [Custom Linter Tasks](/linter) | Project-specific code-quality checks via `bin/cake linter` |
+
+## Requirements
+
+* PHP 8.2+
+* CakePHP 5.1+
 
 ## Installation
 
@@ -42,5 +53,5 @@ public function bootstrap(): void
 
 Then browse to `/test-helper`.
 
-See [Configuration](/Configuration) for the available options and
-[Troubleshooting](/Troubleshooting) if something doesn't render.
+See [Configuration](/configuration) for the available options and
+[Troubleshooting](/troubleshooting) if something doesn't render.

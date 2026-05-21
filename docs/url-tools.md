@@ -1,3 +1,7 @@
+---
+description: Reverse-look-up string URLs into CakePHP routing arrays from the TestHelper backend.
+---
+
 # URL Tools
 
 Generate URL arrays from string URLs — a reverse lookup that turns a path back into the

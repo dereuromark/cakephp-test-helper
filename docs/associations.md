@@ -1,3 +1,7 @@
+---
+description: Compare your CakePHP table associations against the real database foreign keys across four layers, with copy-paste fixes and composite-key support.
+---
+
 # Association vs DB Foreign-Key Audit
 
 Navigate to:
@@ -84,9 +88,13 @@ layers (`Key type` and `Cascade`) as their own columns, color-coded by status:
 
 ![Association audit matrix](img/associations_matrix.png)
 
-Each finding can be opened for detail, including a copy-paste fix:
+Each table opens to a per-direction detail view:
 
-![Association audit detail with fix](img/associations_fix.png)
+![Association audit detail](img/associations_detail.png)
+
+Every finding includes a copy-paste fix:
+
+![Association audit finding with fix](img/associations_fix.png)
 
 ## Flat scan
 

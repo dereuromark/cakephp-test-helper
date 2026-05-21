@@ -1,3 +1,7 @@
+---
+description: All TestHelper configuration keys — authorization bypass, the admin back-link, test runner options, and templates.
+---
+
 # Configuration
 
 All keys live under the `TestHelper` config prefix. See `config/app.example.php` for the
@@ -49,4 +53,4 @@ template for your own at the project level, as documented in the CakePHP docs.
 
 Some tools have their own keys, documented on their pages:
 
-* [Association vs DB Audit](/Associations#configuration) — `associationAudit.ignoreColumns`, `associationAudit.preferIntegerKeys`
+* [Association vs DB Audit](/associations#configuration) — `associationAudit.ignoreColumns`, `associationAudit.preferIntegerKeys`

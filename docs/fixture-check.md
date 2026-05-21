@@ -1,3 +1,7 @@
+---
+description: Compare your CakePHP fixtures against the live database schema and get the bake commands to fix any drift.
+---
+
 # Fixture Check
 
 Compare your fixture files against the live database schema — fields and attributes,

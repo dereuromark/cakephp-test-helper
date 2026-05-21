@@ -1,6 +1,15 @@
+---
+description: Run project-specific code-quality checks in CakePHP via bin/cake linter, with configurable and custom tasks.
+---
+
 # Cake Linter Tasks
 
 The TestHelper plugin provides a flexible linter system for running project-specific code quality checks. Unlike general-purpose tools (phpcs, phpstan, rector), these linters are designed for quick validation of project-specific conventions that don't fit into standard static analysis tools.
+
+::: tip
+Run all configured tasks with `bin/cake linter`. Each task is a small, focused check you
+can enable, configure, or write yourself — see [Creating a custom task](#creating-custom-tasks).
+:::
 
 ![linter](img/linter_output.png)
 

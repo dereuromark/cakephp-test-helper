@@ -1,3 +1,7 @@
+---
+description: Run your CakePHP test suites and view results or coverage from the TestHelper backend, and bake missing test files.
+---
+
 # Test Runner
 
 Run your test suites from the backend and view the results — or coverage — without leaving
@@ -24,9 +28,9 @@ test for you.
 ],
 ```
 
-See [Configuration](/Configuration) for the full list of options.
+See [Configuration](/configuration) for the full list of options.
 
 ::: warning
 If the coverage report renders in black & white, your web server may be blocking hidden
-files (the assets). See [Troubleshooting](/Troubleshooting#coverage-report-is-black-white).
+files (the assets). See [Troubleshooting](/troubleshooting#coverage-report-is-black-white).
 :::
