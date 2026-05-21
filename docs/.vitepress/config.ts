@@ -1,15 +1,30 @@
 import { defineConfig } from 'vitepress'
 
+function toolItems() {
+  return [
+    { text: 'Association vs DB Audit', link: '/Associations' },
+    { text: 'SQL to Query Builder', link: '/SqlConverter' },
+    { text: 'Test Runner', link: '/TestRunner' },
+    { text: 'Fixture Check', link: '/FixtureCheck' },
+    { text: 'URL Tools', link: '/UrlTools' },
+    { text: 'Plugin Info', link: '/Plugins' },
+    { text: 'Custom Linter Tasks', link: '/Linter' },
+  ]
+}
+
 function docsSidebar() {
   return [
     {
-      text: 'Documentation',
+      text: 'Guide',
       items: [
         { text: 'Overview', link: '/guide' },
-        { text: 'Association vs DB Audit', link: '/Associations' },
-        { text: 'SQL to Query Builder', link: '/SqlConverter' },
-        { text: 'Custom Linter Tasks', link: '/Linter' },
+        { text: 'Configuration', link: '/Configuration' },
+        { text: 'Troubleshooting', link: '/Troubleshooting' },
       ],
+    },
+    {
+      text: 'Tools',
+      items: toolItems(),
     },
   ]
 }
@@ -22,16 +37,16 @@ export default defineConfig({
   sitemap: {
     hostname: 'https://dereuromark.github.io/cakephp-test-helper/',
   },
+  head: [
+    ['link', { rel: 'icon', href: '/cakephp-test-helper/favicon.svg', type: 'image/svg+xml' }],
+  ],
   themeConfig: {
+    logo: '/logo.svg',
     nav: [
-      { text: 'Guide', link: '/guide', activeMatch: '/guide' },
+      { text: 'Guide', link: '/guide', activeMatch: '/(guide|Configuration|Troubleshooting)' },
       {
         text: 'Tools',
-        items: [
-          { text: 'Association vs DB Audit', link: '/Associations' },
-          { text: 'SQL to Query Builder', link: '/SqlConverter' },
-          { text: 'Custom Linter Tasks', link: '/Linter' },
-        ],
+        items: toolItems(),
       },
       {
         text: 'Links',

@@ -9,6 +9,27 @@ Navigate to `/test-helper/query-builder` in your browser to access the converter
 ![SQL Converter Interface](img/convert_query.png)
 ![SQL Converter Interface](img/convert_result.png)
 
+Paste SQL on the left, get Query Builder code on the right:
+
+::: code-group
+
+```sql [SQL]
+SELECT id, title FROM articles
+WHERE published = 1
+ORDER BY created DESC
+LIMIT 10;
+```
+
+```php [CakePHP]
+$query = $articles->find()
+    ->select(['id', 'title'])
+    ->where(['published' => 1])
+    ->orderBy(['created' => 'DESC'])
+    ->limit(10);
+```
+
+:::
+
 ## Features
 
 ### Supported Query Types
