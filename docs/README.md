@@ -16,6 +16,9 @@ Browse `/test-helper` to see all functionality available.
 The default template ships with bootstrap (5) and fontawesome icons.
 You can switch out the view templates with your own on project level as documented in the CakePHP docs.
 
+### Back-to-app link
+Set `TestHelper.adminBackUrl` to show a "back" link in the TestHelper navbar that returns to your app's admin area. It accepts anything `Router::url()` takes; use `'plugin' => false` to anchor it to the host app. Customize the text with `TestHelper.adminBackLabel` (defaults to "Back to App"). See `config/app.example.php`.
+
 ## Test Runner
 Select the app or plugins, the type of classes you want to test and then click on the "run icon" to test.
 If there is no test file yet, there should be a "add icon" to click which bakes one for you.

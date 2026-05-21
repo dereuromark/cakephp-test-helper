@@ -2,6 +2,7 @@
 
 namespace TestHelper\Test\TestCase\Controller;
 
+use Cake\Core\Configure;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
@@ -19,6 +20,39 @@ class TestHelperControllerTest extends TestCase {
 		$this->get(['plugin' => 'TestHelper', 'controller' => 'TestHelper', 'action' => 'index']);
 
 		$this->assertResponseCode(200);
+	}
+
+	/**
+	 * Without the config, no admin back link is rendered in the layout.
+	 *
+	 * @return void
+	 */
+	public function testAdminBackLinkHidden() {
+		Configure::delete('TestHelper.adminBackUrl');
+
+		$this->get(['plugin' => 'TestHelper', 'controller' => 'TestHelper', 'action' => 'index']);
+
+		$this->assertResponseCode(200);
+		$this->assertResponseNotContains('fa-arrow-left');
+	}
+
+	/**
+	 * With adminBackUrl set, the layout renders a back link with the configured label.
+	 *
+	 * @return void
+	 */
+	public function testAdminBackLinkShown() {
+		Configure::write('TestHelper.adminBackUrl', '/admin');
+		Configure::write('TestHelper.adminBackLabel', 'Back to dashboard');
+
+		$this->get(['plugin' => 'TestHelper', 'controller' => 'TestHelper', 'action' => 'index']);
+
+		Configure::delete('TestHelper.adminBackUrl');
+		Configure::delete('TestHelper.adminBackLabel');
+
+		$this->assertResponseCode(200);
+		$this->assertResponseContains('Back to dashboard');
+		$this->assertResponseContains('fa-arrow-left');
 	}
 
 	/**

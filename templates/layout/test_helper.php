@@ -106,6 +106,15 @@
 						<?php echo $this->Html->link('Migrations', ['plugin' => 'TestHelper', 'controller' => 'Migrations', 'action' => 'index'], ['class' => 'nav-link']); ?>
 					</li>
 				</ul>
+				<?php
+				$adminBackUrl = \Cake\Core\Configure::read('TestHelper.adminBackUrl');
+				$adminBackLabel = (string)\Cake\Core\Configure::read('TestHelper.adminBackLabel', 'Back to App');
+				?>
+				<?php if ($adminBackUrl !== null && $adminBackUrl !== '') { ?>
+					<a class="btn btn-outline-light btn-sm ms-auto" href="<?php echo $this->Url->build($adminBackUrl); ?>">
+						<i class="fas fa-arrow-left me-1"></i><?php echo h($adminBackLabel); ?>
+					</a>
+				<?php } ?>
 			</div>
 		</div>
 	</nav>
