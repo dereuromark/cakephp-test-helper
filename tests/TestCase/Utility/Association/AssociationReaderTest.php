@@ -92,6 +92,30 @@ class AssociationReaderTest extends TestCase {
 	}
 
 	/**
+	 * With no explicit bindingKey, the reader resolves the target's actual primary key
+	 * (not a hard-coded `id`) — verifies the type lookup works for non-`id` PKs.
+	 *
+	 * @return void
+	 */
+	public function testBelongsToResolvesNonIdPrimaryKey() {
+		$authors = $this->getTableLocator()->get('Authors', ['table' => 'authors']);
+		$authors->setSchema([
+			'reference' => ['type' => 'uuid'],
+			'name' => ['type' => 'string'],
+			'_constraints' => ['primary' => ['type' => 'primary', 'columns' => ['reference']]],
+		]);
+		$posts = $this->table('Posts', 'posts', ['id' => ['type' => 'integer'], 'author_id' => ['type' => 'integer']]);
+		$posts->belongsTo('Authors', ['foreignKey' => 'author_id']);
+
+		[$keys] = $this->reader->read($posts);
+
+		$this->assertCount(1, $keys);
+		// Referenced column is the real PK `reference`, and its type is read from there.
+		$this->assertSame('reference', $keys[0]->referencedColumn);
+		$this->assertSame('uuid', $keys[0]->referencedColumnType);
+	}
+
+	/**
 	 * hasMany moves the FK onto the target table.
 	 *
 	 * @return void
