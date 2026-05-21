@@ -10,6 +10,12 @@ return [
 		// when using the CakePHP Authorization plugin
 		'ignoreAuthorization' => true,
 
+		// Optional "back" link shown in the TestHelper navbar, for returning to your app's
+		// admin area. Accepts anything Router::url() takes (URL array, path string, full URL).
+		// Use 'plugin' => false to anchor the URL to the host app rather than TestHelper.
+		// 'adminBackUrl' => ['plugin' => false, 'prefix' => 'Admin', 'controller' => 'Overview', 'action' => 'index'],
+		// 'adminBackLabel' => 'Back to admin', // Optional. Defaults to "Back to App".
+
 		// Custom migration order for drift-check (like Migrator's runMany format).
 		// Use [] for app migrations. Order matters for foreign key constraints.
 		// If not set, auto-detects: plugins first (alphabetically), then app.
