@@ -161,6 +161,7 @@ $this->assign('title', 'Test Helper Dashboard');
 				<ul class="list-unstyled mb-0">
 					<li class="mb-2"><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Compare Models & DB Tables', ['controller' => 'TestComparison'], ['escapeTitle' => false, 'class' => 'btn btn-sm btn-danger text-white']); ?></li>
 					<li><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Compare Fixtures vs Tables', ['controller' => 'TestFixtures'], ['escapeTitle' => false, 'class' => 'btn btn-sm btn-danger text-white']); ?></li>
+					<li><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Audit Associations vs DB FKs', ['controller' => 'Associations'], ['escapeTitle' => false, 'class' => 'btn btn-sm btn-danger text-white']); ?></li>
 				</ul>
 			</div>
 		</div>
