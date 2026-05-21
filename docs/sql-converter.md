@@ -1,3 +1,7 @@
+---
+description: Convert raw SQL (SELECT/INSERT/UPDATE/DELETE, joins, subqueries, CTEs, functions) into clean CakePHP Query Builder code.
+---
+
 # SQL to Query Builder Converter
 
 Convert raw SQL queries to clean, production-ready CakePHP Query Builder code with just a few clicks!
@@ -6,8 +10,29 @@ Convert raw SQL queries to clean, production-ready CakePHP Query Builder code wi
 
 Navigate to `/test-helper/query-builder` in your browser to access the converter.
 
-![SQL Converter Interface](img/convert_query.png)
-![SQL Converter Interface](img/convert_result.png)
+![SQL converter input form](img/convert_query.png)
+![Generated Query Builder output](img/convert_result.png)
+
+Paste SQL on the left, get Query Builder code on the right:
+
+::: code-group
+
+```sql [SQL]
+SELECT id, title FROM articles
+WHERE published = 1
+ORDER BY created DESC
+LIMIT 10;
+```
+
+```php [CakePHP]
+$query = $articles->find()
+    ->select(['id', 'title'])
+    ->where(['published' => 1])
+    ->orderBy(['created' => 'DESC'])
+    ->limit(10);
+```
+
+:::
 
 ## Features
 
