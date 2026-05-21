@@ -53,6 +53,17 @@ class Finding {
 	public const SEVERITY_INFO = 'info';
 
 	/**
+	 * Severity sort weight, highest = most severe. Orders findings worst-first.
+	 *
+	 * @var array<string, int>
+	 */
+	public const SEVERITY_RANK = [
+		self::SEVERITY_ERROR => 3,
+		self::SEVERITY_WARNING => 2,
+		self::SEVERITY_INFO => 1,
+	];
+
+	/**
      * @var string
      */
 	public const LAYER_CONSTRAINT = 'constraint';
