@@ -110,6 +110,17 @@ class Finding {
 	}
 
 	/**
+	 * Coarse subject of the finding, used to group/filter the flat scan: the layer
+	 * (constraint / column / type) for regular findings, or "unsupported" for the
+	 * not-auto-verifiable ones (which carry no meaningful layer).
+	 *
+	 * @return string
+	 */
+	public function topic(): string {
+		return $this->direction === static::DIRECTION_UNSUPPORTED ? static::DIRECTION_UNSUPPORTED : $this->layer;
+	}
+
+	/**
 	 * @return array<string, mixed>
 	 */
 	public function toArray(): array {
