@@ -18,6 +18,22 @@ class AssociationAuditor {
 
 	use LocatorAwareTrait;
 
+	/**
+	 * Abstract integer types, narrowest to widest. Treated as one family for key-type
+	 * comparison: same-family widths agree, but an owner narrower than the referenced key
+	 * cannot hold every value, so that direction is flagged.
+	 *
+	 * @var array<string>
+	 */
+	protected const INTEGER_TYPES = ['tinyinteger', 'smallinteger', 'integer', 'biginteger'];
+
+	/**
+	 * Bucket name the integer family collapses to.
+	 *
+	 * @var string
+	 */
+	protected const BUCKET_INTEGER = 'integer';
+
 	protected FixSuggester $fixSuggester;
 
 	protected SchemaIntrospector $schema;
@@ -323,10 +339,14 @@ class AssociationAuditor {
 
 	/**
 	 * Pure key-type layer: compares each declared FK column's type against its referenced
-	 * column's type. Different types are an error; matching non-integer types (e.g. both
-	 * uuid) are info, since integer keys are the ideal. The whole integer family
-	 * (integer/biginteger/smallinteger/tinyinteger) is treated as one bucket, so
-	 * width-only differences like integer vs biginteger are considered in agreement.
+	 * column's type:
+	 *
+	 * - different type families (e.g. integer referencing uuid) are an error;
+	 * - within the integer family, an owner narrower than the referenced key (e.g. integer
+	 *   referencing biginteger) is a warning, since it cannot hold every referenced value
+	 *   (a wider or equal owner is fine);
+	 * - matching non-integer families (e.g. both uuid) are info, since integer keys are the
+	 *   ideal - silenced via `TestHelper.associationAudit.preferIntegerKeys`.
 	 *
 	 * @param array<\TestHelper\Utility\Association\ForeignKey> $codeKeys
 	 * @return array<\TestHelper\Utility\Association\Finding>
@@ -371,28 +391,72 @@ class AssociationAuditor {
 				continue;
 			}
 
-			if ($ownerBucket !== 'integer') {
+			if ($ownerBucket === static::BUCKET_INTEGER) {
+				$ownerRank = array_search($fk->ownerColumnType, static::INTEGER_TYPES, true);
+				$referencedRank = array_search($fk->referencedColumnType, static::INTEGER_TYPES, true);
+				// Equal or wider owner (or an unknown integer subtype) holds every value.
+				if ($ownerRank === false || $referencedRank === false || $ownerRank >= $referencedRank) {
+					continue;
+				}
+
 				$findings[] = new Finding(
 					table: $fk->declaringTable ?? $fk->ownerTable,
 					direction: Finding::DIRECTION_TYPE,
 					associationType: $fk->associationType ?? 'belongsTo',
-					severity: Finding::SEVERITY_INFO,
+					severity: Finding::SEVERITY_WARNING,
 					message: sprintf(
-						'Relation `%s.%s` -> `%s.%s` uses non-integer keys (%s); integer keys are preferred.',
+						'Key `%s.%s` (%s) is narrower than the referenced key `%s.%s` (%s); it cannot hold every referenced value.',
 						$fk->ownerTable,
 						$fk->column,
+						$fk->ownerColumnType,
 						$fk->referencedTable,
 						$fk->referencedColumn,
-						$fk->ownerColumnType,
+						$fk->referencedColumnType,
 					),
 					column: $fk->column,
 					target: $fk->referencedTable,
 					layer: Finding::LAYER_TYPE,
 				);
+
+				continue;
 			}
+
+			// Matching non-integer keys: integer keys are the ideal, so note it as info
+			// unless the app deliberately standardizes on another key type.
+			if (!$this->preferIntegerKeys()) {
+				continue;
+			}
+
+			$findings[] = new Finding(
+				table: $fk->declaringTable ?? $fk->ownerTable,
+				direction: Finding::DIRECTION_TYPE,
+				associationType: $fk->associationType ?? 'belongsTo',
+				severity: Finding::SEVERITY_INFO,
+				message: sprintf(
+					'Relation `%s.%s` -> `%s.%s` uses non-integer keys (%s); integer keys are preferred.',
+					$fk->ownerTable,
+					$fk->column,
+					$fk->referencedTable,
+					$fk->referencedColumn,
+					$fk->ownerColumnType,
+				),
+				column: $fk->column,
+				target: $fk->referencedTable,
+				layer: Finding::LAYER_TYPE,
+			);
 		}
 
 		return $findings;
+	}
+
+	/**
+	 * Whether to emit the info-level "integer keys are preferred" finding for relations
+	 * that use matching non-integer keys. Apps standardized on uuid keys can disable it.
+	 *
+	 * @return bool
+	 */
+	protected function preferIntegerKeys(): bool {
+		return (bool)Configure::read('TestHelper.associationAudit.preferIntegerKeys', true);
 	}
 
 	/**
@@ -402,9 +466,7 @@ class AssociationAuditor {
 	 * @return string
 	 */
 	protected function typeBucket(string $type): string {
-		$integerFamily = ['integer', 'biginteger', 'smallinteger', 'tinyinteger'];
-
-		return in_array($type, $integerFamily, true) ? 'integer' : $type;
+		return in_array($type, static::INTEGER_TYPES, true) ? static::BUCKET_INTEGER : $type;
 	}
 
 	/**
