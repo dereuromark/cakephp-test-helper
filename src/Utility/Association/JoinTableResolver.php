@@ -36,31 +36,18 @@ class JoinTableResolver {
 			return [[], [$finding]];
 		}
 
-		$sourceForeignKey = $association->getForeignKey();
-		$targetForeignKey = $association->getTargetForeignKey();
-		if (!is_string($sourceForeignKey) || !is_string($targetForeignKey)) {
-			$finding = new Finding(
-				table: $source->getRegistryAlias(),
-				direction: Finding::DIRECTION_UNSUPPORTED,
-				associationType: 'belongsToMany',
-				severity: Finding::SEVERITY_INFO,
-				message: sprintf('belongsToMany `%s`: composite junction keys are not auto-verified.', $association->getName()),
-				target: $target->getAlias(),
-			);
-
-			return [[], [$finding]];
-		}
-
 		// Resolve referenced columns from the actual binding keys (honoring custom bindingKey).
-		$sourceBindingKey = $this->bindingColumn($association->getBindingKey(), $source->getPrimaryKey());
-		$targetBindingKey = $this->bindingColumn($this->targetBindingKey($junction, $target->getAlias()), $target->getPrimaryKey());
-		if ($sourceBindingKey === null || $targetBindingKey === null) {
+		$sourceColumns = $this->columnList($association->getForeignKey());
+		$targetColumns = $this->columnList($association->getTargetForeignKey());
+		$sourceBindingColumns = $this->bindingColumns($association->getBindingKey(), $source->getPrimaryKey());
+		$targetBindingColumns = $this->bindingColumns($this->targetBindingKey($junction, $target->getAlias()), $target->getPrimaryKey());
+		if (count($sourceColumns) !== count($sourceBindingColumns) || count($targetColumns) !== count($targetBindingColumns)) {
 			$finding = new Finding(
 				table: $source->getRegistryAlias(),
 				direction: Finding::DIRECTION_UNSUPPORTED,
 				associationType: 'belongsToMany',
 				severity: Finding::SEVERITY_INFO,
-				message: sprintf('belongsToMany `%s`: composite binding key is not auto-verified.', $association->getName()),
+				message: sprintf('belongsToMany `%s`: composite junction keys do not line up (not auto-verified).', $association->getName()),
 				target: $target->getAlias(),
 			);
 
@@ -71,35 +58,37 @@ class JoinTableResolver {
 		$junctionTable = $junction->getTable();
 		$declaringTable = $source->getRegistryAlias();
 		$junctionColumns = $this->safeColumns($junction);
+		$sourceComposite = count($sourceColumns) > 1;
+		$targetComposite = count($targetColumns) > 1;
 
 		$keys = [
 			new ForeignKey(
 				connection: $junctionConnection,
 				ownerTable: $junctionTable,
-				column: $sourceForeignKey,
+				column: $sourceColumns,
 				referencedTable: $source->getTable(),
-				referencedColumn: $sourceBindingKey,
+				referencedColumn: $sourceBindingColumns,
 				source: ForeignKey::SOURCE_CODE,
 				associationType: 'belongsToMany',
 				declaringTable: $declaringTable,
 				alias: $association->getName(),
-				columnExists: $junctionColumns === null || in_array($sourceForeignKey, $junctionColumns, true),
-				ownerColumnType: $this->safeColumnType($junction, $sourceForeignKey),
-				referencedColumnType: $this->safeColumnType($source, $sourceBindingKey),
+				columnExists: $junctionColumns === null || !array_diff($sourceColumns, $junctionColumns),
+				ownerColumnType: $sourceComposite ? null : $this->safeColumnType($junction, $sourceColumns[0]),
+				referencedColumnType: $sourceComposite ? null : $this->safeColumnType($source, $sourceBindingColumns[0]),
 			),
 			new ForeignKey(
 				connection: $junctionConnection,
 				ownerTable: $junctionTable,
-				column: $targetForeignKey,
+				column: $targetColumns,
 				referencedTable: $target->getTable(),
-				referencedColumn: $targetBindingKey,
+				referencedColumn: $targetBindingColumns,
 				source: ForeignKey::SOURCE_CODE,
 				associationType: 'belongsToMany',
 				declaringTable: $declaringTable,
 				alias: $association->getName(),
-				columnExists: $junctionColumns === null || in_array($targetForeignKey, $junctionColumns, true),
-				ownerColumnType: $this->safeColumnType($junction, $targetForeignKey),
-				referencedColumnType: $this->safeColumnType($target, $targetBindingKey),
+				columnExists: $junctionColumns === null || !array_diff($targetColumns, $junctionColumns),
+				ownerColumnType: $targetComposite ? null : $this->safeColumnType($junction, $targetColumns[0]),
+				referencedColumnType: $targetComposite ? null : $this->safeColumnType($target, $targetBindingColumns[0]),
 			),
 		];
 
@@ -126,20 +115,31 @@ class JoinTableResolver {
 	}
 
 	/**
-	 * Resolve a single binding column. Composite (multi-column) binding keys return
-	 * null so the caller can flag the association as unsupported rather than guessing.
+	 * Normalize a junction foreign key (array/string, possibly empty) into a column list.
+	 *
+	 * @param array<int|string, string|false>|string|false $foreignKey
+	 * @return array<string>
+	 */
+	protected function columnList(array|string|false $foreignKey): array {
+		if ($foreignKey === false) {
+			return [];
+		}
+
+		return array_values(array_filter(array_map('strval', (array)$foreignKey), fn (string $c): bool => $c !== ''));
+	}
+
+	/**
+	 * Resolve the binding column(s) for one side of the junction: the explicit binding key,
+	 * falling back to the table's primary key.
 	 *
 	 * @param array<string>|string|null $bindingKey
 	 * @param array<string>|string $primaryKey
-	 * @return string|null
+	 * @return array<string>
 	 */
-	protected function bindingColumn(array|string|null $bindingKey, array|string $primaryKey): ?string {
+	protected function bindingColumns(array|string|null $bindingKey, array|string $primaryKey): array {
 		$value = $bindingKey ?: $primaryKey;
-		if (is_array($value)) {
-			return count($value) === 1 ? (string)reset($value) : null;
-		}
 
-		return $value;
+		return array_values(array_filter(array_map('strval', (array)$value), fn (string $c): bool => $c !== ''));
 	}
 
 }

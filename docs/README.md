@@ -77,12 +77,15 @@ Audits whether your declared table associations (`belongsTo`, `hasMany`, `hasOne
 * an association declared in code whose column exists but has no matching DB foreign-key constraint (warning; suggests an `addForeignKey()` migration line)
 * a DB foreign key with no matching association (suggests the `belongsTo`/`hasMany` call)
 * a target/column disagreement between the two
-* a key-type layer compares each declared foreign key's column type against the referenced key: a different type family (e.g. `integer` referencing `uuid`) is an error, an owner key narrower than the referenced key (e.g. `integer` referencing `biginteger`) is a warning, and matching non-integer keys are an info hint that integer keys are preferred (silence the hint with `TestHelper.associationAudit.preferIntegerKeys => false`)
+* a key-type layer compares each declared foreign key's column type against the referenced key: a different type family (e.g. `integer` referencing `uuid`) is an error (suggests a `changeColumn()` migration line aligning the column to its target), an owner key narrower than the referenced key (e.g. `integer` referencing `biginteger`) is a warning (same `changeColumn()` fix), and matching non-integer keys are an info hint that integer keys are preferred (silence the hint with `TestHelper.associationAudit.preferIntegerKeys => false`)
+* a cascade-rule layer compares the ORM `dependent` intent of a `hasMany`/`hasOne` against the matching DB foreign key's `ON DELETE` rule (info): a `dependent` association whose DB FK uses `ON DELETE NO ACTION` won't cascade a delete issued directly in SQL (suggests switching the FK to `ON DELETE CASCADE`, preserving the existing `ON UPDATE` rule), and a DB `ON DELETE CASCADE` with a non-`dependent` association means the ORM won't fire child callbacks (suggests adding `'dependent' => true, 'cascadeCallbacks' => true`)
 * a secondary layer flags `*_id` columns that have neither a constraint nor an association (configurable ignore list via `TestHelper.associationAudit.ignoreColumns` for polymorphic columns)
+
+Composite (multi-column) foreign keys are fully diffed in the constraint layer for `belongsTo`/`hasMany`/`hasOne` and for `belongsToMany` junctions; fix snippets render the columns as arrays and pin a non-default `bindingKey`. Composite keys are diffed structurally but not type-checked.
 
 App and first-party plugin tables are scanned by default; vendor tables can be folded in via the toggle.
 
-The summary matrix shows every table against each association type, colour-coded by status:
+The summary matrix shows every table against each association type plus the two cross-cutting layers (`Key type` and `Cascade`) as their own columns, color-coded by status:
 
 ![Association audit matrix](img/associations_matrix.png)
 

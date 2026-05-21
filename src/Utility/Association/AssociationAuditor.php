@@ -4,6 +4,7 @@ namespace TestHelper\Utility\Association;
 
 use Cake\Core\Configure;
 use Cake\Database\Connection;
+use Cake\Database\Schema\TableSchema;
 use Cake\Datasource\ConnectionManager;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Throwable;
@@ -134,7 +135,8 @@ class AssociationAuditor {
 
 		$findings = array_merge($findings, $this->diffForeignKeys($codeKeys, $dbKeys, $aliasByPhysical));
 		$findings = array_merge($findings, $this->looseColumnFindings($looseColumns, $codeKeys, $this->ignoreColumns(), $aliasByPhysical, $claimedColumns));
-		$findings = array_merge($findings, $this->typeFindings($codeKeys));
+		$findings = array_merge($findings, $this->typeFindings($codeKeys, $this->preferIntegerKeys()));
+		$findings = array_merge($findings, $this->ruleFindings($codeKeys, $dbKeys));
 
 		return $findings;
 	}
@@ -304,7 +306,9 @@ class AssociationAuditor {
 	public function looseColumnFindings(array $looseColumns, array $codeKeys, array $ignoreColumns, array $aliasByPhysical = [], array $claimedColumns = []): array {
 		$claimed = [];
 		foreach ($codeKeys as $fk) {
-			$claimed[$fk->connection . '|' . $fk->ownerTable . '|' . $fk->column] = true;
+			foreach ($fk->columns as $column) {
+				$claimed[$fk->connection . '|' . $fk->ownerTable . '|' . $column] = true;
+			}
 		}
 		foreach ($claimedColumns as $id) {
 			$claimed[$id] = true;
@@ -349,9 +353,12 @@ class AssociationAuditor {
 	 *   ideal - silenced via `TestHelper.associationAudit.preferIntegerKeys`.
 	 *
 	 * @param array<\TestHelper\Utility\Association\ForeignKey> $codeKeys
+	 * @param bool|null $preferIntegerKeys When false, the non-integer info advisory is suppressed
+	 *   (errors remain); null falls back to the `TestHelper.associationAudit.preferIntegerKeys` config.
 	 * @return array<\TestHelper\Utility\Association\Finding>
 	 */
-	public function typeFindings(array $codeKeys): array {
+	public function typeFindings(array $codeKeys, ?bool $preferIntegerKeys = null): array {
+		$preferIntegerKeys ??= $this->preferIntegerKeys();
 		$seen = [];
 		$findings = [];
 
@@ -385,6 +392,7 @@ class AssociationAuditor {
 					),
 					column: $fk->column,
 					target: $fk->referencedTable,
+					fixSnippet: $this->fixSuggester->typeAlignmentLine($fk),
 					layer: Finding::LAYER_TYPE,
 				);
 
@@ -415,6 +423,8 @@ class AssociationAuditor {
 					),
 					column: $fk->column,
 					target: $fk->referencedTable,
+					// A narrower integer FK is widened to its referenced key by the same changeColumn fix.
+					fixSnippet: $this->fixSuggester->typeAlignmentLine($fk),
 					layer: Finding::LAYER_TYPE,
 				);
 
@@ -423,7 +433,7 @@ class AssociationAuditor {
 
 			// Matching non-integer keys: integer keys are the ideal, so note it as info
 			// unless the app deliberately standardizes on another key type.
-			if (!$this->preferIntegerKeys()) {
+			if (!$preferIntegerKeys) {
 				continue;
 			}
 
@@ -447,6 +457,102 @@ class AssociationAuditor {
 		}
 
 		return $findings;
+	}
+
+	/**
+	 * Pure cascade-rule layer: compares each dependent association's ORM intent against the
+	 * matched DB FK's `ON DELETE` rule. Divergence is reported as info, not an error, because
+	 * relying on ORM-level cascades with a `NO ACTION` DB rule is a deliberate, common CakePHP
+	 * setup. Only hasMany/hasOne carry a dependent intent; belongsTo and DB-only keys are
+	 * skipped. `ON UPDATE` has no ORM equivalent and is not compared.
+	 *
+	 * @param array<\TestHelper\Utility\Association\ForeignKey> $codeKeys
+	 * @param array<\TestHelper\Utility\Association\ForeignKey> $dbKeys
+	 * @return array<\TestHelper\Utility\Association\Finding>
+	 */
+	public function ruleFindings(array $codeKeys, array $dbKeys): array {
+		$dbByKey = [];
+		foreach ($dbKeys as $fk) {
+			$dbByKey[$fk->key()] = $fk;
+		}
+
+		$findings = [];
+		foreach ($codeKeys as $fk) {
+			// Each association is checked on its own: aliases sharing one physical FK can carry
+			// different `dependent` settings, so deduping by key() here would drop real findings.
+			// Reciprocal belongsTo declarations carry a null intent and fall through below.
+			if ($fk->dependent === null) {
+				continue;
+			}
+
+			$dbFk = $dbByKey[$fk->key()] ?? null;
+			if ($dbFk === null || $dbFk->onDelete === null) {
+				// No comparable DB FK: the constraint layer already reports the missing FK.
+				continue;
+			}
+
+			$cascades = $dbFk->onDelete === TableSchema::ACTION_CASCADE;
+
+			if ($fk->dependent && !$cascades) {
+				$findings[] = new Finding(
+					table: $fk->declaringTable ?? $fk->ownerTable,
+					direction: Finding::DIRECTION_RULE,
+					associationType: $fk->associationType ?? 'hasMany',
+					severity: Finding::SEVERITY_INFO,
+					message: sprintf(
+						'Association `%s` is `dependent` (app-level cascade delete) but the DB FK `%s.%s` uses ON DELETE %s; a delete issued directly in SQL will not cascade.',
+						$fk->alias ?? $fk->referencedTable,
+						$fk->ownerTable,
+						$fk->column,
+						$this->ruleLabel($dbFk->onDelete),
+					),
+					column: $fk->column,
+					target: $fk->referencedTable,
+					fixSnippet: $this->fixSuggester->cascadeMigrationLine($fk, $dbFk->onUpdate),
+					layer: Finding::LAYER_RULE,
+				);
+
+				continue;
+			}
+
+			if (!$fk->dependent && $cascades) {
+				$findings[] = new Finding(
+					table: $fk->declaringTable ?? $fk->ownerTable,
+					direction: Finding::DIRECTION_RULE,
+					associationType: $fk->associationType ?? 'hasMany',
+					severity: Finding::SEVERITY_INFO,
+					message: sprintf(
+						'DB FK `%s.%s` uses ON DELETE CASCADE but association `%s` is not `dependent`; rows the DB removes will not trigger ORM callbacks.',
+						$fk->ownerTable,
+						$fk->column,
+						$fk->alias ?? $fk->referencedTable,
+					),
+					column: $fk->column,
+					target: $fk->referencedTable,
+					fixSnippet: $this->fixSuggester->dependentOption($fk),
+					layer: Finding::LAYER_RULE,
+				);
+			}
+		}
+
+		return $findings;
+	}
+
+	/**
+	 * Human-readable SQL label for an internal cascade-action string.
+	 *
+	 * @param string $action One of the TableSchema::ACTION_* values.
+	 * @return string
+	 */
+	protected function ruleLabel(string $action): string {
+		return match ($action) {
+			TableSchema::ACTION_CASCADE => 'CASCADE',
+			TableSchema::ACTION_SET_NULL => 'SET NULL',
+			TableSchema::ACTION_NO_ACTION => 'NO ACTION',
+			TableSchema::ACTION_RESTRICT => 'RESTRICT',
+			TableSchema::ACTION_SET_DEFAULT => 'SET DEFAULT',
+			default => strtoupper($action),
+		};
 	}
 
 	/**
