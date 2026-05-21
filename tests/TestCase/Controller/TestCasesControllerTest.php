@@ -232,4 +232,52 @@ class TestCasesControllerTest extends TestCase {
 		$this->assertResponseContains('testSuffix');
 	}
 
+	/**
+	 * Viewing without a file query param must redirect to the browse listing
+	 * with an error flash instead of rendering (and failing with a 500).
+	 *
+	 * @return void
+	 */
+	public function testViewWithoutFileRedirects(): void {
+		$this->enableRetainFlashMessages();
+		$this->get([
+			'plugin' => 'TestHelper',
+			'controller' => 'TestCases',
+			'action' => 'view',
+			'?' => ['namespace' => 'app'],
+		]);
+
+		$this->assertRedirect([
+			'plugin' => 'TestHelper',
+			'controller' => 'TestCases',
+			'action' => 'browse',
+			'?' => ['namespace' => 'app'],
+		]);
+		$this->assertFlashMessage(__('No file specified'));
+	}
+
+	/**
+	 * Viewing a non-existent file must redirect to the browse listing with an
+	 * error flash instead of rendering (and failing with a 500).
+	 *
+	 * @return void
+	 */
+	public function testViewWithMissingFileRedirects(): void {
+		$this->enableRetainFlashMessages();
+		$this->get([
+			'plugin' => 'TestHelper',
+			'controller' => 'TestCases',
+			'action' => 'view',
+			'?' => ['namespace' => 'app', 'file' => 'DoesNotExistTest.php'],
+		]);
+
+		$this->assertRedirect([
+			'plugin' => 'TestHelper',
+			'controller' => 'TestCases',
+			'action' => 'browse',
+			'?' => ['namespace' => 'app'],
+		]);
+		$this->assertFlashMessage(__('Test file not found: DoesNotExistTest.php'));
+	}
+
 }
