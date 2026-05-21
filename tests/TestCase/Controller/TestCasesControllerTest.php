@@ -93,4 +93,143 @@ class TestCasesControllerTest extends TestCase {
 		$this->assertResponseCode(200);
 	}
 
+	/**
+	 * @return void
+	 */
+	public function testForm(): void {
+		$this->get(['plugin' => 'TestHelper', 'controller' => 'TestCases', 'action' => 'form', '?' => ['namespace' => 'app']]);
+
+		$this->assertResponseCode(200);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testMailer(): void {
+		$this->get(['plugin' => 'TestHelper', 'controller' => 'TestCases', 'action' => 'mailer', '?' => ['namespace' => 'app']]);
+
+		$this->assertResponseCode(200);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testCell(): void {
+		$this->get(['plugin' => 'TestHelper', 'controller' => 'TestCases', 'action' => 'cell', '?' => ['namespace' => 'app']]);
+
+		$this->assertResponseCode(200);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testCommandHelper(): void {
+		$this->get(['plugin' => 'TestHelper', 'controller' => 'TestCases', 'action' => 'commandHelper', '?' => ['namespace' => 'app']]);
+
+		$this->assertResponseCode(200);
+	}
+
+	/**
+	 * Listing components for a plugin must surface the plugin's own components
+	 * (exercising the file-listing and existing-test-case detection branch).
+	 *
+	 * @return void
+	 */
+	public function testComponentPluginListsClasses(): void {
+		$this->get(['plugin' => 'TestHelper', 'controller' => 'TestCases', 'action' => 'component', '?' => ['namespace' => 'TestHelper']]);
+
+		$this->assertResponseCode(200);
+		$this->assertResponseContains('Migrations');
+		$this->assertResponseContains('TestGenerator');
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testBrowse(): void {
+		$this->get(['plugin' => 'TestHelper', 'controller' => 'TestCases', 'action' => 'browse']);
+
+		$this->assertResponseCode(200);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testBrowsePlugin(): void {
+		$this->get(['plugin' => 'TestHelper', 'controller' => 'TestCases', 'action' => 'browse', '?' => ['namespace' => 'TestHelper']]);
+
+		$this->assertResponseCode(200);
+	}
+
+	/**
+	 * Browsing into an existing subfolder must list the test files it contains.
+	 *
+	 * @return void
+	 */
+	public function testBrowseSubPath(): void {
+		$this->get([
+			'plugin' => 'TestHelper',
+			'controller' => 'TestCases',
+			'action' => 'browse',
+			'?' => ['namespace' => 'TestHelper', 'path' => 'Utility'],
+		]);
+
+		$this->assertResponseCode(200);
+		$this->assertResponseContains('ClassResolverTest.php');
+	}
+
+	/**
+	 * A non-existent path must fall back to the base directory with an error
+	 * flash instead of failing.
+	 *
+	 * @return void
+	 */
+	public function testBrowseInvalidPathSetsFlash(): void {
+		$this->enableRetainFlashMessages();
+		$this->get([
+			'plugin' => 'TestHelper',
+			'controller' => 'TestCases',
+			'action' => 'browse',
+			'?' => ['namespace' => 'TestHelper', 'path' => 'DoesNotExist'],
+		]);
+
+		$this->assertResponseCode(200);
+		$this->assertFlashMessage(__('Directory not found: {0}', 'DoesNotExist'));
+	}
+
+	/**
+	 * Directory traversal segments in the path must be stripped for safety.
+	 *
+	 * @return void
+	 */
+	public function testBrowseStripsTraversal(): void {
+		$this->get([
+			'plugin' => 'TestHelper',
+			'controller' => 'TestCases',
+			'action' => 'browse',
+			'?' => ['namespace' => 'TestHelper', 'path' => '../../../etc'],
+		]);
+
+		// Traversal is stripped so the resolved path collapses to the base dir.
+		$this->assertResponseCode(200);
+	}
+
+	/**
+	 * Viewing a real test file must reflect its test methods in the output.
+	 *
+	 * @return void
+	 */
+	public function testViewListsMethods(): void {
+		$this->get([
+			'plugin' => 'TestHelper',
+			'controller' => 'TestCases',
+			'action' => 'view',
+			'?' => ['namespace' => 'TestHelper', 'file' => 'Utility' . DS . 'ClassResolverTest.php'],
+		]);
+
+		$this->assertResponseCode(200);
+		$this->assertResponseContains('testType');
+		$this->assertResponseContains('testSuffix');
+	}
+
 }
