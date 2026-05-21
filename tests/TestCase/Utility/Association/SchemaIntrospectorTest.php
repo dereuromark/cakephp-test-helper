@@ -74,6 +74,49 @@ class SchemaIntrospectorTest extends TestCase {
 	}
 
 	/**
+	 * indexedColumns() returns the leading column of the primary key, of unique constraints
+	 * and of regular indexes, but not a column buried as a non-leading member of a composite
+	 * index.
+	 *
+	 * @return void
+	 */
+	public function testIndexedColumnsReturnsLeadingColumns() {
+		$this->createIndexedTable();
+
+		$indexed = $this->introspector->indexedColumns($this->connection, 'th_audit_indexed');
+		sort($indexed);
+
+		// id (primary), slug (unique), author_id (regular index leading column),
+		// region (composite index leading column). post_id is buried second in the
+		// composite index and must not appear.
+		$this->assertContains('id', $indexed);
+		$this->assertContains('slug', $indexed);
+		$this->assertContains('author_id', $indexed);
+		$this->assertContains('region', $indexed);
+		$this->assertNotContains('post_id', $indexed);
+	}
+
+	/**
+	 * @return void
+	 */
+	protected function createIndexedTable(): void {
+		$table = (new TableSchema('th_audit_indexed'))
+			->addColumn('id', ['type' => 'integer', 'null' => false])
+			->addColumn('slug', ['type' => 'string', 'length' => 50, 'null' => false])
+			->addColumn('author_id', ['type' => 'integer', 'null' => true])
+			->addColumn('region', ['type' => 'integer', 'null' => true])
+			->addColumn('post_id', ['type' => 'integer', 'null' => true])
+			->addConstraint('primary', ['type' => 'primary', 'columns' => ['id']])
+			->addConstraint('uq_slug', ['type' => 'unique', 'columns' => ['slug']])
+			->addIndex('idx_author', ['type' => 'index', 'columns' => ['author_id']])
+			->addIndex('idx_region_post', ['type' => 'index', 'columns' => ['region', 'post_id']]);
+
+		foreach ($table->createSql($this->connection) as $sql) {
+			$this->connection->execute($sql);
+		}
+	}
+
+	/**
 	 * @return void
 	 */
 	protected function createTables(): void {
@@ -135,7 +178,7 @@ class SchemaIntrospectorTest extends TestCase {
 	 * @return void
 	 */
 	protected function dropTables(): void {
-		foreach (['th_audit_children', 'th_audit_memberships', 'th_audit_parents', 'th_audit_cparents'] as $table) {
+		foreach (['th_audit_children', 'th_audit_memberships', 'th_audit_parents', 'th_audit_cparents', 'th_audit_indexed'] as $table) {
 			$schema = new TableSchema($table);
 			foreach ($schema->dropSql($this->connection) as $sql) {
 				try {

@@ -538,6 +538,218 @@ class AssociationAuditorTest extends TestCase {
 	}
 
 	/**
+	 * An unindexed foreign-key column is flagged info with an addIndex fix.
+	 *
+	 * @return void
+	 */
+	public function testIndexUnindexedFkFlagged() {
+		$fk = new ForeignKey('default', 'comments', 'post_id', 'posts', 'id', ForeignKey::SOURCE_DB);
+
+		$findings = $this->auditor->indexFindings([$fk], [], [], true);
+
+		$this->assertCount(1, $findings);
+		$this->assertSame(Finding::DIRECTION_INDEX, $findings[0]->direction);
+		$this->assertSame(Finding::LAYER_INDEX, $findings[0]->layer);
+		$this->assertSame(Finding::SEVERITY_INFO, $findings[0]->severity);
+		$this->assertSame('post_id', $findings[0]->column);
+		$this->assertStringContainsString('table-scan', $findings[0]->message);
+		$this->assertSame("\$table->addIndex(['post_id']);", $findings[0]->fixSnippet);
+	}
+
+	/**
+	 * A loose column uses the "looks like a foreign key" wording.
+	 *
+	 * @return void
+	 */
+	public function testIndexLooseColumnWording() {
+		$loose = new LooseColumn('default', 'comments', 'editor_id');
+
+		$findings = $this->auditor->indexFindings([$loose], [], [], true);
+
+		$this->assertCount(1, $findings);
+		$this->assertSame('looseColumn', $findings[0]->associationType);
+		$this->assertStringContainsString('looks like a foreign key', $findings[0]->message);
+		$this->assertSame("\$table->addIndex(['editor_id']);", $findings[0]->fixSnippet);
+	}
+
+	/**
+	 * A column that is the leading column of an index is clean.
+	 *
+	 * @return void
+	 */
+	public function testIndexIndexedColumnClean() {
+		$fk = new ForeignKey('default', 'comments', 'post_id', 'posts', 'id', ForeignKey::SOURCE_DB);
+		$indexed = ['default|comments' => ['post_id']];
+
+		$findings = $this->auditor->indexFindings([$fk], $indexed, [], true);
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * A column buried as a non-leading member of a composite index is NOT counted as
+	 * indexed, so it is still flagged.
+	 *
+	 * @return void
+	 */
+	public function testIndexNonLeadingCompositeMemberFlagged() {
+		$fk = new ForeignKey('default', 'comments', 'post_id', 'posts', 'id', ForeignKey::SOURCE_DB);
+		// Only the leading column of the composite index counts; post_id is buried second.
+		$indexed = ['default|comments' => ['author_id']];
+
+		$findings = $this->auditor->indexFindings([$fk], $indexed, [], true);
+
+		$this->assertCount(1, $findings);
+		$this->assertSame('post_id', $findings[0]->column);
+	}
+
+	/**
+	 * For a composite foreign key the leading column is checked and the fix indexes all
+	 * columns in order.
+	 *
+	 * @return void
+	 */
+	public function testIndexCompositeFkChecksLeadingColumn() {
+		$fk = new ForeignKey('default', 'memberships', ['tenant_id', 'company_id'], 'companies', ['tenant_id', 'id'], ForeignKey::SOURCE_DB);
+
+		$findings = $this->auditor->indexFindings([$fk], [], [], true);
+
+		$this->assertCount(1, $findings);
+		$this->assertSame('tenant_id', $findings[0]->column);
+		$this->assertSame("\$table->addIndex(['tenant_id', 'company_id']);", $findings[0]->fixSnippet);
+	}
+
+	/**
+	 * A composite foreign key whose leading column is indexed is clean.
+	 *
+	 * @return void
+	 */
+	public function testIndexCompositeFkLeadingIndexedClean() {
+		$fk = new ForeignKey('default', 'memberships', ['tenant_id', 'company_id'], 'companies', ['tenant_id', 'id'], ForeignKey::SOURCE_DB);
+		$indexed = ['default|memberships' => ['tenant_id']];
+
+		$findings = $this->auditor->indexFindings([$fk], $indexed, [], true);
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * Ignored columns (e.g. polymorphic) are not flagged by the index layer.
+	 *
+	 * @return void
+	 */
+	public function testIndexIgnoredColumnSkipped() {
+		$loose = new LooseColumn('default', 'comments', 'commentable_id');
+
+		$findings = $this->auditor->indexFindings([$loose], [], ['commentable_id'], true);
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * With checkIndexes false the layer emits nothing.
+	 *
+	 * @return void
+	 */
+	public function testIndexCheckIndexesFalseSuppresses() {
+		$fk = new ForeignKey('default', 'comments', 'post_id', 'posts', 'id', ForeignKey::SOURCE_DB);
+
+		$findings = $this->auditor->indexFindings([$fk], [], [], false);
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * The checkIndexes flag falls back to config when not passed explicitly.
+	 *
+	 * @return void
+	 */
+	public function testIndexCheckIndexesNullReadsConfig() {
+		$fk = new ForeignKey('default', 'comments', 'post_id', 'posts', 'id', ForeignKey::SOURCE_DB);
+
+		Configure::write('TestHelper.associationAudit.checkIndexes', false);
+		$findings = $this->auditor->indexFindings([$fk], [], []);
+		Configure::delete('TestHelper.associationAudit.checkIndexes');
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * The same column reaching the layer via several sources (a DB FK, a code FK and a
+	 * loose column) yields a single finding.
+	 *
+	 * @return void
+	 */
+	public function testIndexDedupesPerColumn() {
+		$candidates = [
+			new ForeignKey('default', 'comments', 'post_id', 'posts', 'id', ForeignKey::SOURCE_DB),
+			new ForeignKey('default', 'comments', 'post_id', 'posts', 'id', ForeignKey::SOURCE_CODE, 'belongsTo', 'Comments', 'Posts', true),
+			new LooseColumn('default', 'comments', 'post_id'),
+		];
+
+		$findings = $this->auditor->indexFindings($candidates, [], [], true);
+
+		$this->assertCount(1, $findings);
+		$this->assertSame('post_id', $findings[0]->column);
+	}
+
+	/**
+	 * DB-sourced index findings display under the registry alias, keyed by connection.
+	 *
+	 * @return void
+	 */
+	public function testIndexMapsToAliasByConnection() {
+		$fk = new ForeignKey('default', 'animals', 'owner_id', 'owners', 'id', ForeignKey::SOURCE_DB);
+		$map = ['default|animals' => 'Sandbox.Animals'];
+
+		$findings = $this->auditor->indexFindings([$fk], [], [], true, $map);
+
+		$this->assertCount(1, $findings);
+		$this->assertSame('Sandbox.Animals', $findings[0]->table);
+	}
+
+	/**
+	 * A code-side FK on a table whose schema was never inspected (no entry in the indexed
+	 * map) is dropped from the index candidates, so a non-introspectable table reports only
+	 * its unsupported warning, not a false "missing index" for every code FK column on it.
+	 *
+	 * @return void
+	 */
+	public function testIndexCandidatesSkipNonIntrospectedTable() {
+		$codeKeys = [
+			new ForeignKey('default', 'comments', 'post_id', 'posts', 'id', ForeignKey::SOURCE_CODE, 'belongsTo', 'Comments', 'Posts', true),
+		];
+		// posts was inspected; comments was not (e.g. introspection threw).
+		$indexedColumns = ['default|posts' => ['id']];
+
+		$candidates = $this->auditor->indexCandidates([], $codeKeys, [], $indexedColumns);
+		$findings = $this->auditor->indexFindings($candidates, $indexedColumns, [], true);
+
+		$this->assertSame([], $candidates);
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * Candidates on inspected tables are kept and a missing column is dropped (the constraint
+	 * layer owns that), so the index layer only checks columns that physically exist.
+	 *
+	 * @return void
+	 */
+	public function testIndexCandidatesKeepInspectedAndDropMissingColumn() {
+		$codeKeys = [
+			new ForeignKey('default', 'comments', 'post_id', 'posts', 'id', ForeignKey::SOURCE_CODE, 'belongsTo', 'Comments', 'Posts', true),
+			new ForeignKey('default', 'comments', 'ghost_id', 'ghosts', 'id', ForeignKey::SOURCE_CODE, 'belongsTo', 'Comments', 'Ghosts', false),
+		];
+		$indexedColumns = ['default|comments' => []];
+
+		$candidates = $this->auditor->indexCandidates([], $codeKeys, [], $indexedColumns);
+
+		$this->assertCount(1, $candidates);
+		$this->assertInstanceOf(ForeignKey::class, $candidates[0]);
+		$this->assertSame('post_id', $candidates[0]->column);
+	}
+
+	/**
 	 * Build a code-sourced ForeignKey carrying a dependent intent.
 	 *
 	 * @param bool|null $dependent

@@ -51,6 +51,13 @@ class Finding {
 	public const DIRECTION_RULE = 'rule';
 
 	/**
+	 * Index-presence observation: a foreign-key-style column is not the leading column of
+	 * any index, so lookups/joins on it table-scan.
+     * @var string
+	 */
+	public const DIRECTION_INDEX = 'index';
+
+	/**
      * @var string
      */
 	public const SEVERITY_ERROR = 'error';
@@ -95,6 +102,11 @@ class Finding {
      * @var string
      */
 	public const LAYER_RULE = 'rule';
+
+	/**
+     * @var string
+     */
+	public const LAYER_INDEX = 'index';
 
 	/**
 	 * @param string $table Table to display this finding under.

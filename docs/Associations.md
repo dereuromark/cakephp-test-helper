@@ -61,6 +61,32 @@ Flags `*_id` columns that have **neither** a foreign-key constraint **nor** an a
 (`foreign_id`, `parent_id`, `related_id`); extend it via
 `TestHelper.associationAudit.ignoreColumns`.
 
+### Index-presence layer
+
+Flags foreign-key-style columns that are **not the leading column of any index** (reported as
+**info**), because joins and lookups on them table-scan. This matters most on **PostgreSQL**,
+where a foreign-key constraint does **not** auto-create an index on the referencing column, and
+for loose `*_id` columns managed only at the ORM level.
+
+A column counts as indexed only when it is the **first (leading) column** of some index or key:
+a regular index, a `unique` constraint, or the `primary` constraint. A column buried as a
+non-first member of a composite index does **not** count, since such an index cannot serve a
+lookup or join on that column alone. For a composite foreign key the **first** column is
+checked, and the suggested `addIndex()` covers all of the key's columns in order.
+
+The candidates are the union of every foreign-key-semantic column the audit already knows: DB
+foreign keys, existing code-side association foreign keys, and loose `*_id` columns. The
+loose-column ignore list applies here too, and at most one finding is emitted per column even
+when it surfaces via several sources. Each finding suggests an `addIndex()` migration line, e.g.:
+
+``` php
+$table->addIndex(['post_id']);
+```
+
+Silence the whole layer with `TestHelper.associationAudit.checkIndexes => false`, for apps where
+the heuristic is more noise than value (e.g. write-heavy or denormalized schemas, or tiny lookup
+tables that do not need the index).
+
 ## Composite foreign keys
 
 Multi-column (composite) foreign keys are fully diffed in the constraint layer — both for
@@ -79,8 +105,8 @@ structurally but not type-checked.
 
 ## The matrix
 
-The summary matrix shows every table against each association type plus the two cross-cutting
-layers (`Key type` and `Cascade`) as their own columns, color-coded by status:
+The summary matrix shows every table against each association type plus the cross-cutting
+layers (`Key type`, `Cascade` and `Index`) as their own columns, color-coded by status:
 
 ![Association audit matrix](img/associations_matrix.png)
 
@@ -104,6 +130,7 @@ problems:
 |-----|---------|-------------|
 | `TestHelper.associationAudit.ignoreColumns` | `[]` | Extra `*_id` column names to ignore in the loose-column layer (merged with the built-in polymorphic defaults). |
 | `TestHelper.associationAudit.preferIntegerKeys` | `true` | When `false`, suppress the "integer keys are preferred" info hint. Type-family errors and narrowing warnings still report. |
+| `TestHelper.associationAudit.checkIndexes` | `true` | When `false`, disable the index-presence layer entirely (no "foreign key with no index" info findings). |
 
 See `config/app.example.php` for the canonical reference.
 
