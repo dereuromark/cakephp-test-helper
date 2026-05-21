@@ -56,4 +56,32 @@ class FixSuggester {
 		);
 	}
 
+	/**
+	 * Migration snippet when the association's owner column does not exist yet: add the
+	 * column first (a foreign key cannot be placed on a missing column), then the
+	 * constraint. The new column adopts the referenced key's abstract type when known;
+	 * only the type is introspected, so the snippet reminds you to match length/options.
+	 *
+	 * @param \TestHelper\Utility\Association\ForeignKey $fk Code-sourced foreign key.
+	 * @return string
+	 */
+	public function columnLine(ForeignKey $fk): string {
+		return sprintf(
+			"// `%s.%s` is missing - add it to match `%s.%s` (copy its type/length), then the constraint:\n"
+			. "\$table->addColumn('%s', '%s', ['null' => true]);\n"
+			. "\$table->addForeignKey('%s', '%s', '%s', [\n"
+			. "    'update' => 'NO_ACTION', 'delete' => 'NO_ACTION',\n"
+			. ']);',
+			$fk->ownerTable,
+			$fk->column,
+			$fk->referencedTable,
+			$fk->referencedColumn,
+			$fk->column,
+			$fk->referencedColumnType ?? 'integer',
+			$fk->column,
+			$fk->referencedTable,
+			$fk->referencedColumn,
+		);
+	}
+
 }

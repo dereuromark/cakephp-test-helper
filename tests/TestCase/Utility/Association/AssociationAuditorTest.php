@@ -41,11 +41,13 @@ class AssociationAuditorTest extends TestCase {
 	}
 
 	/**
-	 * A code FK whose column does not exist is an error.
+	 * A code FK whose owner column does not exist is a column-missing error (not a
+	 * missing-constraint warning), and the fix adds the column: you cannot put a foreign
+	 * key on a column that does not exist.
 	 *
 	 * @return void
 	 */
-	public function testDiffDbMissingColumnAbsent() {
+	public function testDiffColumnMissing() {
 		$code = [
 			new ForeignKey('default', 'posts', 'ghost_id', 'ghosts', 'id', ForeignKey::SOURCE_CODE, 'belongsTo', 'Posts', 'Ghosts', false),
 		];
@@ -53,8 +55,39 @@ class AssociationAuditorTest extends TestCase {
 		$findings = $this->auditor->diffForeignKeys($code, []);
 
 		$this->assertCount(1, $findings);
+		$this->assertSame(Finding::DIRECTION_COLUMN_MISSING, $findings[0]->direction);
 		$this->assertSame(Finding::SEVERITY_ERROR, $findings[0]->severity);
 		$this->assertStringContainsString('does not exist', $findings[0]->message);
+		$this->assertStringContainsString('addColumn', (string)$findings[0]->fixSnippet);
+	}
+
+	/**
+	 * The column-missing fix uses the referenced column's type when known, so the added
+	 * column matches the key it points at instead of defaulting to integer.
+	 *
+	 * @return void
+	 */
+	public function testDiffColumnMissingFixUsesReferencedType() {
+		$code = [
+			new ForeignKey(
+				connection: 'default',
+				ownerTable: 'posts',
+				column: 'ghost_id',
+				referencedTable: 'ghosts',
+				referencedColumn: 'id',
+				source: ForeignKey::SOURCE_CODE,
+				associationType: 'belongsTo',
+				declaringTable: 'Posts',
+				alias: 'Ghosts',
+				columnExists: false,
+				referencedColumnType: 'uuid',
+			),
+		];
+
+		$findings = $this->auditor->diffForeignKeys($code, []);
+
+		$this->assertCount(1, $findings);
+		$this->assertStringContainsString("addColumn('ghost_id', 'uuid'", (string)$findings[0]->fixSnippet);
 	}
 
 	/**

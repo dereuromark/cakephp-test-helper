@@ -20,6 +20,13 @@ class Finding {
 	public const DIRECTION_DB_MISSING = 'db_missing';
 
 	/**
+	 * An association is declared, but its owner FK column does not exist in the DB at all
+	 * (distinct from a column that exists but lacks the FK constraint).
+     * @var string
+	 */
+	public const DIRECTION_COLUMN_MISSING = 'column_missing';
+
+	/**
 	 * Both sides exist but disagree (different target table / referenced column).
      * @var string
 	 */

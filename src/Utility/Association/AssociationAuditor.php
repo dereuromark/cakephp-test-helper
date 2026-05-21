@@ -215,17 +215,31 @@ class AssociationAuditor {
 				continue;
 			}
 
-			$severity = $fk->columnExists ? Finding::SEVERITY_WARNING : Finding::SEVERITY_ERROR;
-			$message = $fk->columnExists
-				? sprintf('Association `%s` has no DB foreign-key constraint on `%s.%s`.', $fk->alias ?? $fk->referencedTable, $fk->ownerTable, $fk->column)
-				: sprintf('Association `%s` references column `%s.%s` which does not exist.', $fk->alias ?? $fk->referencedTable, $fk->ownerTable, $fk->column);
+			// A missing column is a different (worse) problem than a missing constraint:
+			// you cannot add a foreign key to a column that does not exist, so it gets its
+			// own direction and a column-adding fix rather than the addForeignKey snippet.
+			if (!$fk->columnExists) {
+				$findings[] = new Finding(
+					table: $fk->declaringTable ?? $fk->ownerTable,
+					direction: Finding::DIRECTION_COLUMN_MISSING,
+					associationType: $fk->associationType ?? 'belongsTo',
+					severity: Finding::SEVERITY_ERROR,
+					message: sprintf('Association `%s` references column `%s.%s` which does not exist.', $fk->alias ?? $fk->referencedTable, $fk->ownerTable, $fk->column),
+					column: $fk->column,
+					target: $fk->referencedTable,
+					fixSnippet: $this->fixSuggester->columnLine($fk),
+					layer: Finding::LAYER_COLUMN,
+				);
+
+				continue;
+			}
 
 			$findings[] = new Finding(
 				table: $fk->declaringTable ?? $fk->ownerTable,
 				direction: Finding::DIRECTION_DB_MISSING,
 				associationType: $fk->associationType ?? 'belongsTo',
-				severity: $severity,
-				message: $message,
+				severity: Finding::SEVERITY_WARNING,
+				message: sprintf('Association `%s` has no DB foreign-key constraint on `%s.%s`.', $fk->alias ?? $fk->referencedTable, $fk->ownerTable, $fk->column),
 				column: $fk->column,
 				target: $fk->referencedTable,
 				fixSnippet: $this->fixSuggester->migrationLine($fk),

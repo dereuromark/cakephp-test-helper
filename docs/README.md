@@ -73,7 +73,8 @@ Navigate to
 
 Audits whether your declared table associations (`belongsTo`, `hasMany`, `hasOne`, `belongsToMany`) agree with the actual database foreign keys, in both directions:
 
-* an association declared in code with no matching DB foreign-key constraint (suggests an `addForeignKey()` migration line)
+* an association declared in code whose owner column does not exist at all (error; suggests an `addColumn()` migration line, since a foreign key cannot be placed on a missing column)
+* an association declared in code whose column exists but has no matching DB foreign-key constraint (warning; suggests an `addForeignKey()` migration line)
 * a DB foreign key with no matching association (suggests the `belongsTo`/`hasMany` call)
 * a target/column disagreement between the two
 * a secondary layer flags `*_id` columns that have neither a constraint nor an association (configurable ignore list via `TestHelper.associationAudit.ignoreColumns` for polymorphic columns)
