@@ -74,15 +74,27 @@ class AssociationsController extends TestHelperAppController {
 	public function view(?string $model = null): void {
 		$model = $model ?? (string)$this->request->getQuery('model');
 
-		// Scanned tables drill in via their registry alias (connection-correct). An
-		// implicit junction row carries only a physical name and is re-audited on the
-		// default connection; a same-named table on a non-default connection cannot be
-		// disambiguated from the alias alone (known v1 limitation).
+		// Audit the full in-scope set (not just $model) and filter to this table. CakePHP
+		// injects associations onto a table when *another* table is loaded — e.g. a
+		// belongsToMany elsewhere adds a junction hasMany here via the shared registry — so
+		// auditing $model alone misses them and the detail view disagrees with the flat scan.
+		// A same-named table on a non-default connection still cannot be disambiguated from
+		// the alias alone (known v1 limitation).
+		$includeVendor = (bool)$this->request->getQuery('vendor');
 		$auditor = new AssociationAuditor();
-		$findings = $model ? $auditor->sortFindings($auditor->audit([$model])) : [];
+		$findings = [];
+		if ($model) {
+			$tables = (new TableResolver())->tables($includeVendor);
+			if (!in_array($model, $tables, true)) {
+				$tables[] = $model;
+			}
+			$all = $auditor->sortFindings($auditor->audit($tables));
+			$findings = array_values(array_filter($all, fn (Finding $finding): bool => $finding->table === $model));
+		}
+
 		$grouped = $this->groupByDirection($findings);
 
-		$this->set(compact('model', 'findings', 'grouped'));
+		$this->set(compact('model', 'findings', 'grouped', 'includeVendor'));
 	}
 
 	/**

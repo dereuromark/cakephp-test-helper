@@ -72,7 +72,7 @@ $columnLabel = function (string $column): string {
 				<?php foreach ($tables as $alias) { ?>
 					<tr>
 						<th scope="row">
-							<?php echo $this->Html->link(h($alias), ['action' => 'view', $alias]); ?>
+							<?php echo $this->Html->link(h($alias), ['action' => 'view', $alias, '?' => ['vendor' => $includeVendor ? 1 : null]]); ?>
 						</th>
 						<?php foreach ($columns as $column) { ?>
 							<?php $cell = $matrix[$alias][$column] ?? ['severity' => null, 'count' => 0]; ?>
@@ -82,7 +82,7 @@ $columnLabel = function (string $column): string {
 								<?php } else { ?>
 									<?php echo $this->Html->link(
 										'<span class="badge ' . $badge($cell['severity']) . '">' . (int)$cell['count'] . '</span>',
-										['action' => 'view', $alias],
+										['action' => 'view', $alias, '?' => ['vendor' => $includeVendor ? 1 : null]],
 										['escape' => false],
 									); ?>
 								<?php } ?>

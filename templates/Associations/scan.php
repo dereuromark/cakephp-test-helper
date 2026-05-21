@@ -76,7 +76,7 @@ $topicCounts = array_count_values(array_map(fn (Finding $finding): string => $fi
 				<?php foreach ($findings as $finding) { ?>
 					<tr class="<?php echo $rowClass($finding->severity); ?>" data-topic="<?php echo h($finding->topic()); ?>">
 						<td><?php echo h($finding->severity); ?></td>
-						<td><?php echo $this->Html->link(h($finding->table), ['action' => 'view', $finding->table]); ?></td>
+						<td><?php echo $this->Html->link(h($finding->table), ['action' => 'view', $finding->table, '?' => ['vendor' => $includeVendor ? 1 : null]]); ?></td>
 						<td><code><?php echo h($finding->associationType); ?></code></td>
 						<td><?php echo h($finding->direction); ?></td>
 						<td><?php echo h($finding->column ?? ''); ?></td>
