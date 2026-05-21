@@ -88,7 +88,7 @@ Each finding can be opened for detail, including a copy-paste fix:
 
 ![Association audit detail with fix](img/associations_fix.png)
 
-A flat scan lists every finding across all in-scope tables at once:
+A flat scan lists every finding across all in-scope tables at once, ordered worst-first (errors, then warnings, then info), and grouped by table within each severity:
 
 ![Association audit flat scan](img/associations_scan.png)
 

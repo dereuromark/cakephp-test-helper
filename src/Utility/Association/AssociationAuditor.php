@@ -123,6 +123,27 @@ class AssociationAuditor {
 	}
 
 	/**
+	 * Order findings worst-first for flat/grouped display: severity (error -> warning ->
+	 * info), then table, then column, then message. audit() emits in phase order, so this
+	 * is what turns the raw list into a stable, triage-friendly one. The message tiebreak
+	 * keeps order content-determined (independent of emission order) when several findings
+	 * share severity/table/column, e.g. multiple unsupported associations on one table.
+	 *
+	 * @param array<\TestHelper\Utility\Association\Finding> $findings
+	 * @return array<\TestHelper\Utility\Association\Finding>
+	 */
+	public function sortFindings(array $findings): array {
+		usort($findings, function (Finding $a, Finding $b): int {
+			return (Finding::SEVERITY_RANK[$b->severity] ?? 0) <=> (Finding::SEVERITY_RANK[$a->severity] ?? 0)
+				?: strcmp($a->table, $b->table)
+				?: strcmp($a->column ?? '', $b->column ?? '')
+				?: strcmp($a->message, $b->message);
+		});
+
+		return $findings;
+	}
+
+	/**
 	 * Resolve the display alias for a physical (connection, table) pair, keeping the
 	 * connection dimension so same-named tables on different connections stay distinct.
 	 *

@@ -77,7 +77,8 @@ class AssociationsController extends TestHelperAppController {
 		// implicit junction row carries only a physical name and is re-audited on the
 		// default connection; a same-named table on a non-default connection cannot be
 		// disambiguated from the alias alone (known v1 limitation).
-		$findings = $model ? (new AssociationAuditor())->audit([$model]) : [];
+		$auditor = new AssociationAuditor();
+		$findings = $model ? $auditor->sortFindings($auditor->audit([$model])) : [];
 		$grouped = $this->groupByDirection($findings);
 
 		$this->set(compact('model', 'findings', 'grouped'));
@@ -92,7 +93,8 @@ class AssociationsController extends TestHelperAppController {
 		$includeVendor = (bool)$this->request->getQuery('vendor');
 
 		$tables = (new TableResolver())->tables($includeVendor);
-		$findings = (new AssociationAuditor())->audit($tables);
+		$auditor = new AssociationAuditor();
+		$findings = $auditor->sortFindings($auditor->audit($tables));
 		$totals = $this->totals($findings);
 
 		$this->set(compact('findings', 'totals', 'includeVendor'));
@@ -165,12 +167,11 @@ class AssociationsController extends TestHelperAppController {
 	 * @return string
 	 */
 	protected function worst(?string $current, string $candidate): string {
-		$rank = ['info' => 1, 'warning' => 2, 'error' => 3];
 		if ($current === null) {
 			return $candidate;
 		}
 
-		return ($rank[$candidate] ?? 0) > ($rank[$current] ?? 0) ? $candidate : $current;
+		return (Finding::SEVERITY_RANK[$candidate] ?? 0) > (Finding::SEVERITY_RANK[$current] ?? 0) ? $candidate : $current;
 	}
 
 }
