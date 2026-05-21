@@ -144,6 +144,24 @@ class Finding {
 	}
 
 	/**
+	 * Display labels for every value topic() can return, used by the flat-scan topic filter.
+	 * Single source of truth: every layer (plus the unsupported direction) must have a label
+	 * here, otherwise that category becomes unfilterable in the UI. FindingTest enforces this.
+	 *
+	 * @return array<string, string>
+	 */
+	public static function topicLabels(): array {
+		return [
+			static::LAYER_CONSTRAINT => 'Constraints',
+			static::LAYER_COLUMN => 'Columns',
+			static::LAYER_TYPE => 'Key types',
+			static::LAYER_RULE => 'Cascade rules',
+			static::LAYER_INDEX => 'Indexes',
+			static::DIRECTION_UNSUPPORTED => 'Not verifiable',
+		];
+	}
+
+	/**
 	 * @return array<string, mixed>
 	 */
 	public function toArray(): array {

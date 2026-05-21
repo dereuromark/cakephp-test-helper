@@ -18,12 +18,7 @@ $rowClass = function (string $severity): string {
 	};
 };
 
-$topicLabels = [
-	Finding::LAYER_CONSTRAINT => 'Constraints',
-	Finding::LAYER_COLUMN => 'Columns',
-	Finding::LAYER_TYPE => 'Key types',
-	Finding::DIRECTION_UNSUPPORTED => 'Not verifiable',
-];
+$topicLabels = Finding::topicLabels();
 $topicCounts = array_count_values(array_map(fn (Finding $finding): string => $finding->topic(), $findings));
 ?>
 
@@ -42,17 +37,18 @@ $topicCounts = array_count_values(array_map(fn (Finding $finding): string => $fi
 
 <?php if ($findings) { ?>
 	<div class="d-flex gap-2 mb-3 flex-wrap align-items-center" id="topicFilter">
-		<span class="text-muted small">Filter by topic:</span>
+		<span class="text-muted small">Show only:</span>
 		<?php foreach ($topicLabels as $topic => $label) {
 			$count = $topicCounts[$topic] ?? 0;
 			if (!$count) {
 				continue;
 			}
 			?>
-			<button type="button" class="btn btn-sm btn-outline-secondary active topic-chip" data-topic="<?php echo h($topic); ?>" aria-pressed="true">
+			<button type="button" class="btn btn-sm btn-outline-secondary topic-chip" data-topic="<?php echo h($topic); ?>" aria-pressed="false">
 				<?php echo h($label); ?> <span class="badge bg-secondary"><?php echo $count; ?></span>
 			</button>
 		<?php } ?>
+		<span class="text-muted small fst-italic">none selected = all shown</span>
 	</div>
 <?php } ?>
 
@@ -97,18 +93,24 @@ document.addEventListener('DOMContentLoaded', function () {
 		return;
 	}
 	var rows = document.querySelectorAll('table tbody tr[data-topic]');
-	var off = {};
+	var selected = new Set();
 	function apply() {
 		rows.forEach(function (row) {
-			row.style.display = off[row.getAttribute('data-topic')] ? 'none' : '';
+			var topic = row.getAttribute('data-topic');
+			// No selection shows everything; otherwise show only the selected topics.
+			row.style.display = (selected.size === 0 || selected.has(topic)) ? '' : 'none';
 		});
 	}
 	filter.querySelectorAll('.topic-chip').forEach(function (chip) {
 		chip.addEventListener('click', function () {
 			var topic = chip.getAttribute('data-topic');
-			off[topic] = !off[topic];
-			chip.classList.toggle('active', !off[topic]);
-			chip.setAttribute('aria-pressed', off[topic] ? 'false' : 'true');
+			if (selected.has(topic)) {
+				selected.delete(topic);
+			} else {
+				selected.add(topic);
+			}
+			chip.classList.toggle('active', selected.has(topic));
+			chip.setAttribute('aria-pressed', selected.has(topic) ? 'true' : 'false');
 			apply();
 		});
 	});
