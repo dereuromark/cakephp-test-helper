@@ -18,6 +18,8 @@ use Throwable;
  */
 class AssociationReader {
 
+	use SchemaColumnAccessTrait;
+
 	protected JoinTableResolver $joinResolver;
 
 	public function __construct() {
@@ -189,33 +191,6 @@ class AssociationReader {
 			ownerColumnType: $this->safeColumnType($ownerTable, $column),
 			referencedColumnType: $this->safeColumnType($referenced, $referencedColumn),
 		);
-	}
-
-	/**
-	 * @param \Cake\ORM\Table $table
-	 * @return array<string>|null Null when the schema cannot be described.
-	 */
-	protected function safeColumns(Table $table): ?array {
-		try {
-			return $table->getSchema()->columns();
-		} catch (Throwable $e) {
-			return null;
-		}
-	}
-
-	/**
-	 * Abstract DB type of a column, or null if the schema/column cannot be resolved.
-	 *
-	 * @param \Cake\ORM\Table $table
-	 * @param string $column
-	 * @return string|null
-	 */
-	protected function safeColumnType(Table $table, string $column): ?string {
-		try {
-			return $table->getSchema()->getColumnType($column);
-		} catch (Throwable $e) {
-			return null;
-		}
 	}
 
 	/**

@@ -20,6 +20,19 @@ return [
 		//     [], // App migrations
 		// ],
 
+		// Association vs DB foreign-key audit (/test-helper/associations)
+		'associationAudit' => [
+			// Extra `*_id` columns the loose-column layer should ignore (added to the
+			// built-in foreign_id/parent_id/related_id), e.g. polymorphic columns.
+			'ignoreColumns' => [
+				// 'commentable_id',
+			],
+			// Emit the info-level "integer keys are preferred" finding for relations that
+			// use matching non-integer keys (e.g. uuid <-> uuid). Set to false to silence
+			// it on apps that deliberately standardize on uuid/other keys.
+			'preferIntegerKeys' => true,
+		],
+
 		'Linter' => [
 			'tasks' => [
 				// ...

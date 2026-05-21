@@ -2,6 +2,7 @@
 
 namespace TestHelper\Test\TestCase\Utility\Association;
 
+use Cake\Core\Configure;
 use Cake\TestSuite\TestCase;
 use TestHelper\Utility\Association\AssociationAuditor;
 use TestHelper\Utility\Association\Finding;
@@ -301,12 +302,42 @@ class AssociationAuditorTest extends TestCase {
 	}
 
 	/**
-	 * Integer family width differences (integer vs biginteger) are treated as agreement.
+	 * A wider owner key than the referenced key (biginteger FK -> integer PK) holds every
+	 * referenced value, so it is clean.
 	 *
 	 * @return void
 	 */
-	public function testTypeIntegerFamilyWidthIsClean() {
+	public function testTypeWiderOwnerIntegerIsClean() {
+		$findings = $this->auditor->typeFindings([$this->typedKey('biginteger', 'integer')]);
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * A narrower owner key than the referenced key (integer FK -> biginteger PK) cannot
+	 * hold every referenced value, so it is a warning.
+	 *
+	 * @return void
+	 */
+	public function testTypeNarrowerOwnerIntegerIsWarning() {
 		$findings = $this->auditor->typeFindings([$this->typedKey('integer', 'biginteger')]);
+
+		$this->assertCount(1, $findings);
+		$this->assertSame(Finding::DIRECTION_TYPE, $findings[0]->direction);
+		$this->assertSame(Finding::SEVERITY_WARNING, $findings[0]->severity);
+		$this->assertStringContainsString('narrower', strtolower($findings[0]->message));
+	}
+
+	/**
+	 * The info-level "integer keys are preferred" finding can be silenced via config, for
+	 * apps that deliberately standardize on non-integer (e.g. uuid) keys.
+	 *
+	 * @return void
+	 */
+	public function testTypeNonIntegerInfoSuppressedByConfig() {
+		Configure::write('TestHelper.associationAudit.preferIntegerKeys', false);
+		$findings = $this->auditor->typeFindings([$this->typedKey('uuid', 'uuid')]);
+		Configure::delete('TestHelper.associationAudit.preferIntegerKeys');
 
 		$this->assertSame([], $findings);
 	}

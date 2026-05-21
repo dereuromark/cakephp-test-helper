@@ -11,6 +11,8 @@ use Throwable;
  */
 class JoinTableResolver {
 
+	use SchemaColumnAccessTrait;
+
 	/**
 	 * @param \Cake\ORM\Association\BelongsToMany $association
 	 * @return array{0: array<\TestHelper\Utility\Association\ForeignKey>, 1: array<\TestHelper\Utility\Association\Finding>}
@@ -138,33 +140,6 @@ class JoinTableResolver {
 		}
 
 		return $value;
-	}
-
-	/**
-	 * @param \Cake\ORM\Table $table
-	 * @return array<string>|null Null when the schema cannot be described.
-	 */
-	protected function safeColumns(Table $table): ?array {
-		try {
-			return $table->getSchema()->columns();
-		} catch (Throwable $e) {
-			return null;
-		}
-	}
-
-	/**
-	 * Abstract DB type of a column, or null if the schema/column cannot be resolved.
-	 *
-	 * @param \Cake\ORM\Table $table
-	 * @param string $column
-	 * @return string|null
-	 */
-	protected function safeColumnType(Table $table, string $column): ?string {
-		try {
-			return $table->getSchema()->getColumnType($column);
-		} catch (Throwable $e) {
-			return null;
-		}
 	}
 
 }

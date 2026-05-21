@@ -77,6 +77,7 @@ Audits whether your declared table associations (`belongsTo`, `hasMany`, `hasOne
 * an association declared in code whose column exists but has no matching DB foreign-key constraint (warning; suggests an `addForeignKey()` migration line)
 * a DB foreign key with no matching association (suggests the `belongsTo`/`hasMany` call)
 * a target/column disagreement between the two
+* a key-type layer compares each declared foreign key's column type against the referenced key: a different type family (e.g. `integer` referencing `uuid`) is an error, an owner key narrower than the referenced key (e.g. `integer` referencing `biginteger`) is a warning, and matching non-integer keys are an info hint that integer keys are preferred (silence the hint with `TestHelper.associationAudit.preferIntegerKeys => false`)
 * a secondary layer flags `*_id` columns that have neither a constraint nor an association (configurable ignore list via `TestHelper.associationAudit.ignoreColumns` for polymorphic columns)
 
 App and first-party plugin tables are scanned by default; vendor tables can be folded in via the toggle.
