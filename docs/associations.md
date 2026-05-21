@@ -1,5 +1,5 @@
 ---
-description: Compare your CakePHP table associations against the real database foreign keys across four layers, with copy-paste fixes and composite-key support.
+description: Compare your CakePHP table associations against the real database foreign keys across five layers, with copy-paste fixes and composite-key support.
 ---
 
 # Association vs DB Foreign-Key Audit
