@@ -14,11 +14,12 @@ class AssociationsController extends TestHelperAppController {
 	protected ?string $defaultTable = '';
 
 	/**
-	 * Association types shown as matrix columns.
+	 * Matrix columns: the association types, then the two cross-cutting audit layers
+	 * (key-type and cascade-rule) as their own dimensions.
 	 *
 	 * @var array<string>
 	 */
-	protected array $columns = ['belongsTo', 'hasMany', 'hasOne', 'belongsToMany', 'looseColumn'];
+	protected array $columns = ['belongsTo', 'hasMany', 'hasOne', 'belongsToMany', 'looseColumn', 'keyType', 'cascadeRule'];
 
 	/**
 	 * Summary matrix across all in-scope tables.
@@ -118,7 +119,7 @@ class AssociationsController extends TestHelperAppController {
 			if (!isset($matrix[$finding->table])) {
 				continue;
 			}
-			$column = in_array($finding->associationType, $this->columns, true) ? $finding->associationType : 'belongsTo';
+			$column = $this->columnFor($finding);
 
 			$cell = $matrix[$finding->table][$column];
 			$cell['count']++;
@@ -130,6 +131,21 @@ class AssociationsController extends TestHelperAppController {
 	}
 
 	/**
+	 * Matrix column a finding belongs in: the cross-cutting layers get their own column,
+	 * everything else stays under its association type.
+	 *
+	 * @param \TestHelper\Utility\Association\Finding $finding
+	 * @return string
+	 */
+	protected function columnFor(Finding $finding): string {
+		return match ($finding->layer) {
+			Finding::LAYER_TYPE => 'keyType',
+			Finding::LAYER_RULE => 'cascadeRule',
+			default => in_array($finding->associationType, $this->columns, true) ? $finding->associationType : 'belongsTo',
+		};
+	}
+
+	/**
 	 * @param array<\TestHelper\Utility\Association\Finding> $findings
 	 * @return array<string, array<\TestHelper\Utility\Association\Finding>>
 	 */
@@ -138,6 +154,7 @@ class AssociationsController extends TestHelperAppController {
 			Finding::DIRECTION_MISMATCH => [],
 			Finding::DIRECTION_COLUMN_MISSING => [],
 			Finding::DIRECTION_TYPE => [],
+			Finding::DIRECTION_RULE => [],
 			Finding::DIRECTION_DB_MISSING => [],
 			Finding::DIRECTION_CODE_MISSING => [],
 			Finding::DIRECTION_UNSUPPORTED => [],

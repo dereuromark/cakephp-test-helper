@@ -2,8 +2,10 @@
 
 namespace TestHelper\Test\TestCase\Controller;
 
+use Cake\Http\ServerRequest;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
+use TestHelper\Controller\AssociationsController;
 use TestHelper\Utility\Association\Finding;
 
 /**
@@ -25,11 +27,37 @@ class AssociationsControllerTest extends TestCase {
 
 		$this->assertResponseCode(200);
 		$this->assertResponseContains('Association');
-		$this->assertSame(['belongsTo', 'hasMany', 'hasOne', 'belongsToMany', 'looseColumn'], $this->viewVariable('columns'));
+		$this->assertSame(['belongsTo', 'hasMany', 'hasOne', 'belongsToMany', 'looseColumn', 'keyType', 'cascadeRule'], $this->viewVariable('columns'));
 		$this->assertIsArray($this->viewVariable('matrix'));
 		$this->assertIsArray($this->viewVariable('tables'));
 		$this->assertSame(['error', 'warning', 'info'], array_keys($this->viewVariable('totals')));
 		$this->assertFalse($this->viewVariable('includeVendor'));
+	}
+
+	/**
+	 * Cross-cutting layers route to their own matrix columns; everything else stays under
+	 * its association type.
+	 *
+	 * @return void
+	 */
+	public function testColumnForRoutesLayersToOwnColumns() {
+		$controller = new class (new ServerRequest()) extends AssociationsController {
+
+			public function columnForPublic(Finding $finding): string {
+				return $this->columnFor($finding);
+			}
+
+		};
+
+		$type = new Finding('Posts', Finding::DIRECTION_TYPE, 'belongsTo', Finding::SEVERITY_ERROR, 'm', layer: Finding::LAYER_TYPE);
+		$rule = new Finding('Posts', Finding::DIRECTION_RULE, 'hasMany', Finding::SEVERITY_INFO, 'm', layer: Finding::LAYER_RULE);
+		$constraint = new Finding('Posts', Finding::DIRECTION_DB_MISSING, 'belongsTo', Finding::SEVERITY_WARNING, 'm', layer: Finding::LAYER_CONSTRAINT);
+		$loose = new Finding('Posts', Finding::DIRECTION_CODE_MISSING, 'looseColumn', Finding::SEVERITY_INFO, 'm', layer: Finding::LAYER_COLUMN);
+
+		$this->assertSame('keyType', $controller->columnForPublic($type));
+		$this->assertSame('cascadeRule', $controller->columnForPublic($rule));
+		$this->assertSame('belongsTo', $controller->columnForPublic($constraint));
+		$this->assertSame('looseColumn', $controller->columnForPublic($loose));
 	}
 
 	/**

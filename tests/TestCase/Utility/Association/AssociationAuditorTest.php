@@ -357,6 +357,18 @@ class AssociationAuditorTest extends TestCase {
 	}
 
 	/**
+	 * A type mismatch carries a changeColumn fix aligning the FK column to its target.
+	 *
+	 * @return void
+	 */
+	public function testTypeMismatchCarriesFixSnippet() {
+		$findings = $this->auditor->typeFindings([$this->typedKey('integer', 'uuid')]);
+
+		$this->assertCount(1, $findings);
+		$this->assertStringContainsString("\$table->changeColumn('author_id', 'uuid', [", (string)$findings[0]->fixSnippet);
+	}
+
+	/**
 	 * Matching non-integer types (both uuid) are info, since integer is preferred.
 	 *
 	 * @return void
@@ -368,6 +380,41 @@ class AssociationAuditorTest extends TestCase {
 		$this->assertSame(Finding::DIRECTION_TYPE, $findings[0]->direction);
 		$this->assertSame(Finding::SEVERITY_INFO, $findings[0]->severity);
 		$this->assertStringContainsString('non-integer', $findings[0]->message);
+	}
+
+	/**
+	 * The non-integer info advisory is not an actionable migration, so it carries no fix.
+	 *
+	 * @return void
+	 */
+	public function testTypeInfoHasNoFixSnippet() {
+		$findings = $this->auditor->typeFindings([$this->typedKey('uuid', 'uuid')]);
+
+		$this->assertCount(1, $findings);
+		$this->assertNull($findings[0]->fixSnippet);
+	}
+
+	/**
+	 * With preferIntegerKeys off, the non-integer info advisory is suppressed.
+	 *
+	 * @return void
+	 */
+	public function testTypePreferIntegerKeysSuppressesInfo() {
+		$findings = $this->auditor->typeFindings([$this->typedKey('uuid', 'uuid')], false);
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * Even with preferIntegerKeys off, a real cross-type mismatch is still an error.
+	 *
+	 * @return void
+	 */
+	public function testTypeMismatchStillErrorsWhenPreferIntegerKeysOff() {
+		$findings = $this->auditor->typeFindings([$this->typedKey('integer', 'uuid')], false);
+
+		$this->assertCount(1, $findings);
+		$this->assertSame(Finding::SEVERITY_ERROR, $findings[0]->severity);
 	}
 
 	/**
@@ -395,6 +442,140 @@ class AssociationAuditorTest extends TestCase {
 		$findings = $this->auditor->typeFindings($keys);
 
 		$this->assertCount(1, $findings);
+	}
+
+	/**
+	 * A dependent association whose DB FK does not cascade is an info rule finding with a fix.
+	 *
+	 * @return void
+	 */
+	public function testRuleDependentButDbDoesNotCascade() {
+		$findings = $this->auditor->ruleFindings(
+			[$this->dependentKey(true, 'hasMany')],
+			[$this->dbRuleKey('noAction')],
+		);
+
+		$this->assertCount(1, $findings);
+		$this->assertSame(Finding::DIRECTION_RULE, $findings[0]->direction);
+		$this->assertSame(Finding::SEVERITY_INFO, $findings[0]->severity);
+		$this->assertStringContainsString('cascade', strtolower($findings[0]->message));
+		$this->assertStringContainsString('addForeignKey', (string)$findings[0]->fixSnippet);
+	}
+
+	/**
+	 * A dependent association backed by ON DELETE CASCADE is consistent: no finding.
+	 *
+	 * @return void
+	 */
+	public function testRuleDependentAndDbCascadesClean() {
+		$findings = $this->auditor->ruleFindings(
+			[$this->dependentKey(true, 'hasMany')],
+			[$this->dbRuleKey('cascade')],
+		);
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * A DB cascade with a non-dependent association is flagged: the ORM won't fire callbacks.
+	 *
+	 * @return void
+	 */
+	public function testRuleDbCascadesButNotDependent() {
+		$findings = $this->auditor->ruleFindings(
+			[$this->dependentKey(false, 'hasMany')],
+			[$this->dbRuleKey('cascade')],
+		);
+
+		$this->assertCount(1, $findings);
+		$this->assertSame(Finding::DIRECTION_RULE, $findings[0]->direction);
+		$this->assertStringContainsString('dependent', strtolower($findings[0]->message));
+	}
+
+	/**
+	 * With no matching DB FK there is nothing to compare against (constraint layer covers it).
+	 *
+	 * @return void
+	 */
+	public function testRuleNoDbFkSkipped() {
+		$findings = $this->auditor->ruleFindings([$this->dependentKey(true, 'hasMany')], []);
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * belongsTo carries no dependent intent, so it is never rule-checked.
+	 *
+	 * @return void
+	 */
+	public function testRuleBelongsToSkipped() {
+		$findings = $this->auditor->ruleFindings(
+			[$this->dependentKey(null, 'belongsTo')],
+			[$this->dbRuleKey('cascade')],
+		);
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * Two hasMany aliases on the same FK with different dependent settings are checked
+	 * independently; the dependent intent of a later alias must not be dropped by dedupe.
+	 *
+	 * @return void
+	 */
+	public function testRuleChecksEachAliasIndependently() {
+		$findings = $this->auditor->ruleFindings(
+			[
+				$this->dependentKey(true, 'hasMany', 'Comments'),
+				$this->dependentKey(false, 'hasMany', 'ApprovedComments'),
+			],
+			[$this->dbRuleKey('cascade')],
+		);
+
+		// dependent=true + cascade is consistent; dependent=false + cascade is flagged.
+		$this->assertCount(1, $findings);
+		$this->assertStringContainsString('ApprovedComments', $findings[0]->message);
+	}
+
+	/**
+	 * Build a code-sourced ForeignKey carrying a dependent intent.
+	 *
+	 * @param bool|null $dependent
+	 * @param string $associationType
+	 * @param string $alias
+	 * @return \TestHelper\Utility\Association\ForeignKey
+	 */
+	protected function dependentKey(?bool $dependent, string $associationType, string $alias = 'Comments'): ForeignKey {
+		return new ForeignKey(
+			connection: 'default',
+			ownerTable: 'comments',
+			column: 'post_id',
+			referencedTable: 'posts',
+			referencedColumn: 'id',
+			source: ForeignKey::SOURCE_CODE,
+			associationType: $associationType,
+			declaringTable: 'Posts',
+			alias: $alias,
+			dependent: $dependent,
+		);
+	}
+
+	/**
+	 * Build a DB-sourced ForeignKey carrying an ON DELETE rule, matching dependentKey().
+	 *
+	 * @param string $onDelete
+	 * @return \TestHelper\Utility\Association\ForeignKey
+	 */
+	protected function dbRuleKey(string $onDelete): ForeignKey {
+		return new ForeignKey(
+			connection: 'default',
+			ownerTable: 'comments',
+			column: 'post_id',
+			referencedTable: 'posts',
+			referencedColumn: 'id',
+			source: ForeignKey::SOURCE_DB,
+			onDelete: $onDelete,
+		);
 	}
 
 	/**

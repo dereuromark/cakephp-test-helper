@@ -19,6 +19,15 @@ $badge = function (?string $severity): string {
 		default => 'bg-success',
 	};
 };
+
+$columnLabel = function (string $column): string {
+	return match ($column) {
+		'looseColumn' => 'Loose column',
+		'keyType' => 'Key type',
+		'cascadeRule' => 'Cascade',
+		default => $column,
+	};
+};
 ?>
 
 <div class="page-header mb-3">
@@ -54,7 +63,7 @@ $badge = function (?string $severity): string {
 				<tr>
 					<th>Table</th>
 					<?php foreach ($columns as $column) { ?>
-						<th class="text-center"><?php echo h($column); ?></th>
+						<th class="text-center"><?php echo h($columnLabel($column)); ?></th>
 					<?php } ?>
 				</tr>
 			</thead>

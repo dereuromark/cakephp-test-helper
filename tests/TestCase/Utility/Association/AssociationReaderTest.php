@@ -138,6 +138,106 @@ class AssociationReaderTest extends TestCase {
 	}
 
 	/**
+	 * hasMany carries the ORM `dependent` intent onto the foreign key.
+	 *
+	 * @return void
+	 */
+	public function testHasManyCapturesDependent() {
+		$authors = $this->table('Authors', 'authors', ['id' => ['type' => 'integer'], 'name' => ['type' => 'string']]);
+		$this->table('Posts', 'posts', ['id' => ['type' => 'integer'], 'author_id' => ['type' => 'integer']]);
+		$authors->hasMany('Posts', ['foreignKey' => 'author_id', 'dependent' => true]);
+
+		[$keys] = $this->reader->read($authors);
+
+		$this->assertCount(1, $keys);
+		$this->assertTrue($keys[0]->dependent);
+	}
+
+	/**
+	 * belongsTo has no dependent concept, so the intent stays null (rule layer skips it).
+	 *
+	 * @return void
+	 */
+	public function testBelongsToHasNullDependent() {
+		$this->table('Authors', 'authors', ['id' => ['type' => 'integer'], 'name' => ['type' => 'string']]);
+		$posts = $this->table('Posts', 'posts', ['id' => ['type' => 'integer'], 'author_id' => ['type' => 'integer']]);
+		$posts->belongsTo('Authors', ['foreignKey' => 'author_id']);
+
+		[$keys] = $this->reader->read($posts);
+
+		$this->assertCount(1, $keys);
+		$this->assertNull($keys[0]->dependent);
+	}
+
+	/**
+	 * A composite belongsTo normalizes to ordered column arrays instead of being skipped.
+	 *
+	 * @return void
+	 */
+	public function testCompositeBelongsToNormalizesToArrayColumns() {
+		$this->table('Companies', 'companies', [
+			'tenant_id' => ['type' => 'integer'],
+			'id' => ['type' => 'integer'],
+			'_constraints' => ['primary' => ['type' => 'primary', 'columns' => ['tenant_id', 'id']]],
+		]);
+		$memberships = $this->table('Memberships', 'memberships', [
+			'id' => ['type' => 'integer'],
+			'tenant_id' => ['type' => 'integer'],
+			'company_id' => ['type' => 'integer'],
+		]);
+		$memberships->belongsTo('Companies', [
+			'foreignKey' => ['tenant_id', 'company_id'],
+			'bindingKey' => ['tenant_id', 'id'],
+		]);
+
+		[$keys, $unsupported] = $this->reader->read($memberships);
+
+		$this->assertSame([], $unsupported);
+		$this->assertCount(1, $keys);
+		$this->assertSame(['tenant_id', 'company_id'], $keys[0]->columns);
+		$this->assertSame(['tenant_id', 'id'], $keys[0]->referencedColumns);
+		$this->assertTrue($keys[0]->isComposite());
+	}
+
+	/**
+	 * A composite belongsToMany resolves both junction FKs as ordered column arrays.
+	 *
+	 * @return void
+	 */
+	public function testCompositeBelongsToManyExpandsToArrayColumns() {
+		$articles = $this->table('Articles', 'articles', [
+			'tenant_id' => ['type' => 'integer'],
+			'id' => ['type' => 'integer'],
+			'_constraints' => ['primary' => ['type' => 'primary', 'columns' => ['tenant_id', 'id']]],
+		]);
+		$this->table('Tags', 'tags', [
+			'tenant_id' => ['type' => 'integer'],
+			'id' => ['type' => 'integer'],
+			'_constraints' => ['primary' => ['type' => 'primary', 'columns' => ['tenant_id', 'id']]],
+		]);
+		$this->table('ArticlesTags', 'articles_tags', [
+			'id' => ['type' => 'integer'],
+			'tenant_id' => ['type' => 'integer'],
+			'article_id' => ['type' => 'integer'],
+			'tag_id' => ['type' => 'integer'],
+		]);
+		$articles->belongsToMany('Tags', [
+			'joinTable' => 'articles_tags',
+			'foreignKey' => ['tenant_id', 'article_id'],
+			'targetForeignKey' => ['tenant_id', 'tag_id'],
+			'bindingKey' => ['tenant_id', 'id'],
+		]);
+
+		[$keys, $unsupported] = $this->reader->read($articles);
+
+		$this->assertSame([], $unsupported);
+		$this->assertCount(2, $keys);
+		$this->assertSame(['tenant_id', 'article_id'], $keys[0]->columns);
+		$this->assertSame(['tenant_id', 'id'], $keys[0]->referencedColumns);
+		$this->assertTrue($keys[0]->isComposite());
+	}
+
+	/**
 	 * belongsToMany expands into two junction-table foreign keys.
 	 *
 	 * @return void
@@ -188,11 +288,12 @@ class AssociationReaderTest extends TestCase {
 	}
 
 	/**
-	 * A composite binding key on belongsToMany is flagged unsupported, not truncated.
+	 * A belongsToMany whose FK columns and binding columns don't line up (here a single
+	 * junction FK against a composite source PK) is flagged unsupported, not truncated.
 	 *
 	 * @return void
 	 */
-	public function testBelongsToManyCompositeBindingKeyIsUnsupported() {
+	public function testBelongsToManyMismatchedKeysAreUnsupported() {
 		$articles = $this->table('Articles', 'articles', [
 			'id' => ['type' => 'integer'],
 			'sub' => ['type' => 'integer'],
@@ -211,7 +312,7 @@ class AssociationReaderTest extends TestCase {
 		$this->assertSame([], $keys);
 		$this->assertCount(1, $unsupported);
 		$this->assertSame('unsupported', $unsupported[0]->direction);
-		$this->assertStringContainsString('composite binding key', $unsupported[0]->message);
+		$this->assertStringContainsString('do not line up', $unsupported[0]->message);
 	}
 
 	/**

@@ -45,6 +45,12 @@ class Finding {
 	public const DIRECTION_TYPE = 'type';
 
 	/**
+	 * Cascade-rule observation: the ORM `dependent` intent and the DB FK rule disagree.
+     * @var string
+	 */
+	public const DIRECTION_RULE = 'rule';
+
+	/**
      * @var string
      */
 	public const SEVERITY_ERROR = 'error';
@@ -84,6 +90,11 @@ class Finding {
      * @var string
      */
 	public const LAYER_TYPE = 'type';
+
+	/**
+     * @var string
+     */
+	public const LAYER_RULE = 'rule';
 
 	/**
 	 * @param string $table Table to display this finding under.
