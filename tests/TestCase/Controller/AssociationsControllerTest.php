@@ -27,7 +27,7 @@ class AssociationsControllerTest extends TestCase {
 
 		$this->assertResponseCode(200);
 		$this->assertResponseContains('Association');
-		$this->assertSame(['belongsTo', 'hasMany', 'hasOne', 'belongsToMany', 'looseColumn', 'keyType', 'cascadeRule'], $this->viewVariable('columns'));
+		$this->assertSame(['belongsTo', 'hasMany', 'hasOne', 'belongsToMany', 'looseColumn', 'keyType', 'cascadeRule', 'index'], $this->viewVariable('columns'));
 		$this->assertIsArray($this->viewVariable('matrix'));
 		$this->assertIsArray($this->viewVariable('tables'));
 		$this->assertSame(['error', 'warning', 'info'], array_keys($this->viewVariable('totals')));
@@ -51,11 +51,13 @@ class AssociationsControllerTest extends TestCase {
 
 		$type = new Finding('Posts', Finding::DIRECTION_TYPE, 'belongsTo', Finding::SEVERITY_ERROR, 'm', layer: Finding::LAYER_TYPE);
 		$rule = new Finding('Posts', Finding::DIRECTION_RULE, 'hasMany', Finding::SEVERITY_INFO, 'm', layer: Finding::LAYER_RULE);
+		$index = new Finding('Posts', Finding::DIRECTION_INDEX, 'belongsTo', Finding::SEVERITY_INFO, 'm', layer: Finding::LAYER_INDEX);
 		$constraint = new Finding('Posts', Finding::DIRECTION_DB_MISSING, 'belongsTo', Finding::SEVERITY_WARNING, 'm', layer: Finding::LAYER_CONSTRAINT);
 		$loose = new Finding('Posts', Finding::DIRECTION_CODE_MISSING, 'looseColumn', Finding::SEVERITY_INFO, 'm', layer: Finding::LAYER_COLUMN);
 
 		$this->assertSame('keyType', $controller->columnForPublic($type));
 		$this->assertSame('cascadeRule', $controller->columnForPublic($rule));
+		$this->assertSame('index', $controller->columnForPublic($index));
 		$this->assertSame('belongsTo', $controller->columnForPublic($constraint));
 		$this->assertSame('looseColumn', $controller->columnForPublic($loose));
 	}
@@ -119,6 +121,7 @@ class AssociationsControllerTest extends TestCase {
 		$grouped = $this->viewVariable('grouped');
 		$this->assertArrayHasKey(Finding::DIRECTION_MISMATCH, $grouped);
 		$this->assertArrayHasKey(Finding::DIRECTION_TYPE, $grouped);
+		$this->assertArrayHasKey(Finding::DIRECTION_INDEX, $grouped);
 		$this->assertArrayHasKey(Finding::DIRECTION_DB_MISSING, $grouped);
 	}
 

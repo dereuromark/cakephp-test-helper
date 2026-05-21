@@ -25,6 +25,7 @@ $columnLabel = function (string $column): string {
 		'looseColumn' => 'Loose column',
 		'keyType' => 'Key type',
 		'cascadeRule' => 'Cascade',
+		'index' => 'Index',
 		default => $column,
 	};
 };

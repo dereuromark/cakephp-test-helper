@@ -46,6 +46,12 @@ return [
 			// use matching non-integer keys (e.g. uuid <-> uuid). Set to false to silence
 			// it on apps that deliberately standardize on uuid/other keys.
 			'preferIntegerKeys' => true,
+			// Run the index-presence layer, which flags foreign-key-style columns that are
+			// not the leading column of any index (joins/lookups on them table-scan). Most
+			// valuable on PostgreSQL, where a foreign-key constraint does not auto-create an
+			// index on the referencing column. Set to false to silence it on apps where the
+			// heuristic is more noise than value (e.g. write-heavy or denormalized schemas).
+			'checkIndexes' => true,
 		],
 
 		'Linter' => [

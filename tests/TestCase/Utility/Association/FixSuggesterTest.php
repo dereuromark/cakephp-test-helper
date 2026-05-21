@@ -156,4 +156,41 @@ class FixSuggesterTest extends TestCase {
 		$this->assertStringContainsString("'bindingKey' => 'uuid'", $result);
 	}
 
+	/**
+	 * The index line renders an addIndex with the single column in array form.
+	 *
+	 * @return void
+	 */
+	public function testIndexLineSingleColumnString() {
+		$result = $this->suggester->indexLine('post_id');
+
+		$this->assertSame("\$table->addIndex(['post_id']);", $result);
+	}
+
+	/**
+	 * A single-column foreign key indexes just its column, in array form.
+	 *
+	 * @return void
+	 */
+	public function testIndexLineSingleColumnFk() {
+		$fk = new ForeignKey('default', 'comments', 'post_id', 'posts', 'id', ForeignKey::SOURCE_DB);
+
+		$result = $this->suggester->indexLine($fk);
+
+		$this->assertSame("\$table->addIndex(['post_id']);", $result);
+	}
+
+	/**
+	 * A composite foreign key indexes all of its columns in order.
+	 *
+	 * @return void
+	 */
+	public function testIndexLineComposite() {
+		$fk = new ForeignKey('default', 'memberships', ['tenant_id', 'company_id'], 'companies', ['tenant_id', 'id'], ForeignKey::SOURCE_DB);
+
+		$result = $this->suggester->indexLine($fk);
+
+		$this->assertSame("\$table->addIndex(['tenant_id', 'company_id']);", $result);
+	}
+
 }

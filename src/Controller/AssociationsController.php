@@ -14,12 +14,12 @@ class AssociationsController extends TestHelperAppController {
 	protected ?string $defaultTable = '';
 
 	/**
-	 * Matrix columns: the association types, then the two cross-cutting audit layers
-	 * (key-type and cascade-rule) as their own dimensions.
+	 * Matrix columns: the association types, then the cross-cutting audit layers (key-type,
+	 * cascade-rule and index-presence) as their own dimensions.
 	 *
 	 * @var array<string>
 	 */
-	protected array $columns = ['belongsTo', 'hasMany', 'hasOne', 'belongsToMany', 'looseColumn', 'keyType', 'cascadeRule'];
+	protected array $columns = ['belongsTo', 'hasMany', 'hasOne', 'belongsToMany', 'looseColumn', 'keyType', 'cascadeRule', 'index'];
 
 	/**
 	 * Summary matrix across all in-scope tables.
@@ -153,6 +153,7 @@ class AssociationsController extends TestHelperAppController {
 		return match ($finding->layer) {
 			Finding::LAYER_TYPE => 'keyType',
 			Finding::LAYER_RULE => 'cascadeRule',
+			Finding::LAYER_INDEX => 'index',
 			default => in_array($finding->associationType, $this->columns, true) ? $finding->associationType : 'belongsTo',
 		};
 	}
@@ -167,6 +168,7 @@ class AssociationsController extends TestHelperAppController {
 			Finding::DIRECTION_COLUMN_MISSING => [],
 			Finding::DIRECTION_TYPE => [],
 			Finding::DIRECTION_RULE => [],
+			Finding::DIRECTION_INDEX => [],
 			Finding::DIRECTION_DB_MISSING => [],
 			Finding::DIRECTION_CODE_MISSING => [],
 			Finding::DIRECTION_UNSUPPORTED => [],

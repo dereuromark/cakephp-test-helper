@@ -182,6 +182,21 @@ class FixSuggester {
 	}
 
 	/**
+	 * Migration line adding an index on a foreign-key-style column that has none, so joins
+	 * and lookups on it no longer table-scan. A composite foreign key indexes all its
+	 * columns in order (the leading column is what a join uses); a single column or a loose
+	 * `*_id` column passed as a string indexes just that one.
+	 *
+	 * @param \TestHelper\Utility\Association\ForeignKey|string $columnOrFk Foreign key, or a single column name.
+	 * @return string
+	 */
+	public function indexLine(ForeignKey|string $columnOrFk): string {
+		$columns = $columnOrFk instanceof ForeignKey ? $columnOrFk->columns : [$columnOrFk];
+
+		return sprintf("\$table->addIndex(['%s']);", implode("', '", $columns));
+	}
+
+	/**
 	 * A `, 'bindingKey' => ...` association option, but only when the referenced column(s)
 	 * are non-default (composite, or a single column other than `id`). The default `id`
 	 * binding needs no explicit option, keeping the common snippet clean.

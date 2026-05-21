@@ -69,8 +69,10 @@ class AssociationAuditor {
 		$dbKeys = [];
 		$looseColumns = [];
 		$claimedColumns = [];
+		$indexedColumns = [];
 		$findings = [];
 		$ownerTables = [];
+		$checkIndexes = $this->checkIndexes();
 		// Maps `connection|physical_table` -> registry alias so DB-sourced findings
 		// (which only know the physical table) display under the same alias the matrix
 		// and detail routes use.
@@ -120,6 +122,12 @@ class AssociationAuditor {
 				}
 				$dbKeys = array_merge($dbKeys, $this->schema->foreignKeys($connection, $owner['table']));
 				$looseColumns = array_merge($looseColumns, $this->schema->looseColumns($connection, $owner['table']));
+				// Skip the index-specific introspection entirely when the layer is off, so an
+				// opt-out app does no extra schema work and cannot surface a warning solely
+				// from index inspection.
+				if ($checkIndexes) {
+					$indexedColumns[$owner['connection'] . '|' . $owner['table']] = $this->schema->indexedColumns($connection, $owner['table']);
+				}
 			} catch (Throwable $e) {
 				// Surface the failure rather than letting the table look "clean": it was
 				// never actually compared against the DB.
@@ -137,6 +145,10 @@ class AssociationAuditor {
 		$findings = array_merge($findings, $this->looseColumnFindings($looseColumns, $codeKeys, $this->ignoreColumns(), $aliasByPhysical, $claimedColumns));
 		$findings = array_merge($findings, $this->typeFindings($codeKeys, $this->preferIntegerKeys()));
 		$findings = array_merge($findings, $this->ruleFindings($codeKeys, $dbKeys));
+
+		// Index layer over every foreign-key-semantic column the audit already knows.
+		$indexCandidates = $this->indexCandidates($dbKeys, $codeKeys, $looseColumns, $indexedColumns);
+		$findings = array_merge($findings, $this->indexFindings($indexCandidates, $indexedColumns, $this->ignoreColumns(), $checkIndexes, $aliasByPhysical));
 
 		return $findings;
 	}
@@ -558,6 +570,126 @@ class AssociationAuditor {
 	}
 
 	/**
+	 * Pure helper: the foreign-key-semantic columns the index layer should check. The union
+	 * of DB foreign keys, existing code-side foreign keys (a missing column is the constraint
+	 * layer's problem, not the index layer's) and loose `*_id` columns, restricted to tables
+	 * whose schema was actually inspected. `$indexedColumns` is keyed only on a successful
+	 * introspection, so a non-introspectable table is dropped here and reports its unsupported
+	 * warning rather than every code-side FK column on it as a false "missing index".
+	 *
+	 * @param array<\TestHelper\Utility\Association\ForeignKey> $dbKeys
+	 * @param array<\TestHelper\Utility\Association\ForeignKey> $codeKeys
+	 * @param array<\TestHelper\Utility\Association\LooseColumn> $looseColumns
+	 * @param array<string, array<string>> $indexedColumns `connection|physical_table` => leading columns.
+	 * @return array<\TestHelper\Utility\Association\ForeignKey|\TestHelper\Utility\Association\LooseColumn>
+	 */
+	public function indexCandidates(array $dbKeys, array $codeKeys, array $looseColumns, array $indexedColumns): array {
+		$existingCodeKeys = array_filter($codeKeys, fn (ForeignKey $fk): bool => $fk->columnExists);
+
+		return array_values(array_filter(
+			array_merge($dbKeys, $existingCodeKeys, $looseColumns),
+			fn (ForeignKey|LooseColumn $candidate): bool => isset($indexedColumns[$this->candidateTableKey($candidate)]),
+		));
+	}
+
+	/**
+	 * Pure index-presence layer: flags foreign-key-style columns that are not the leading
+	 * column of any index, because joins and lookups on them table-scan. This is reported as
+	 * info because it is a heuristic - a tiny lookup table or a write-heavy column may
+	 * deliberately go without an index. It matters most on PostgreSQL, where a foreign-key
+	 * constraint does NOT auto-create an index on the referencing column, and for columns
+	 * managed only at the ORM level (loose `*_id` columns with no DB constraint).
+	 *
+	 * The candidates are the union of every foreign-key-semantic column the audit already
+	 * knows (DB foreign keys, existing code-side foreign-key columns, and loose `*_id`
+	 * columns). Only the leading column of each candidate is checked; a composite foreign
+	 * key indexes all its columns in order, since the leading column is what a join uses.
+	 * At most one finding is emitted per `connection|table|column`, even when a column
+	 * surfaces via several sources.
+	 *
+	 * @param array<\TestHelper\Utility\Association\ForeignKey|\TestHelper\Utility\Association\LooseColumn> $candidates
+	 * @param array<string, array<string>> $indexedColumns `connection|physical_table` => leading columns.
+	 * @param array<string> $ignoreColumns
+	 * @param bool|null $checkIndexes When false, the layer emits nothing; null falls back to the
+	 *   `TestHelper.associationAudit.checkIndexes` config.
+	 * @param array<string, string> $aliasByPhysical `connection|physical_table` => alias.
+	 * @return array<\TestHelper\Utility\Association\Finding>
+	 */
+	public function indexFindings(array $candidates, array $indexedColumns, array $ignoreColumns, ?bool $checkIndexes = null, array $aliasByPhysical = []): array {
+		$checkIndexes ??= $this->checkIndexes();
+		if (!$checkIndexes) {
+			return [];
+		}
+
+		$seen = [];
+		$findings = [];
+		foreach ($candidates as $candidate) {
+			[$connection, $table, $column, $isLoose, $subject] = $this->candidateParts($candidate);
+
+			if (in_array($column, $ignoreColumns, true)) {
+				continue;
+			}
+
+			$indexed = $indexedColumns[$connection . '|' . $table] ?? [];
+			if (in_array($column, $indexed, true)) {
+				continue;
+			}
+
+			// At most one index finding per column, even if it appears via several sources.
+			$id = $connection . '|' . $table . '|' . $column;
+			if (isset($seen[$id])) {
+				continue;
+			}
+			$seen[$id] = true;
+
+			$message = $isLoose
+				? sprintf('Column `%s.%s` looks like a foreign key with no index; lookups/joins on it will table-scan.', $table, $column)
+				: sprintf('Column `%s.%s` is a foreign key with no index; lookups/joins on it will table-scan.', $table, $column);
+
+			$findings[] = new Finding(
+				table: $this->aliasFor($connection, $table, $aliasByPhysical),
+				direction: Finding::DIRECTION_INDEX,
+				associationType: $isLoose ? 'looseColumn' : 'belongsTo',
+				severity: Finding::SEVERITY_INFO,
+				message: $message,
+				column: $column,
+				fixSnippet: $this->fixSuggester->indexLine($subject),
+				layer: Finding::LAYER_INDEX,
+			);
+		}
+
+		return $findings;
+	}
+
+	/**
+	 * Normalize an index candidate (DB/code foreign key or loose column) to the parts the
+	 * index layer needs: its connection, physical table, leading column, whether it is a
+	 * loose `*_id` column (which changes the wording) and the subject passed to the fix.
+	 *
+	 * @param \TestHelper\Utility\Association\ForeignKey|\TestHelper\Utility\Association\LooseColumn $candidate
+	 * @return array{0: string, 1: string, 2: string, 3: bool, 4: \TestHelper\Utility\Association\ForeignKey|string}
+	 */
+	protected function candidateParts(ForeignKey|LooseColumn $candidate): array {
+		if ($candidate instanceof ForeignKey) {
+			return [$candidate->connection, $candidate->ownerTable, $candidate->columns[0], false, $candidate];
+		}
+
+		return [$candidate->connection, $candidate->table, $candidate->column, true, $candidate->column];
+	}
+
+	/**
+	 * The `connection|physical_table` key an index candidate belongs to.
+	 *
+	 * @param \TestHelper\Utility\Association\ForeignKey|\TestHelper\Utility\Association\LooseColumn $candidate
+	 * @return string
+	 */
+	protected function candidateTableKey(ForeignKey|LooseColumn $candidate): string {
+		[$connection, $table] = $this->candidateParts($candidate);
+
+		return $connection . '|' . $table;
+	}
+
+	/**
 	 * Human-readable SQL label for an internal cascade-action string.
 	 *
 	 * @param string $action One of the TableSchema::ACTION_* values.
@@ -582,6 +714,16 @@ class AssociationAuditor {
 	 */
 	protected function preferIntegerKeys(): bool {
 		return (bool)Configure::read('TestHelper.associationAudit.preferIntegerKeys', true);
+	}
+
+	/**
+	 * Whether to run the index-presence layer. Disable it on apps where the heuristic adds
+	 * more noise than value (e.g. heavily denormalized or write-heavy schemas).
+	 *
+	 * @return bool
+	 */
+	protected function checkIndexes(): bool {
+		return (bool)Configure::read('TestHelper.associationAudit.checkIndexes', true);
 	}
 
 	/**

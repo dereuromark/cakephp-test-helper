@@ -22,7 +22,7 @@ hero:
 features:
   - icon: 🔗
     title: Association vs DB Audit
-    details: Compares your declared associations against the real database foreign keys across four layers — constraint, key-type, cascade-rule and loose-column — with copy-paste fixes.
+    details: Compares your declared associations against the real database foreign keys across five layers — constraint, key-type, cascade-rule, loose-column and index-presence — with copy-paste fixes.
     link: /associations
     linkText: Read the guide
   - icon: 🧰
