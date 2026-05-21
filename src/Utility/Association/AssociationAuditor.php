@@ -150,7 +150,7 @@ class AssociationAuditor {
 
 		$findings = array_merge($findings, $this->diffForeignKeys($codeKeys, $dbKeys, $aliasByPhysical));
 		$findings = array_merge($findings, $this->looseColumnFindings($looseColumns, $codeKeys, $this->ignoreColumns(), $aliasByPhysical, $claimedColumns));
-		$findings = array_merge($findings, $this->typeFindings($codeKeys, $this->preferIntegerKeys()));
+		$findings = array_merge($findings, $this->typeFindings($codeKeys, $this->preferIntegerKeys(), $this->ignoreColumns()));
 		$findings = array_merge($findings, $this->ruleFindings($codeKeys, $dbKeys));
 
 		// Index layer over every foreign-key-semantic column the audit already knows, minus the
@@ -399,9 +399,12 @@ class AssociationAuditor {
 	 * @param array<\TestHelper\Utility\Association\ForeignKey> $codeKeys
 	 * @param bool|null $preferIntegerKeys When false, the non-integer info advisory is suppressed
 	 *   (errors remain); null falls back to the `TestHelper.associationAudit.preferIntegerKeys` config.
+	 * @param array<string> $ignoreColumns Owner columns to skip entirely (no type finding of any
+	 *   severity). Use for deliberately polymorphic keys such as FileStorage's `foreign_key`, a
+	 *   string column that legitimately holds integer owner ids.
 	 * @return array<\TestHelper\Utility\Association\Finding>
 	 */
-	public function typeFindings(array $codeKeys, ?bool $preferIntegerKeys = null): array {
+	public function typeFindings(array $codeKeys, ?bool $preferIntegerKeys = null, array $ignoreColumns = []): array {
 		$preferIntegerKeys ??= $this->preferIntegerKeys();
 		$seen = [];
 		$findings = [];
@@ -415,6 +418,12 @@ class AssociationAuditor {
 				continue;
 			}
 			$seen[$fk->key()] = true;
+
+			// Deliberately polymorphic keys (e.g. FileStorage's string `foreign_key` holding
+			// integer owner ids) are opted out of type comparison via the ignore list.
+			if (in_array($fk->column, $ignoreColumns, true)) {
+				continue;
+			}
 
 			$ownerBucket = $this->typeBucket($fk->ownerColumnType);
 			$referencedBucket = $this->typeBucket($fk->referencedColumnType);

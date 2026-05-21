@@ -136,7 +136,7 @@ problems:
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `TestHelper.associationAudit.ignoreColumns` | `[]` | Extra `*_id` column names to ignore in the loose-column layer (merged with the built-in polymorphic defaults). |
+| `TestHelper.associationAudit.ignoreColumns` | `[]` | Column names to skip in the loose-column **and** key-type layers (merged with the built-in polymorphic defaults). Use for deliberately polymorphic string keys such as FileStorage's `foreign_key`, which legitimately holds integer owner ids. |
 | `TestHelper.associationAudit.preferIntegerKeys` | `true` | When `false`, suppress the "integer keys are preferred" info hint. Type-family errors and narrowing warnings still report. |
 | `TestHelper.associationAudit.checkIndexes` | `true` | When `false`, disable the index-presence layer entirely (no "foreign key with no index" info findings). |
 

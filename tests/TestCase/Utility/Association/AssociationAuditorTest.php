@@ -357,6 +357,18 @@ class AssociationAuditorTest extends TestCase {
 	}
 
 	/**
+	 * A type mismatch on an ignored owner column is suppressed entirely (no finding of any
+	 * severity). Used for deliberately polymorphic keys such as FileStorage's `foreign_key`.
+	 *
+	 * @return void
+	 */
+	public function testTypeMismatchIgnoredColumn() {
+		$findings = $this->auditor->typeFindings([$this->typedKey('integer', 'uuid')], null, ['author_id']);
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
 	 * A type mismatch carries a changeColumn fix aligning the FK column to its target.
 	 *
 	 * @return void
