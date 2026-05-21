@@ -5,6 +5,9 @@ hero:
   name: cakephp-test-helper
   text: Developer backend for CakePHP
   tagline: A browseable /test-helper backend with an association vs DB foreign-key audit, a SQL to Query Builder converter, fixture and test helpers, and custom linter tasks.
+  image:
+    src: /logo.svg
+    alt: cakephp-test-helper
   actions:
     - theme: brand
       text: Get Started
