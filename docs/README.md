@@ -7,6 +7,7 @@ Browse `/test-helper` to see all functionality available.
 * Check fixtures against tables (+ bake missing ones via click)
 * Check tests per file available (+ bake missing ones via click)
 * Run tests and display results or coverage in backend.
+* Association vs DB foreign-key audit
 * [Custom Linter Tasks](Linter.md) - Project-specific code quality checks
 
 ## Configuration
@@ -62,6 +63,34 @@ See [SQL Converter Documentation](SqlConverter.md) for complete guide, examples,
 Check the backend entry page for the form to make reverse lookups for URL strings.
 
 ![URL array generation](img/url_array_generation.png)
+
+### Association vs DB foreign-key audit
+
+Navigate to
+```
+/test-helper/associations
+```
+
+Audits whether your declared table associations (`belongsTo`, `hasMany`, `hasOne`, `belongsToMany`) agree with the actual database foreign keys, in both directions:
+
+* an association declared in code with no matching DB foreign-key constraint (suggests an `addForeignKey()` migration line)
+* a DB foreign key with no matching association (suggests the `belongsTo`/`hasMany` call)
+* a target/column disagreement between the two
+* a secondary layer flags `*_id` columns that have neither a constraint nor an association (configurable ignore list via `TestHelper.associationAudit.ignoreColumns` for polymorphic columns)
+
+App and first-party plugin tables are scanned by default; vendor tables can be folded in via the toggle.
+
+The summary matrix shows every table against each association type, colour-coded by status:
+
+![Association audit matrix](img/associations_matrix.png)
+
+Each finding can be opened for detail, including a copy-paste fix:
+
+![Association audit detail with fix](img/associations_fix.png)
+
+A flat scan lists every finding across all in-scope tables at once:
+
+![Association audit flat scan](img/associations_scan.png)
 
 ### Plugin info/check
 Check your own plugins on hooks and more.

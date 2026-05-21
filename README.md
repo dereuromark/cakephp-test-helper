@@ -27,6 +27,7 @@ You have an overview of your classes and the test classes to it. If there is one
 * Fixture validation tool (compares actual DB with the schema files: fields and attributes, constraints and indexes)
 * Model/entity/table comparison overview.
 * GUI for fixture comparison and generation of missing ones per mouse click.
+* Association vs DB foreign-key audit (declared associations compared against actual DB constraints).
 * Custom linter tasks for project-specific code quality checks.
 
 ![Dashboard](docs/img/dashboard.png)
