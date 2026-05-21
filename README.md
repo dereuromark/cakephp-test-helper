@@ -90,7 +90,7 @@ Supported class types:
 * [x] Forms
 * [x] Mailers
 
-[Full Documentation](docs/README.md)
+Full documentation: https://dereuromark.github.io/cakephp-test-helper/
 
 ## Custom Linter Tasks
 

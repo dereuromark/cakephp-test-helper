@@ -743,6 +743,6 @@ If linting is slow:
 
 ## See Also
 
-* [Main README](../README.md)
+* [Main README](https://github.com/dereuromark/cakephp-test-helper#readme)
 * [PHPStan](https://phpstan.org/) - For complex static analysis
 * [Rector](https://github.com/rectorphp/rector) - For complex migration tooling

@@ -1,4 +1,4 @@
-# TestHelper Plugin Documentation
+# Overview
 
 Browse `/test-helper` to see all functionality available.
 * [SQL to Query Builder Converter](SqlConverter.md) - Convert raw SQL to CakePHP Query Builder code
