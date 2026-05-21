@@ -71,9 +71,9 @@ class TestCasesController extends TestHelperAppController {
 	/**
 	 * View a specific test case and its methods
 	 *
-	 * @return void
+	 * @return \Cake\Http\Response|null
 	 */
-	public function view(): void {
+	public function view(): ?Response {
 		/** @var string|null $appOrPlugin */
 		$appOrPlugin = $this->request->getQuery('namespace');
 		$plugin = $appOrPlugin !== 'app' ? $appOrPlugin : null;
@@ -82,7 +82,7 @@ class TestCasesController extends TestHelperAppController {
 		if (!$file) {
 			$this->Flash->error('No file specified');
 
-			return;
+			return $this->redirect(['action' => 'browse', '?' => ['namespace' => $appOrPlugin ?: 'app']]);
 		}
 
 		$file = str_replace(['..', "\0"], '', (string)$file); // Security: prevent directory traversal
@@ -93,7 +93,7 @@ class TestCasesController extends TestHelperAppController {
 		if (!file_exists($fullPath)) {
 			$this->Flash->error('Test file not found: ' . $file);
 
-			return;
+			return $this->redirect(['action' => 'browse', '?' => ['namespace' => $appOrPlugin ?: 'app']]);
 		}
 
 		$testPath = ($plugin ? 'plugins' . DS . $plugin . DS . 'tests' : 'tests') . DS . 'TestCase' . DS . $file;
@@ -115,6 +115,8 @@ class TestCasesController extends TestHelperAppController {
 		$className = basename($file, '.php');
 
 		$this->set(compact('methods', 'file', 'testPath', 'breadcrumb', 'namespace', 'plugin', 'className'));
+
+		return null;
 	}
 
 	/**
