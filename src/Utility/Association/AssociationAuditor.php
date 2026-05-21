@@ -476,12 +476,31 @@ class AssociationAuditor {
 			$dbByKey[$fk->key()] = $fk;
 		}
 
+		// A belongsToMany's junction FK is also exposed as a hasMany over the junction table:
+		// CakePHP injects the target-side one onto the shared registry, and an app may declare it
+		// explicitly too (the two are indistinguishable — Cake only injects when the alias is
+		// free). Either way the belongsToMany owns the junction-row lifecycle and the FK is
+		// already audited via the belongsToMany itself, so this layer does not separately
+		// rule-check a `hasMany` whose FK belongs to a belongsToMany junction. This is also what
+		// removes the scan-vs-detail-view discrepancy: the injected hasMany only appears once the
+		// belongsToMany owner has been loaded. The skip is limited to `hasMany` (the only type
+		// Cake generates for junctions); a `hasOne` on that FK is genuine intent and still checked.
+		$junctionKeys = [];
+		foreach ($codeKeys as $fk) {
+			if ($fk->associationType === 'belongsToMany') {
+				$junctionKeys[$fk->key()] = true;
+			}
+		}
+
 		$findings = [];
 		foreach ($codeKeys as $fk) {
 			// Each association is checked on its own: aliases sharing one physical FK can carry
 			// different `dependent` settings, so deduping by key() here would drop real findings.
 			// Reciprocal belongsTo declarations carry a null intent and fall through below.
 			if ($fk->dependent === null) {
+				continue;
+			}
+			if ($fk->associationType === 'hasMany' && isset($junctionKeys[$fk->key()])) {
 				continue;
 			}
 
