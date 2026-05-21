@@ -557,6 +557,21 @@ class AssociationAuditorTest extends TestCase {
 	}
 
 	/**
+	 * An index finding keeps the originating association type (not a hard-coded belongsTo), so
+	 * the flat scan and detail view point at the right association.
+	 *
+	 * @return void
+	 */
+	public function testIndexPreservesAssociationType() {
+		$hasMany = new ForeignKey('default', 'comments', 'post_id', 'posts', 'id', ForeignKey::SOURCE_CODE, 'hasMany', 'Posts', 'Comments', true);
+
+		$findings = $this->auditor->indexFindings([$hasMany], [], [], true);
+
+		$this->assertCount(1, $findings);
+		$this->assertSame('hasMany', $findings[0]->associationType);
+	}
+
+	/**
 	 * A loose column uses the "looks like a foreign key" wording.
 	 *
 	 * @return void

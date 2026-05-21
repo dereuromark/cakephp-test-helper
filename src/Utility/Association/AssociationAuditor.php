@@ -122,12 +122,6 @@ class AssociationAuditor {
 				}
 				$dbKeys = array_merge($dbKeys, $this->schema->foreignKeys($connection, $owner['table']));
 				$looseColumns = array_merge($looseColumns, $this->schema->looseColumns($connection, $owner['table']));
-				// Skip the index-specific introspection entirely when the layer is off, so an
-				// opt-out app does no extra schema work and cannot surface a warning solely
-				// from index inspection.
-				if ($checkIndexes) {
-					$indexedColumns[$owner['connection'] . '|' . $owner['table']] = $this->schema->indexedColumns($connection, $owner['table']);
-				}
 			} catch (Throwable $e) {
 				// Surface the failure rather than letting the table look "clean": it was
 				// never actually compared against the DB.
@@ -138,6 +132,19 @@ class AssociationAuditor {
 					severity: Finding::SEVERITY_WARNING,
 					message: sprintf('DB schema for `%s` could not be inspected: %s', $owner['table'], $e->getMessage()),
 				);
+
+				continue;
+			}
+
+			// Index reflection is its own optional, informational layer: if only it fails (e.g. a
+			// driver without index metadata) the constraint/loose/type/cascade layers above still
+			// stand, so a failure here must not downgrade the table to "could not be inspected".
+			if ($checkIndexes) {
+				try {
+					$indexedColumns[$owner['connection'] . '|' . $owner['table']] = $this->schema->indexedColumns($connection, $owner['table']);
+				} catch (Throwable $e) {
+					// No index data for this table; the rest of the audit is unaffected.
+				}
 			}
 		}
 
@@ -586,8 +593,10 @@ class AssociationAuditor {
 	public function indexCandidates(array $dbKeys, array $codeKeys, array $looseColumns, array $indexedColumns): array {
 		$existingCodeKeys = array_filter($codeKeys, fn (ForeignKey $fk): bool => $fk->columnExists);
 
+		// Code-side keys first so the per-column dedupe keeps their real association type
+		// (hasMany/hasOne/belongsToMany) rather than a bare DB foreign key's default.
 		return array_values(array_filter(
-			array_merge($dbKeys, $existingCodeKeys, $looseColumns),
+			array_merge($existingCodeKeys, $dbKeys, $looseColumns),
 			fn (ForeignKey|LooseColumn $candidate): bool => isset($indexedColumns[$this->candidateTableKey($candidate)]),
 		));
 	}
@@ -624,7 +633,7 @@ class AssociationAuditor {
 		$seen = [];
 		$findings = [];
 		foreach ($candidates as $candidate) {
-			[$connection, $table, $column, $isLoose, $subject] = $this->candidateParts($candidate);
+			[$connection, $table, $column, $isLoose, $subject, $associationType] = $this->candidateParts($candidate);
 
 			if (in_array($column, $ignoreColumns, true)) {
 				continue;
@@ -649,7 +658,7 @@ class AssociationAuditor {
 			$findings[] = new Finding(
 				table: $this->aliasFor($connection, $table, $aliasByPhysical),
 				direction: Finding::DIRECTION_INDEX,
-				associationType: $isLoose ? 'looseColumn' : 'belongsTo',
+				associationType: $associationType,
 				severity: Finding::SEVERITY_INFO,
 				message: $message,
 				column: $column,
@@ -667,14 +676,14 @@ class AssociationAuditor {
 	 * loose `*_id` column (which changes the wording) and the subject passed to the fix.
 	 *
 	 * @param \TestHelper\Utility\Association\ForeignKey|\TestHelper\Utility\Association\LooseColumn $candidate
-	 * @return array{0: string, 1: string, 2: string, 3: bool, 4: \TestHelper\Utility\Association\ForeignKey|string}
+	 * @return array{0: string, 1: string, 2: string, 3: bool, 4: \TestHelper\Utility\Association\ForeignKey|string, 5: string}
 	 */
 	protected function candidateParts(ForeignKey|LooseColumn $candidate): array {
 		if ($candidate instanceof ForeignKey) {
-			return [$candidate->connection, $candidate->ownerTable, $candidate->columns[0], false, $candidate];
+			return [$candidate->connection, $candidate->ownerTable, $candidate->columns[0], false, $candidate, $candidate->associationType ?? 'belongsTo'];
 		}
 
-		return [$candidate->connection, $candidate->table, $candidate->column, true, $candidate->column];
+		return [$candidate->connection, $candidate->table, $candidate->column, true, $candidate->column, 'looseColumn'];
 	}
 
 	/**
