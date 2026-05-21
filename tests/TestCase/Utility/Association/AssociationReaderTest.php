@@ -69,6 +69,26 @@ class AssociationReaderTest extends TestCase {
 		$this->assertSame('author_id', $key->column);
 		$this->assertSame('authors', $key->referencedTable);
 		$this->assertSame('belongsTo', $key->associationType);
+		// Column types are captured from each side's schema.
+		$this->assertSame('integer', $key->ownerColumnType);
+		$this->assertSame('integer', $key->referencedColumnType);
+	}
+
+	/**
+	 * The reader captures a uuid referenced-key type (for the key-type audit layer).
+	 *
+	 * @return void
+	 */
+	public function testBelongsToCapturesUuidReferencedType() {
+		$this->table('Authors', 'authors', ['id' => ['type' => 'uuid']]);
+		$posts = $this->table('Posts', 'posts', ['id' => ['type' => 'integer'], 'author_id' => ['type' => 'integer']]);
+		$posts->belongsTo('Authors', ['foreignKey' => 'author_id']);
+
+		[$keys] = $this->reader->read($posts);
+
+		$this->assertCount(1, $keys);
+		$this->assertSame('integer', $keys[0]->ownerColumnType);
+		$this->assertSame('uuid', $keys[0]->referencedColumnType);
 	}
 
 	/**

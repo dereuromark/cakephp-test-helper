@@ -33,6 +33,8 @@ class ForeignKey {
 	 * @param string|null $declaringTable Table whose class declared the association (code-sourced).
 	 * @param string|null $alias Association alias (code-sourced).
 	 * @param bool $columnExists Whether the owner column physically exists (code-sourced).
+	 * @param string|null $ownerColumnType Abstract DB type of the owner column (code-sourced), or null if unresolved.
+	 * @param string|null $referencedColumnType Abstract DB type of the referenced column (code-sourced), or null if unresolved.
 	 */
 	public function __construct(
 		public readonly string $connection,
@@ -45,6 +47,8 @@ class ForeignKey {
 		public readonly ?string $declaringTable = null,
 		public readonly ?string $alias = null,
 		public readonly bool $columnExists = true,
+		public readonly ?string $ownerColumnType = null,
+		public readonly ?string $referencedColumnType = null,
 	) {
 	}
 

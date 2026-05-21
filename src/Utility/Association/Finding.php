@@ -32,6 +32,12 @@ class Finding {
 	public const DIRECTION_UNSUPPORTED = 'unsupported';
 
 	/**
+	 * Key column type observation: a type disagreement (error) or non-integer keys (info).
+     * @var string
+	 */
+	public const DIRECTION_TYPE = 'type';
+
+	/**
      * @var string
      */
 	public const SEVERITY_ERROR = 'error';
@@ -55,6 +61,11 @@ class Finding {
      * @var string
      */
 	public const LAYER_COLUMN = 'column';
+
+	/**
+     * @var string
+     */
+	public const LAYER_TYPE = 'type';
 
 	/**
 	 * @param string $table Table to display this finding under.

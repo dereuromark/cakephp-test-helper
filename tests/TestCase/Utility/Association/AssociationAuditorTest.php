@@ -256,4 +256,106 @@ class AssociationAuditorTest extends TestCase {
 		$this->assertSame([], $findings);
 	}
 
+	/**
+	 * Both sides integer: the ideal case, no finding.
+	 *
+	 * @return void
+	 */
+	public function testTypeBothIntegerClean() {
+		$findings = $this->auditor->typeFindings([$this->typedKey('integer', 'integer')]);
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * Integer family width differences (integer vs biginteger) are treated as agreement.
+	 *
+	 * @return void
+	 */
+	public function testTypeIntegerFamilyWidthIsClean() {
+		$findings = $this->auditor->typeFindings([$this->typedKey('integer', 'biginteger')]);
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * Different types are an error.
+	 *
+	 * @return void
+	 */
+	public function testTypeMismatchIsError() {
+		$findings = $this->auditor->typeFindings([$this->typedKey('integer', 'uuid')]);
+
+		$this->assertCount(1, $findings);
+		$this->assertSame(Finding::DIRECTION_TYPE, $findings[0]->direction);
+		$this->assertSame(Finding::SEVERITY_ERROR, $findings[0]->severity);
+		$this->assertStringContainsString('type mismatch', strtolower($findings[0]->message));
+	}
+
+	/**
+	 * Matching non-integer types (both uuid) are info, since integer is preferred.
+	 *
+	 * @return void
+	 */
+	public function testTypeBothUuidIsInfo() {
+		$findings = $this->auditor->typeFindings([$this->typedKey('uuid', 'uuid')]);
+
+		$this->assertCount(1, $findings);
+		$this->assertSame(Finding::DIRECTION_TYPE, $findings[0]->direction);
+		$this->assertSame(Finding::SEVERITY_INFO, $findings[0]->severity);
+		$this->assertStringContainsString('non-integer', $findings[0]->message);
+	}
+
+	/**
+	 * Unknown types (schema not introspectable) are skipped.
+	 *
+	 * @return void
+	 */
+	public function testTypeNullTypesSkipped() {
+		$findings = $this->auditor->typeFindings([$this->typedKey(null, null)]);
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * Reciprocal declarations of the same FK yield a single type finding.
+	 *
+	 * @return void
+	 */
+	public function testTypeReciprocalDeduped() {
+		$keys = [
+			$this->typedKey('uuid', 'uuid', 'belongsTo'),
+			$this->typedKey('uuid', 'uuid', 'hasMany'),
+		];
+
+		$findings = $this->auditor->typeFindings($keys);
+
+		$this->assertCount(1, $findings);
+	}
+
+	/**
+	 * Build a code-sourced ForeignKey carrying owner/referenced column types.
+	 *
+	 * @param string|null $ownerType
+	 * @param string|null $referencedType
+	 * @param string $associationType
+	 * @return \TestHelper\Utility\Association\ForeignKey
+	 */
+	protected function typedKey(?string $ownerType, ?string $referencedType, string $associationType = 'belongsTo'): ForeignKey {
+		return new ForeignKey(
+			connection: 'default',
+			ownerTable: 'posts',
+			column: 'author_id',
+			referencedTable: 'authors',
+			referencedColumn: 'id',
+			source: ForeignKey::SOURCE_CODE,
+			associationType: $associationType,
+			declaringTable: 'Posts',
+			alias: 'Authors',
+			columnExists: true,
+			ownerColumnType: $ownerType,
+			referencedColumnType: $referencedType,
+		);
+	}
+
 }

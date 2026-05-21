@@ -12,6 +12,7 @@ $this->assign('title', 'Associations: ' . ($model ?: ''));
 
 $labels = [
 	Finding::DIRECTION_MISMATCH => ['Mismatches', 'danger'],
+	Finding::DIRECTION_TYPE => ['Key column types', 'dark'],
 	Finding::DIRECTION_DB_MISSING => ['Declared, but missing DB constraint', 'warning'],
 	Finding::DIRECTION_CODE_MISSING => ['In DB, but no association', 'info'],
 	Finding::DIRECTION_UNSUPPORTED => ['Not auto-verifiable', 'secondary'],
