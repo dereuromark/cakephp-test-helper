@@ -153,8 +153,14 @@ class AssociationAuditor {
 		$findings = array_merge($findings, $this->typeFindings($codeKeys, $this->preferIntegerKeys()));
 		$findings = array_merge($findings, $this->ruleFindings($codeKeys, $dbKeys));
 
-		// Index layer over every foreign-key-semantic column the audit already knows.
-		$indexCandidates = $this->indexCandidates($dbKeys, $codeKeys, $looseColumns, $indexedColumns);
+		// Index layer over every foreign-key-semantic column the audit already knows, minus the
+		// columns the loose-column layer already surfaced (indexing an unmanaged column is
+		// premature until it is established as a real foreign key).
+		$reportedLoose = $this->reportedLooseColumns($looseColumns, $codeKeys, $this->ignoreColumns(), $claimedColumns);
+		$indexCandidates = $this->dedupeIndexCandidatesAgainstLoose(
+			$this->indexCandidates($dbKeys, $codeKeys, $looseColumns, $indexedColumns),
+			$reportedLoose,
+		);
 		$findings = array_merge($findings, $this->indexFindings($indexCandidates, $indexedColumns, $this->ignoreColumns(), $checkIndexes, $aliasByPhysical));
 
 		return $findings;
@@ -323,25 +329,8 @@ class AssociationAuditor {
 	 * @return array<\TestHelper\Utility\Association\Finding>
 	 */
 	public function looseColumnFindings(array $looseColumns, array $codeKeys, array $ignoreColumns, array $aliasByPhysical = [], array $claimedColumns = []): array {
-		$claimed = [];
-		foreach ($codeKeys as $fk) {
-			foreach ($fk->columns as $column) {
-				$claimed[$fk->connection . '|' . $fk->ownerTable . '|' . $column] = true;
-			}
-		}
-		foreach ($claimedColumns as $id) {
-			$claimed[$id] = true;
-		}
-
 		$findings = [];
-		foreach ($looseColumns as $column) {
-			if (in_array($column->column, $ignoreColumns, true)) {
-				continue;
-			}
-			if (isset($claimed[$column->connection . '|' . $column->table . '|' . $column->column])) {
-				continue;
-			}
-
+		foreach ($this->reportedLooseColumns($looseColumns, $codeKeys, $ignoreColumns, $claimedColumns) as $column) {
 			$findings[] = new Finding(
 				table: $this->aliasFor($column->connection, $column->table, $aliasByPhysical),
 				direction: Finding::DIRECTION_CODE_MISSING,
@@ -358,6 +347,42 @@ class AssociationAuditor {
 		}
 
 		return $findings;
+	}
+
+	/**
+	 * The loose `*_id` columns the loose-column layer reports: those not claimed by any
+	 * association and not in the ignore list. Returns the LooseColumn objects (which keep the
+	 * connection dimension) so callers can dedupe connection-aware, unlike the rendered findings.
+	 *
+	 * @param array<\TestHelper\Utility\Association\LooseColumn> $looseColumns
+	 * @param array<\TestHelper\Utility\Association\ForeignKey> $codeKeys
+	 * @param array<string> $ignoreColumns
+	 * @param array<string> $claimedColumns Extra `connection|table|column` ids claimed by unsupported associations.
+	 * @return array<\TestHelper\Utility\Association\LooseColumn>
+	 */
+	public function reportedLooseColumns(array $looseColumns, array $codeKeys, array $ignoreColumns, array $claimedColumns = []): array {
+		$claimed = [];
+		foreach ($codeKeys as $fk) {
+			foreach ($fk->columns as $column) {
+				$claimed[$fk->connection . '|' . $fk->ownerTable . '|' . $column] = true;
+			}
+		}
+		foreach ($claimedColumns as $id) {
+			$claimed[$id] = true;
+		}
+
+		$reported = [];
+		foreach ($looseColumns as $column) {
+			if (in_array($column->column, $ignoreColumns, true)) {
+				continue;
+			}
+			if (isset($claimed[$column->connection . '|' . $column->table . '|' . $column->column])) {
+				continue;
+			}
+			$reported[] = $column;
+		}
+
+		return $reported;
 	}
 
 	/**
@@ -668,6 +693,29 @@ class AssociationAuditor {
 		}
 
 		return $findings;
+	}
+
+	/**
+	 * Drop index candidates for columns the loose-column layer already reports: indexing a
+	 * column not yet established as a real foreign key is premature, and the two layers would
+	 * otherwise double-report the same column. Matched on connection-aware identity (not the
+	 * rendered alias), so same-named tables on different connections stay distinct.
+	 *
+	 * @param array<\TestHelper\Utility\Association\ForeignKey|\TestHelper\Utility\Association\LooseColumn> $candidates
+	 * @param array<\TestHelper\Utility\Association\LooseColumn> $reportedLoose
+	 * @return array<\TestHelper\Utility\Association\ForeignKey|\TestHelper\Utility\Association\LooseColumn>
+	 */
+	public function dedupeIndexCandidatesAgainstLoose(array $candidates, array $reportedLoose): array {
+		$looseIds = [];
+		foreach ($reportedLoose as $column) {
+			$looseIds[$column->connection . '|' . $column->table . '|' . $column->column] = true;
+		}
+
+		return array_values(array_filter($candidates, function (ForeignKey|LooseColumn $candidate) use ($looseIds): bool {
+			[$connection, $table, $column] = $this->candidateParts($candidate);
+
+			return !isset($looseIds[$connection . '|' . $table . '|' . $column]);
+		}));
 	}
 
 	/**
