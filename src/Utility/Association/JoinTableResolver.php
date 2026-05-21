@@ -82,6 +82,8 @@ class JoinTableResolver {
 				declaringTable: $declaringTable,
 				alias: $association->getName(),
 				columnExists: $junctionColumns === null || in_array($sourceForeignKey, $junctionColumns, true),
+				ownerColumnType: $this->safeColumnType($junction, $sourceForeignKey),
+				referencedColumnType: $this->safeColumnType($source, $sourceBindingKey),
 			),
 			new ForeignKey(
 				connection: $junctionConnection,
@@ -94,6 +96,8 @@ class JoinTableResolver {
 				declaringTable: $declaringTable,
 				alias: $association->getName(),
 				columnExists: $junctionColumns === null || in_array($targetForeignKey, $junctionColumns, true),
+				ownerColumnType: $this->safeColumnType($junction, $targetForeignKey),
+				referencedColumnType: $this->safeColumnType($target, $targetBindingKey),
 			),
 		];
 
@@ -143,6 +147,21 @@ class JoinTableResolver {
 	protected function safeColumns(Table $table): ?array {
 		try {
 			return $table->getSchema()->columns();
+		} catch (Throwable $e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Abstract DB type of a column, or null if the schema/column cannot be resolved.
+	 *
+	 * @param \Cake\ORM\Table $table
+	 * @param string $column
+	 * @return string|null
+	 */
+	protected function safeColumnType(Table $table, string $column): ?string {
+		try {
+			return $table->getSchema()->getColumnType($column);
 		} catch (Throwable $e) {
 			return null;
 		}

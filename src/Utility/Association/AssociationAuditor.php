@@ -118,6 +118,7 @@ class AssociationAuditor {
 
 		$findings = array_merge($findings, $this->diffForeignKeys($codeKeys, $dbKeys, $aliasByPhysical));
 		$findings = array_merge($findings, $this->looseColumnFindings($looseColumns, $codeKeys, $this->ignoreColumns(), $aliasByPhysical, $claimedColumns));
+		$findings = array_merge($findings, $this->typeFindings($codeKeys));
 
 		return $findings;
 	}
@@ -304,6 +305,92 @@ class AssociationAuditor {
 		}
 
 		return $findings;
+	}
+
+	/**
+	 * Pure key-type layer: compares each declared FK column's type against its referenced
+	 * column's type. Different types are an error; matching non-integer types (e.g. both
+	 * uuid) are info, since integer keys are the ideal. The whole integer family
+	 * (integer/biginteger/smallinteger/tinyinteger) is treated as one bucket, so
+	 * width-only differences like integer vs biginteger are considered in agreement.
+	 *
+	 * @param array<\TestHelper\Utility\Association\ForeignKey> $codeKeys
+	 * @return array<\TestHelper\Utility\Association\Finding>
+	 */
+	public function typeFindings(array $codeKeys): array {
+		$seen = [];
+		$findings = [];
+
+		foreach ($codeKeys as $fk) {
+			if ($fk->ownerColumnType === null || $fk->referencedColumnType === null) {
+				continue;
+			}
+			// Dedupe reciprocal declarations of the same physical FK.
+			if (isset($seen[$fk->key()])) {
+				continue;
+			}
+			$seen[$fk->key()] = true;
+
+			$ownerBucket = $this->typeBucket($fk->ownerColumnType);
+			$referencedBucket = $this->typeBucket($fk->referencedColumnType);
+
+			if ($ownerBucket !== $referencedBucket) {
+				$findings[] = new Finding(
+					table: $fk->declaringTable ?? $fk->ownerTable,
+					direction: Finding::DIRECTION_TYPE,
+					associationType: $fk->associationType ?? 'belongsTo',
+					severity: Finding::SEVERITY_ERROR,
+					message: sprintf(
+						'Key type mismatch: `%s.%s` (%s) references `%s.%s` (%s).',
+						$fk->ownerTable,
+						$fk->column,
+						$fk->ownerColumnType,
+						$fk->referencedTable,
+						$fk->referencedColumn,
+						$fk->referencedColumnType,
+					),
+					column: $fk->column,
+					target: $fk->referencedTable,
+					layer: Finding::LAYER_TYPE,
+				);
+
+				continue;
+			}
+
+			if ($ownerBucket !== 'integer') {
+				$findings[] = new Finding(
+					table: $fk->declaringTable ?? $fk->ownerTable,
+					direction: Finding::DIRECTION_TYPE,
+					associationType: $fk->associationType ?? 'belongsTo',
+					severity: Finding::SEVERITY_INFO,
+					message: sprintf(
+						'Relation `%s.%s` -> `%s.%s` uses non-integer keys (%s); integer keys are preferred.',
+						$fk->ownerTable,
+						$fk->column,
+						$fk->referencedTable,
+						$fk->referencedColumn,
+						$fk->ownerColumnType,
+					),
+					column: $fk->column,
+					target: $fk->referencedTable,
+					layer: Finding::LAYER_TYPE,
+				);
+			}
+		}
+
+		return $findings;
+	}
+
+	/**
+	 * Collapse the integer family into one bucket; other types keep their own name.
+	 *
+	 * @param string $type Abstract DB type.
+	 * @return string
+	 */
+	protected function typeBucket(string $type): string {
+		$integerFamily = ['integer', 'biginteger', 'smallinteger', 'tinyinteger'];
+
+		return in_array($type, $integerFamily, true) ? 'integer' : $type;
 	}
 
 	/**

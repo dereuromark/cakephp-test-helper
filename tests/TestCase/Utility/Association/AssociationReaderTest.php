@@ -69,6 +69,50 @@ class AssociationReaderTest extends TestCase {
 		$this->assertSame('author_id', $key->column);
 		$this->assertSame('authors', $key->referencedTable);
 		$this->assertSame('belongsTo', $key->associationType);
+		// Column types are captured from each side's schema.
+		$this->assertSame('integer', $key->ownerColumnType);
+		$this->assertSame('integer', $key->referencedColumnType);
+	}
+
+	/**
+	 * The reader captures a uuid referenced-key type (for the key-type audit layer).
+	 *
+	 * @return void
+	 */
+	public function testBelongsToCapturesUuidReferencedType() {
+		$this->table('Authors', 'authors', ['id' => ['type' => 'uuid']]);
+		$posts = $this->table('Posts', 'posts', ['id' => ['type' => 'integer'], 'author_id' => ['type' => 'integer']]);
+		$posts->belongsTo('Authors', ['foreignKey' => 'author_id']);
+
+		[$keys] = $this->reader->read($posts);
+
+		$this->assertCount(1, $keys);
+		$this->assertSame('integer', $keys[0]->ownerColumnType);
+		$this->assertSame('uuid', $keys[0]->referencedColumnType);
+	}
+
+	/**
+	 * With no explicit bindingKey, the reader resolves the target's actual primary key
+	 * (not a hard-coded `id`) — verifies the type lookup works for non-`id` PKs.
+	 *
+	 * @return void
+	 */
+	public function testBelongsToResolvesNonIdPrimaryKey() {
+		$authors = $this->getTableLocator()->get('Authors', ['table' => 'authors']);
+		$authors->setSchema([
+			'reference' => ['type' => 'uuid'],
+			'name' => ['type' => 'string'],
+			'_constraints' => ['primary' => ['type' => 'primary', 'columns' => ['reference']]],
+		]);
+		$posts = $this->table('Posts', 'posts', ['id' => ['type' => 'integer'], 'author_id' => ['type' => 'integer']]);
+		$posts->belongsTo('Authors', ['foreignKey' => 'author_id']);
+
+		[$keys] = $this->reader->read($posts);
+
+		$this->assertCount(1, $keys);
+		// Referenced column is the real PK `reference`, and its type is read from there.
+		$this->assertSame('reference', $keys[0]->referencedColumn);
+		$this->assertSame('uuid', $keys[0]->referencedColumnType);
 	}
 
 	/**

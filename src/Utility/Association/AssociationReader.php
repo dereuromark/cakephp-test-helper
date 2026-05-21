@@ -172,6 +172,7 @@ class AssociationReader {
 			return null;
 		}
 
+		$referencedColumn = $bindingKey ?: 'id';
 		$ownerColumns = $this->safeColumns($ownerTable);
 
 		return new ForeignKey(
@@ -179,12 +180,14 @@ class AssociationReader {
 			ownerTable: $ownerTable->getTable(),
 			column: $column,
 			referencedTable: $referenced->getTable(),
-			referencedColumn: $bindingKey ?: 'id',
+			referencedColumn: $referencedColumn,
 			source: ForeignKey::SOURCE_CODE,
 			associationType: $this->type($association),
 			declaringTable: $source->getRegistryAlias(),
 			alias: $association->getName(),
 			columnExists: $ownerColumns === null || in_array($column, $ownerColumns, true),
+			ownerColumnType: $this->safeColumnType($ownerTable, $column),
+			referencedColumnType: $this->safeColumnType($referenced, $referencedColumn),
 		);
 	}
 
@@ -195,6 +198,21 @@ class AssociationReader {
 	protected function safeColumns(Table $table): ?array {
 		try {
 			return $table->getSchema()->columns();
+		} catch (Throwable $e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Abstract DB type of a column, or null if the schema/column cannot be resolved.
+	 *
+	 * @param \Cake\ORM\Table $table
+	 * @param string $column
+	 * @return string|null
+	 */
+	protected function safeColumnType(Table $table, string $column): ?string {
+		try {
+			return $table->getSchema()->getColumnType($column);
 		} catch (Throwable $e) {
 			return null;
 		}

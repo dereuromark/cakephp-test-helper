@@ -135,9 +135,10 @@ class AssociationsController extends TestHelperAppController {
 	 */
 	protected function groupByDirection(array $findings): array {
 		$grouped = [
-			Finding::DIRECTION_CODE_MISSING => [],
-			Finding::DIRECTION_DB_MISSING => [],
 			Finding::DIRECTION_MISMATCH => [],
+			Finding::DIRECTION_TYPE => [],
+			Finding::DIRECTION_DB_MISSING => [],
+			Finding::DIRECTION_CODE_MISSING => [],
 			Finding::DIRECTION_UNSUPPORTED => [],
 		];
 
