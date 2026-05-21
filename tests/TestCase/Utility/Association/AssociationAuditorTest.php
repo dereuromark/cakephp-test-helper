@@ -256,4 +256,84 @@ class AssociationAuditorTest extends TestCase {
 		$this->assertSame([], $findings);
 	}
 
+	/**
+	 * Findings sort worst-first: error, then warning, then info.
+	 *
+	 * @return void
+	 */
+	public function testSortFindingsBySeverity() {
+		$findings = [
+			new Finding('Posts', Finding::DIRECTION_CODE_MISSING, 'looseColumn', Finding::SEVERITY_INFO, 'info'),
+			new Finding('Posts', Finding::DIRECTION_MISMATCH, 'belongsTo', Finding::SEVERITY_ERROR, 'error'),
+			new Finding('Posts', Finding::DIRECTION_DB_MISSING, 'belongsTo', Finding::SEVERITY_WARNING, 'warning'),
+		];
+
+		$sorted = $this->auditor->sortFindings($findings);
+
+		$this->assertSame(
+			[Finding::SEVERITY_ERROR, Finding::SEVERITY_WARNING, Finding::SEVERITY_INFO],
+			array_map(fn (Finding $finding): string => $finding->severity, $sorted),
+		);
+	}
+
+	/**
+	 * Within a severity band, findings group by table (alphabetical).
+	 *
+	 * @return void
+	 */
+	public function testSortFindingsSecondaryByTable() {
+		$findings = [
+			new Finding('Zebras', Finding::DIRECTION_MISMATCH, 'belongsTo', Finding::SEVERITY_ERROR, 'msg'),
+			new Finding('Apples', Finding::DIRECTION_MISMATCH, 'belongsTo', Finding::SEVERITY_ERROR, 'msg'),
+			new Finding('Mangos', Finding::DIRECTION_MISMATCH, 'belongsTo', Finding::SEVERITY_ERROR, 'msg'),
+		];
+
+		$sorted = $this->auditor->sortFindings($findings);
+
+		$this->assertSame(
+			['Apples', 'Mangos', 'Zebras'],
+			array_map(fn (Finding $finding): string => $finding->table, $sorted),
+		);
+	}
+
+	/**
+	 * Same severity and table fall back to column order, so output is deterministic
+	 * regardless of audit-phase emission order.
+	 *
+	 * @return void
+	 */
+	public function testSortFindingsTertiaryByColumn() {
+		$findings = [
+			new Finding('Posts', Finding::DIRECTION_DB_MISSING, 'belongsTo', Finding::SEVERITY_WARNING, 'msg', 'z_id'),
+			new Finding('Posts', Finding::DIRECTION_DB_MISSING, 'belongsTo', Finding::SEVERITY_WARNING, 'msg', 'a_id'),
+		];
+
+		$sorted = $this->auditor->sortFindings($findings);
+
+		$this->assertSame(
+			['a_id', 'z_id'],
+			array_map(fn (Finding $finding): ?string => $finding->column, $sorted),
+		);
+	}
+
+	/**
+	 * Findings sharing severity, table and (null) column fall back to message order, so
+	 * e.g. several unsupported associations on one table stay content-deterministic.
+	 *
+	 * @return void
+	 */
+	public function testSortFindingsFinalTiebreakByMessage() {
+		$findings = [
+			new Finding('Posts', Finding::DIRECTION_UNSUPPORTED, 'belongsToMany', Finding::SEVERITY_INFO, 'Beta unsupported'),
+			new Finding('Posts', Finding::DIRECTION_UNSUPPORTED, 'belongsToMany', Finding::SEVERITY_INFO, 'Alpha unsupported'),
+		];
+
+		$sorted = $this->auditor->sortFindings($findings);
+
+		$this->assertSame(
+			['Alpha unsupported', 'Beta unsupported'],
+			array_map(fn (Finding $finding): string => $finding->message, $sorted),
+		);
+	}
+
 }
