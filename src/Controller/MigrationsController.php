@@ -3,6 +3,7 @@
 namespace TestHelper\Controller;
 
 use Cake\Core\Configure;
+use Cake\Database\Driver\Mysql;
 use Cake\Datasource\ConnectionManager;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
@@ -45,7 +46,7 @@ class MigrationsController extends TestHelperAppController {
 	 */
 	public function index() {
 		$dbConfig = ConnectionManager::getConfig('default');
-		$database = $dbConfig['database'] ?? [];
+		$database = $dbConfig['database'] ?? '';
 
 		$tmpDatabase = $database . '_tmp';
 
@@ -64,6 +65,14 @@ class MigrationsController extends TestHelperAppController {
 
 		/** @var \Cake\Database\Connection $connection */
 		$connection = ConnectionManager::get('default');
+		// The temp-database flow relies on INFORMATION_SCHEMA + CREATE DATABASE (MySQL only);
+		// degrade gracefully elsewhere instead of erroring on the unsupported SQL.
+		if (!$connection->getDriver() instanceof Mysql) {
+			$this->Flash->error('The temporary database feature requires MySQL.');
+
+			return $this->redirect(['action' => 'index']);
+		}
+
 		$result = $connection->execute(
 			'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?',
 			[$tmpDatabase],
@@ -261,7 +270,7 @@ class MigrationsController extends TestHelperAppController {
 	 */
 	public function confirm() {
 		$dbConfig = ConnectionManager::getConfig('default');
-		$database = $dbConfig['database'] ?? [];
+		$database = $dbConfig['database'] ?? '';
 		$tmpDatabase = $database . '_tmp';
 
 		if ($this->request->is('post') && $this->request->getData('confirm')) {

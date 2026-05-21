@@ -14,11 +14,7 @@
  * @var bool $isPostgres
  */
 
-/**
- * @param mixed $value
- * @return string
- */
-function formatValue($value): string {
+$formatValue = function ($value): string {
 	if ($value === null) {
 		return '<em>null</em>';
 	}
@@ -33,13 +29,9 @@ function formatValue($value): string {
 	}
 
 	return h((string)$value);
-}
+};
 
-/**
- * @param array<string, mixed> $columnData
- * @return string
- */
-function formatColumnType(array $columnData): string {
+$formatColumnType = function (array $columnData): string {
 	$type = $columnData['type'] ?? 'unknown';
 	if (isset($columnData['length'])) {
 		$type .= '(' . $columnData['length'] . ')';
@@ -55,7 +47,7 @@ function formatColumnType(array $columnData): string {
 	}
 
 	return $type;
-}
+};
 ?>
 
 <h1>Schema Drift Detection</h1>
@@ -230,15 +222,15 @@ function formatColumnType(array $columnData): string {
 									<td><code><?= h($item['table']) ?>.<?= h($item['column']) ?></code></td>
 									<td>
 										<?php if ($item['type'] === 'extra') { ?>
-											Type: <code><?= formatColumnType($item['actual']) ?></code>
+											Type: <code><?= $formatColumnType($item['actual']) ?></code>
 										<?php } elseif ($item['type'] === 'missing') { ?>
-											Expected: <code><?= formatColumnType($item['expected']) ?></code>
+											Expected: <code><?= $formatColumnType($item['expected']) ?></code>
 										<?php } else { ?>
 											<?php foreach ($item['differences'] as $attr => $diff) { ?>
 												<div>
 													<strong><?= h($attr) ?>:</strong>
-													Expected <code><?= formatValue($diff['expected']) ?></code>,
-													Actual <code><?= formatValue($diff['actual']) ?></code>
+													Expected <code><?= $formatValue($diff['expected']) ?></code>,
+													Actual <code><?= $formatValue($diff['actual']) ?></code>
 												</div>
 											<?php } ?>
 										<?php } ?>
@@ -276,10 +268,10 @@ function formatColumnType(array $columnData): string {
 									<td><code><?= h($item['index']) ?></code></td>
 									<td>
 										<?php if ($item['type'] === 'mismatch') { ?>
-											Expected: <code><?= formatValue($item['expected']) ?></code><br>
-											Actual: <code><?= formatValue($item['actual']) ?></code>
+											Expected: <code><?= $formatValue($item['expected']) ?></code><br>
+											Actual: <code><?= $formatValue($item['actual']) ?></code>
 										<?php } else { ?>
-											<?= formatValue($item['expected'] ?? $item['actual']) ?>
+											<?= $formatValue($item['expected'] ?? $item['actual']) ?>
 										<?php } ?>
 									</td>
 								</tr>
@@ -315,10 +307,10 @@ function formatColumnType(array $columnData): string {
 									<td><code><?= h($item['constraint']) ?></code></td>
 									<td>
 										<?php if ($item['type'] === 'mismatch') { ?>
-											Expected: <code><?= formatValue($item['expected']) ?></code><br>
-											Actual: <code><?= formatValue($item['actual']) ?></code>
+											Expected: <code><?= $formatValue($item['expected']) ?></code><br>
+											Actual: <code><?= $formatValue($item['actual']) ?></code>
 										<?php } else { ?>
-											<?= formatValue($item['expected'] ?? $item['actual']) ?>
+											<?= $formatValue($item['expected'] ?? $item['actual']) ?>
 										<?php } ?>
 									</td>
 								</tr>
