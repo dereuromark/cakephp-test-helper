@@ -14,6 +14,16 @@ class MigrationsControllerTest extends TestCase {
 	use IntegrationTestTrait;
 
 	/**
+	 * Whether the Migrations plugin is installed in this environment. When it is
+	 * missing, every action redirects out via the controller's beforeFilter.
+	 *
+	 * @return bool
+	 */
+	protected function migrationsPluginInstalled(): bool {
+		return file_exists(ROOT . DS . 'vendor/cakephp/migrations/composer.json');
+	}
+
+	/**
 	 * @return void
 	 */
 	public function testIndex(): void {
@@ -265,6 +275,116 @@ class MigrationsControllerTest extends TestCase {
 			$this->assertResponseCode(200);
 			$this->assertResponseContains('Order auto-detected');
 			$this->assertResponseContains('To customize the order');
+		}
+	}
+
+	/**
+	 * When the Migrations plugin is missing the beforeFilter must redirect to the
+	 * TestHelper landing page and set an error flash message.
+	 *
+	 * @return void
+	 */
+	public function testIndexRedirectsWithFlashWhenPluginMissing(): void {
+		if ($this->migrationsPluginInstalled()) {
+			$this->markTestSkipped('Migrations plugin is installed; redirect path is not exercised.');
+		}
+
+		$this->enableRetainFlashMessages();
+		$this->get(['plugin' => 'TestHelper', 'controller' => 'Migrations', 'action' => 'index']);
+
+		$this->assertRedirect(['plugin' => 'TestHelper', 'controller' => 'TestHelper', 'action' => 'index']);
+		$this->assertFlashMessage(__('It seems the Migrations plugin is missing.'));
+		$this->assertFlashElement('flash/error');
+	}
+
+	/**
+	 * A POST to a write action must also be blocked by the beforeFilter redirect
+	 * when the plugin is missing, so no schema changes can be triggered.
+	 *
+	 * @return void
+	 */
+	public function testTmpDbPostRedirectsWhenPluginMissing(): void {
+		if ($this->migrationsPluginInstalled()) {
+			$this->markTestSkipped('Migrations plugin is installed; redirect path is not exercised.');
+		}
+
+		$this->post(['plugin' => 'TestHelper', 'controller' => 'Migrations', 'action' => 'tmpDb'], []);
+
+		$this->assertRedirect(['plugin' => 'TestHelper', 'controller' => 'TestHelper', 'action' => 'index']);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testSnapshotPostRedirectsWhenPluginMissing(): void {
+		if ($this->migrationsPluginInstalled()) {
+			$this->markTestSkipped('Migrations plugin is installed; redirect path is not exercised.');
+		}
+
+		$this->post(
+			['plugin' => 'TestHelper', 'controller' => 'Migrations', 'action' => 'snapshot'],
+			['generate' => 1],
+		);
+
+		$this->assertRedirect(['plugin' => 'TestHelper', 'controller' => 'TestHelper', 'action' => 'index']);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testDriftCheckPostRedirectsWhenPluginMissing(): void {
+		if ($this->migrationsPluginInstalled()) {
+			$this->markTestSkipped('Migrations plugin is installed; redirect path is not exercised.');
+		}
+
+		$this->post(
+			['plugin' => 'TestHelper', 'controller' => 'Migrations', 'action' => 'driftCheck'],
+			['action' => 'run_migrations'],
+		);
+
+		$this->assertRedirect(['plugin' => 'TestHelper', 'controller' => 'TestHelper', 'action' => 'index']);
+	}
+
+	/**
+	 * The connection query parameter must be accepted on driftCheck. With the
+	 * plugin missing it still redirects; with the plugin present it renders.
+	 *
+	 * @return void
+	 */
+	public function testDriftCheckWithConnectionQuery(): void {
+		$this->get([
+			'plugin' => 'TestHelper',
+			'controller' => 'Migrations',
+			'action' => 'driftCheck',
+			'?' => ['connection' => 'default'],
+		]);
+
+		if ($this->_response->getStatusCode() === 302) {
+			$this->assertRedirect(['plugin' => 'TestHelper', 'controller' => 'TestHelper', 'action' => 'index']);
+		} else {
+			$this->assertResponseCode(200);
+			$this->assertResponseContains('Schema Drift Detection');
+		}
+	}
+
+	/**
+	 * An unknown export format must fall back to JSON output.
+	 *
+	 * @return void
+	 */
+	public function testDriftCheckExportUnknownFormatFallsBackToJson(): void {
+		$this->get([
+			'plugin' => 'TestHelper',
+			'controller' => 'Migrations',
+			'action' => 'driftCheck',
+			'?' => ['compare' => '1', 'format' => 'xml'],
+		]);
+
+		if ($this->_response->getStatusCode() === 302) {
+			$this->assertRedirect(['plugin' => 'TestHelper', 'controller' => 'TestHelper', 'action' => 'index']);
+		} else {
+			$this->assertResponseCode(200);
+			$this->assertContentType('application/json');
 		}
 	}
 
