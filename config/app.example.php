@@ -20,6 +20,15 @@ return [
 		//     [], // App migrations
 		// ],
 
+		// Fixture/test collector (drives /test-helper/test-fixtures and the comparison tool).
+		// Options merge over the component defaults; the connection is taken from the request.
+		// 'Collector' => [
+		//     'blacklist' => ['DebugKit'], // Plugins to skip when collecting models/fixtures.
+		//     'ignoredTables' => [], // Table classes to ignore.
+		//     'ignoredEntities' => [], // Entity classes to ignore.
+		//     'ignoredDbTables' => ['i18n', 'cake_sessions', 'sessions', '/phinxlog/'], // DB tables to ignore (regex allowed via /.../).
+		// ],
+
 		// Association vs DB foreign-key audit (/test-helper/associations)
 		'associationAudit' => [
 			// Extra `*_id` columns the loose-column layer should ignore (added to the
