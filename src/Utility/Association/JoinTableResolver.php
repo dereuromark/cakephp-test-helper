@@ -41,6 +41,20 @@ class JoinTableResolver {
 		$targetColumns = $this->columnList($association->getTargetForeignKey());
 		$sourceBindingColumns = $this->bindingColumns($association->getBindingKey(), $source->getPrimaryKey());
 		$targetBindingColumns = $this->bindingColumns($this->targetBindingKey($junction, $target->getAlias()), $target->getPrimaryKey());
+		if (!$sourceColumns || !$targetColumns) {
+			// No usable join column(s): foreignKey/targetForeignKey is false or empty, i.e. a
+			// conditions-only join rather than a composite-key misalignment.
+			$finding = new Finding(
+				table: $source->getRegistryAlias(),
+				direction: Finding::DIRECTION_UNSUPPORTED,
+				associationType: 'belongsToMany',
+				severity: Finding::SEVERITY_INFO,
+				message: sprintf('belongsToMany `%s`: has no usable join key (conditions-only join, not auto-verified).', $association->getName()),
+				target: $target->getAlias(),
+			);
+
+			return [[], [$finding]];
+		}
 		if (count($sourceColumns) !== count($sourceBindingColumns) || count($targetColumns) !== count($targetBindingColumns)) {
 			$finding = new Finding(
 				table: $source->getRegistryAlias(),
