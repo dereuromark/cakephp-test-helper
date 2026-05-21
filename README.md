@@ -10,8 +10,6 @@
 
 Browser based addons for your test driven development.
 
-📖 **[Documentation](https://dereuromark.github.io/cakephp-test-helper/)**
-
 Note: This branch is for **CakePHP 5.1+**. See [version map](https://github.com/dereuromark/cakephp-test-helper/wiki#cakephp-version-map) for details.
 
 ## Motivation
