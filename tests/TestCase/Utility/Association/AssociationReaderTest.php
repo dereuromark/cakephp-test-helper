@@ -211,7 +211,7 @@ class AssociationReaderTest extends TestCase {
 		$this->assertSame([], $keys);
 		$this->assertCount(1, $unsupported);
 		$this->assertSame('unsupported', $unsupported[0]->direction);
-		$this->assertStringContainsString('composite binding key', $unsupported[0]->message);
+		$this->assertStringContainsString('do not line up', $unsupported[0]->message);
 	}
 
 	/**
@@ -229,6 +229,32 @@ class AssociationReaderTest extends TestCase {
 		$this->assertSame([], $keys);
 		$this->assertCount(1, $unsupported);
 		$this->assertSame('unsupported', $unsupported[0]->direction);
+	}
+
+	/**
+	 * A composite foreign key is read as ordered column arrays paired with the binding key.
+	 *
+	 * @return void
+	 */
+	public function testBelongsToCompositeForeignKey() {
+		$this->table('Tenants', 'tenants', [
+			'tenant_id' => ['type' => 'integer'],
+			'code' => ['type' => 'integer'],
+			'_constraints' => ['primary' => ['type' => 'primary', 'columns' => ['tenant_id', 'code']]],
+		]);
+		$users = $this->table('Users', 'users', [
+			'id' => ['type' => 'integer'],
+			'tenant_id' => ['type' => 'integer'],
+			'tenant_code' => ['type' => 'integer'],
+		]);
+		$users->belongsTo('Tenants', ['foreignKey' => ['tenant_id', 'tenant_code'], 'bindingKey' => ['tenant_id', 'code']]);
+
+		[$keys] = $this->reader->read($users);
+
+		$this->assertCount(1, $keys);
+		$this->assertTrue($keys[0]->isComposite());
+		$this->assertSame(['tenant_id', 'tenant_code'], $keys[0]->columns);
+		$this->assertSame(['tenant_id', 'code'], $keys[0]->referencedColumns);
 	}
 
 }

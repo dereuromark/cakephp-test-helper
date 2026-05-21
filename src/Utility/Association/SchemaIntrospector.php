@@ -28,21 +28,20 @@ class SchemaIntrospector {
 				continue;
 			}
 
-			$columns = (array)($constraint['columns'] ?? []);
+			$columns = array_map('strval', (array)($constraint['columns'] ?? []));
 			$references = $constraint['references'] ?? null;
-			if (count($columns) !== 1 || !is_array($references)) {
-				// Composite FKs are not deep-validated in v1.
+			if (!$columns || !is_array($references)) {
 				continue;
 			}
 
-			[$referencedTable, $referencedColumn] = $this->normalizeReferences($references);
+			[$referencedTable, $referencedColumns] = $this->normalizeReferences($references);
 
 			$keys[] = new ForeignKey(
 				connection: $connectionName,
 				ownerTable: $table,
-				column: (string)$columns[0],
+				column: $columns,
 				referencedTable: $referencedTable,
-				referencedColumn: $referencedColumn,
+				referencedColumn: $referencedColumns,
 				source: ForeignKey::SOURCE_DB,
 			);
 		}
@@ -93,16 +92,18 @@ class SchemaIntrospector {
 
 	/**
 	 * @param array<int|string, mixed> $references
-	 * @return array{0: string, 1: string}
+	 * @return array{0: string, 1: array<string>}
 	 */
 	protected function normalizeReferences(array $references): array {
 		$referencedTable = (string)($references[0] ?? '');
-		$referencedColumn = $references[1] ?? 'id';
-		if (is_array($referencedColumn)) {
-			$referencedColumn = (string)(reset($referencedColumn) ?: 'id');
+		$referencedColumns = $references[1] ?? 'id';
+		$referencedColumns = is_array($referencedColumns) ? array_values($referencedColumns) : [$referencedColumns];
+		$referencedColumns = array_map('strval', $referencedColumns);
+		if (!$referencedColumns) {
+			$referencedColumns = ['id'];
 		}
 
-		return [$referencedTable, (string)$referencedColumn];
+		return [$referencedTable, $referencedColumns];
 	}
 
 }

@@ -22,18 +22,22 @@ class FixSuggester {
 
 		// A stray FK on owner -> referenced means the owner is missing a belongsTo,
 		// and the referenced table is missing the reciprocal hasMany.
+		$foreignKey = $this->columnArg($fk->columns);
+		$bindingKey = $this->bindingKeyOption($fk);
 		$belongsTo = sprintf(
-			"// On %sTable::initialize():\n\$this->belongsTo('%s', ['foreignKey' => '%s']);",
+			"// On %sTable::initialize():\n\$this->belongsTo('%s', ['foreignKey' => %s%s]);",
 			$ownerAlias,
 			$alias,
-			$fk->column,
+			$foreignKey,
+			$bindingKey,
 		);
 
 		$hasMany = sprintf(
-			"// Reciprocal, on %sTable::initialize():\n\$this->hasMany('%s', ['foreignKey' => '%s']);",
+			"// Reciprocal, on %sTable::initialize():\n\$this->hasMany('%s', ['foreignKey' => %s%s]);",
 			$alias,
 			$ownerAlias,
-			$fk->column,
+			$foreignKey,
+			$bindingKey,
 		);
 
 		return $belongsTo . "\n" . $hasMany;
@@ -47,12 +51,12 @@ class FixSuggester {
 	 */
 	public function migrationLine(ForeignKey $fk): string {
 		return sprintf(
-			"\$table->addForeignKey('%s', '%s', '%s', [\n"
+			"\$table->addForeignKey(%s, '%s', %s, [\n"
 			. "    'update' => 'NO_ACTION', 'delete' => 'NO_ACTION',\n"
 			. ']);',
-			$fk->column,
+			$this->columnArg($fk->columns),
 			$fk->referencedTable,
-			$fk->referencedColumn,
+			$this->columnArg($fk->referencedColumns),
 		);
 	}
 
@@ -66,22 +70,72 @@ class FixSuggester {
 	 * @return string
 	 */
 	public function columnLine(ForeignKey $fk): string {
+		// Composite: some component columns may already exist, so don't blindly re-add them
+		// all - point at the missing one(s) and let the constraint follow.
+		if ($fk->isComposite()) {
+			return sprintf(
+				"// Some of `%s` (%s) are missing - add the missing component column(s) to match\n"
+				. "// `%s` (%s), then add the constraint:\n"
+				. "\$table->addForeignKey(%s, '%s', %s, [\n"
+				. "    'update' => 'NO_ACTION', 'delete' => 'NO_ACTION',\n"
+				. ']);',
+				$fk->ownerTable,
+				$fk->column,
+				$fk->referencedTable,
+				$fk->referencedColumn,
+				$this->columnArg($fk->columns),
+				$fk->referencedTable,
+				$this->columnArg($fk->referencedColumns),
+			);
+		}
+
 		return sprintf(
 			"// `%s.%s` is missing - add it to match `%s.%s` (copy its type/length), then the constraint:\n"
 			. "\$table->addColumn('%s', '%s', ['null' => true]);\n"
-			. "\$table->addForeignKey('%s', '%s', '%s', [\n"
+			. "\$table->addForeignKey(%s, '%s', %s, [\n"
 			. "    'update' => 'NO_ACTION', 'delete' => 'NO_ACTION',\n"
 			. ']);',
 			$fk->ownerTable,
 			$fk->column,
 			$fk->referencedTable,
 			$fk->referencedColumn,
-			$fk->column,
+			$fk->columns[0],
 			$fk->referencedColumnType ?? 'integer',
-			$fk->column,
+			$this->columnArg($fk->columns),
 			$fk->referencedTable,
-			$fk->referencedColumn,
+			$this->columnArg($fk->referencedColumns),
 		);
+	}
+
+	/**
+	 * A `, 'bindingKey' => ...` association option, but only when the referenced column(s)
+	 * are non-default (composite, or a single column other than `id`). The default `id`
+	 * binding needs no explicit option, keeping the common snippet clean.
+	 *
+	 * @param \TestHelper\Utility\Association\ForeignKey $fk
+	 * @return string
+	 */
+	protected function bindingKeyOption(ForeignKey $fk): string {
+		if ($fk->referencedColumns === ['id']) {
+			return '';
+		}
+
+		return ", 'bindingKey' => " . $this->columnArg($fk->referencedColumns);
+	}
+
+	/**
+	 * Render FK column(s) as a migration/association argument: a quoted name for a single
+	 * column, or a bracketed array for a composite key.
+	 *
+	 * @param array<string> $columns
+	 * @return string
+	 */
+	protected function columnArg(array $columns): string {
+		if (count($columns) === 1) {
+			return "'" . $columns[0] . "'";
+		}
+
+		return "['" . implode("', '", $columns) . "']";
 	}
 
 }

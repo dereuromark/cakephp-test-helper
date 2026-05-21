@@ -304,7 +304,9 @@ class AssociationAuditor {
 	public function looseColumnFindings(array $looseColumns, array $codeKeys, array $ignoreColumns, array $aliasByPhysical = [], array $claimedColumns = []): array {
 		$claimed = [];
 		foreach ($codeKeys as $fk) {
-			$claimed[$fk->connection . '|' . $fk->ownerTable . '|' . $fk->column] = true;
+			foreach ($fk->columns as $column) {
+				$claimed[$fk->connection . '|' . $fk->ownerTable . '|' . $column] = true;
+			}
 		}
 		foreach ($claimedColumns as $id) {
 			$claimed[$id] = true;

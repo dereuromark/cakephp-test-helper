@@ -50,15 +50,10 @@ class AssociationReader {
 
 					continue;
 				}
-				if (is_array($foreignKey)) {
-					$unsupported[] = $this->unsupported($table, $association, 'uses a composite foreign key (not auto-verified).');
-
-					continue;
-				}
 
 				$key = $this->normalize($association, $foreignKey);
 				if ($key === null) {
-					$unsupported[] = $this->unsupported($table, $association, 'has a composite binding key (not auto-verified).');
+					$unsupported[] = $this->unsupported($table, $association, 'has composite key columns that do not line up (not auto-verified).');
 
 					continue;
 				}
@@ -147,50 +142,67 @@ class AssociationReader {
 
 	/**
 	 * @param \Cake\ORM\Association $association
-	 * @param string $foreignKey
-	 * @return \TestHelper\Utility\Association\ForeignKey|null Null when the binding key is composite.
+	 * @param array<string>|string $foreignKey
+	 * @return \TestHelper\Utility\Association\ForeignKey|null Null when the columns cannot be paired.
 	 */
-	protected function normalize(Association $association, string $foreignKey): ?ForeignKey {
+	protected function normalize(Association $association, array|string $foreignKey): ?ForeignKey {
 		$source = $association->getSource();
 		$target = $association->getTarget();
 
 		if ($association instanceof BelongsTo) {
 			// FK lives on the source table, references the target's binding key.
 			$ownerTable = $source;
-			$column = $foreignKey;
 			$referenced = $target;
 			$bindingKey = $association->getBindingKey();
 		} elseif ($association instanceof HasMany || $association instanceof HasOne) {
 			// FK lives on the target table, references the source's binding key.
 			$ownerTable = $target;
-			$column = $foreignKey;
 			$referenced = $source;
 			$bindingKey = $association->getBindingKey();
 		} else {
 			return null;
 		}
 
-		if (is_array($bindingKey)) {
+		$columns = array_values((array)$foreignKey);
+		$referencedColumns = $this->referencedColumns($bindingKey, $referenced);
+		// A composite FK whose column counts don't line up can't be paired positionally.
+		if (count($columns) !== count($referencedColumns)) {
 			return null;
 		}
 
-		$referencedColumn = $bindingKey ?: 'id';
 		$ownerColumns = $this->safeColumns($ownerTable);
+		$composite = count($columns) > 1;
 
 		return new ForeignKey(
 			connection: $ownerTable->getConnection()->configName(),
 			ownerTable: $ownerTable->getTable(),
-			column: $column,
+			column: $columns,
 			referencedTable: $referenced->getTable(),
-			referencedColumn: $referencedColumn,
+			referencedColumn: $referencedColumns,
 			source: ForeignKey::SOURCE_CODE,
 			associationType: $this->type($association),
 			declaringTable: $source->getRegistryAlias(),
 			alias: $association->getName(),
-			columnExists: $ownerColumns === null || in_array($column, $ownerColumns, true),
-			ownerColumnType: $this->safeColumnType($ownerTable, $column),
-			referencedColumnType: $this->safeColumnType($referenced, $referencedColumn),
+			columnExists: $ownerColumns === null || !array_diff($columns, $ownerColumns),
+			// Per-column type checks of composite keys are out of scope; only single-column FKs carry types.
+			ownerColumnType: $composite ? null : $this->safeColumnType($ownerTable, $columns[0]),
+			referencedColumnType: $composite ? null : $this->safeColumnType($referenced, $referencedColumns[0]),
 		);
+	}
+
+	/**
+	 * Referenced column(s) for an association: its binding key, falling back to the
+	 * referenced table's primary key, then `id`.
+	 *
+	 * @param array<string>|string|null $bindingKey
+	 * @param \Cake\ORM\Table $referenced
+	 * @return array<string>
+	 */
+	protected function referencedColumns(array|string|null $bindingKey, Table $referenced): array {
+		$value = $bindingKey ?: $referenced->getPrimaryKey();
+		$columns = array_values(array_filter(array_map('strval', (array)$value), fn (string $c): bool => $c !== ''));
+
+		return $columns ?: ['id'];
 	}
 
 	/**

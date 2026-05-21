@@ -110,6 +110,43 @@ class AssociationAuditorTest extends TestCase {
 	}
 
 	/**
+	 * A composite code FK matching a composite DB FK produces no finding (paired by the
+	 * ordered column identity).
+	 *
+	 * @return void
+	 */
+	public function testDiffCompositeAligned() {
+		$code = [
+			new ForeignKey('default', 'memberships', ['region', 'parent_code'], 'cparents', ['region', 'code'], ForeignKey::SOURCE_CODE, 'belongsTo', 'Memberships', 'Cparents', true),
+		];
+		$db = [
+			new ForeignKey('default', 'memberships', ['region', 'parent_code'], 'cparents', ['region', 'code'], ForeignKey::SOURCE_DB),
+		];
+
+		$findings = $this->auditor->diffForeignKeys($code, $db);
+
+		$this->assertSame([], $findings);
+	}
+
+	/**
+	 * A composite code FK with no DB constraint is db_missing, and its fix renders the
+	 * columns as arrays (not a comma-joined string).
+	 *
+	 * @return void
+	 */
+	public function testDiffCompositeDbMissing() {
+		$code = [
+			new ForeignKey('default', 'memberships', ['region', 'parent_code'], 'cparents', ['region', 'code'], ForeignKey::SOURCE_CODE, 'belongsTo', 'Memberships', 'Cparents', true),
+		];
+
+		$findings = $this->auditor->diffForeignKeys($code, []);
+
+		$this->assertCount(1, $findings);
+		$this->assertSame(Finding::DIRECTION_DB_MISSING, $findings[0]->direction);
+		$this->assertStringContainsString("['region', 'parent_code']", (string)$findings[0]->fixSnippet);
+	}
+
+	/**
 	 * Matching code and DB keys produce no findings (and the reciprocal dedupes).
 	 *
 	 * @return void
