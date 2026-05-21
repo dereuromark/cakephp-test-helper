@@ -93,8 +93,9 @@ class AssociationsController extends TestHelperAppController {
 		}
 
 		$grouped = $this->groupByDirection($findings);
+		$groupOrder = $this->orderedGroupDirections($grouped);
 
-		$this->set(compact('model', 'findings', 'grouped', 'includeVendor'));
+		$this->set(compact('model', 'findings', 'grouped', 'groupOrder', 'includeVendor'));
 	}
 
 	/**
@@ -156,6 +157,36 @@ class AssociationsController extends TestHelperAppController {
 			Finding::LAYER_INDEX => 'index',
 			default => in_array($finding->associationType, $this->columns, true) ? $finding->associationType : 'belongsTo',
 		};
+	}
+
+	/**
+	 * Detail-view group display order: worst-first by each group's highest severity, keeping the
+	 * semantic group order (groupByDirection's key order) as a tiebreak within a severity. This
+	 * floats a group containing a warning above info-only groups, matching the flat scan's
+	 * worst-first ordering instead of a fixed direction order.
+	 *
+	 * @param array<string, array<\TestHelper\Utility\Association\Finding>> $grouped
+	 * @return array<string>
+	 */
+	protected function orderedGroupDirections(array $grouped): array {
+		$directions = array_keys($grouped);
+		$semanticIndex = array_flip($directions);
+
+		$worst = [];
+		foreach ($grouped as $direction => $directionFindings) {
+			$rank = 0;
+			foreach ($directionFindings as $finding) {
+				$rank = max($rank, Finding::SEVERITY_RANK[$finding->severity] ?? 0);
+			}
+			$worst[$direction] = $rank;
+		}
+
+		usort(
+			$directions,
+			fn (string $a, string $b): int => ($worst[$b] <=> $worst[$a]) ?: ($semanticIndex[$a] <=> $semanticIndex[$b]),
+		);
+
+		return $directions;
 	}
 
 	/**

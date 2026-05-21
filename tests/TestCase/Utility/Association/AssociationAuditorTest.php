@@ -572,6 +572,28 @@ class AssociationAuditorTest extends TestCase {
 	}
 
 	/**
+	 * An index candidate for a column already surfaced as a loose (unmanaged) column is dropped
+	 * ("add an index" is premature until it is a real FK), matched connection-aware: the same
+	 * column on another connection, and other columns, are kept.
+	 *
+	 * @return void
+	 */
+	public function testDedupeIndexCandidatesAgainstLoose() {
+		$reportedLoose = [new LooseColumn('default', 'webcal_user_media', 'unit_id')];
+		$candidates = [
+			new LooseColumn('default', 'webcal_user_media', 'unit_id'), // same identity -> dropped
+			new LooseColumn('other', 'webcal_user_media', 'unit_id'), // other connection -> kept
+			new ForeignKey('default', 'webcal_user_media', 'author_id', 'authors', 'id', ForeignKey::SOURCE_DB), // other column -> kept
+		];
+
+		$result = $this->auditor->dedupeIndexCandidatesAgainstLoose($candidates, $reportedLoose);
+
+		$this->assertCount(2, $result);
+		$connections = array_map(fn ($candidate): string => $candidate->connection, $result);
+		$this->assertContains('other', $connections);
+	}
+
+	/**
 	 * A loose column uses the "looks like a foreign key" wording.
 	 *
 	 * @return void

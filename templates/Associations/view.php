@@ -4,6 +4,7 @@
  * @var string|null $model
  * @var array<\TestHelper\Utility\Association\Finding> $findings
  * @var array<string, array<\TestHelper\Utility\Association\Finding>> $grouped
+ * @var array<string> $groupOrder
  * @var bool $includeVendor
  */
 
@@ -42,7 +43,8 @@ $severityBadge = function (string $severity): string {
 	<div class="alert alert-success"><?php echo $this->TestHelper->icon('check'); ?> All associations agree with the database.</div>
 <?php } ?>
 
-<?php foreach ($labels as $direction => [$title, $color]) { ?>
+<?php foreach ($groupOrder as $direction) { ?>
+	<?php [$title, $color] = $labels[$direction]; ?>
 	<?php $items = $grouped[$direction] ?? []; ?>
 	<?php if (!$items) {
 		continue;

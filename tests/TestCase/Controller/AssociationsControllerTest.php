@@ -63,6 +63,41 @@ class AssociationsControllerTest extends TestCase {
 	}
 
 	/**
+	 * Detail-view groups order worst-first: a group containing a warning floats above
+	 * info-only groups, with the semantic group order kept as a tiebreak within a severity.
+	 *
+	 * @return void
+	 */
+	public function testOrderedGroupDirectionsFloatsWarningsAboveInfo() {
+		$controller = new class (new ServerRequest()) extends AssociationsController {
+
+			/**
+			 * @param array<string, array<\TestHelper\Utility\Association\Finding>> $grouped
+			 * @return array<string>
+			 */
+			public function orderedGroupDirectionsPublic(array $grouped): array {
+				return $this->orderedGroupDirections($grouped);
+			}
+
+		};
+
+		// Semantic order puts the info-only index group above the warning db-missing group.
+		$grouped = [
+			Finding::DIRECTION_INDEX => [new Finding('T', Finding::DIRECTION_INDEX, 'belongsTo', Finding::SEVERITY_INFO, 'm', layer: Finding::LAYER_INDEX)],
+			Finding::DIRECTION_DB_MISSING => [new Finding('T', Finding::DIRECTION_DB_MISSING, 'belongsTo', Finding::SEVERITY_WARNING, 'm', layer: Finding::LAYER_CONSTRAINT)],
+			Finding::DIRECTION_CODE_MISSING => [new Finding('T', Finding::DIRECTION_CODE_MISSING, 'looseColumn', Finding::SEVERITY_INFO, 'm', layer: Finding::LAYER_COLUMN)],
+		];
+
+		$order = $controller->orderedGroupDirectionsPublic($grouped);
+
+		// Warning group first; the two info groups keep their semantic order behind it.
+		$this->assertSame(
+			[Finding::DIRECTION_DB_MISSING, Finding::DIRECTION_INDEX, Finding::DIRECTION_CODE_MISSING],
+			$order,
+		);
+	}
+
+	/**
 	 * The vendor toggle flows through to the view.
 	 *
 	 * @return void
