@@ -23,7 +23,7 @@
 			"role": "Author"
 		}
 	],
-	"homepage": "https://github.com/dereuromark/cakephp-test-helper",
+	"homepage": "https://dereuromark.github.io/cakephp-test-helper/",
 	"require": {
 		"php": ">=8.2",
 		"cakephp/cakephp": "^5.1.1"
