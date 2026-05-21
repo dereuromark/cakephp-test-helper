@@ -7,7 +7,7 @@ Browse `/test-helper` to see all functionality available.
 * Check fixtures against tables (+ bake missing ones via click)
 * Check tests per file available (+ bake missing ones via click)
 * Run tests and display results or coverage in backend.
-* Association vs DB foreign-key audit
+* [Association vs DB foreign-key audit](Associations.md) - Verify associations agree with the actual DB foreign keys
 * [Custom Linter Tasks](Linter.md) - Project-specific code quality checks
 
 ## Configuration
@@ -66,36 +66,13 @@ Check the backend entry page for the form to make reverse lookups for URL string
 
 ### Association vs DB foreign-key audit
 
-Navigate to
-```
-/test-helper/associations
-```
+Navigate to `/test-helper/associations`.
 
-Audits whether your declared table associations (`belongsTo`, `hasMany`, `hasOne`, `belongsToMany`) agree with the actual database foreign keys, in both directions:
-
-* an association declared in code whose owner column does not exist at all (error; suggests an `addColumn()` migration line, since a foreign key cannot be placed on a missing column)
-* an association declared in code whose column exists but has no matching DB foreign-key constraint (warning; suggests an `addForeignKey()` migration line)
-* a DB foreign key with no matching association (suggests the `belongsTo`/`hasMany` call)
-* a target/column disagreement between the two
-* a key-type layer compares each declared foreign key's column type against the referenced key: a different type family (e.g. `integer` referencing `uuid`) is an error (suggests a `changeColumn()` migration line aligning the column to its target), an owner key narrower than the referenced key (e.g. `integer` referencing `biginteger`) is a warning (same `changeColumn()` fix), and matching non-integer keys are an info hint that integer keys are preferred (silence the hint with `TestHelper.associationAudit.preferIntegerKeys => false`)
-* a cascade-rule layer compares the ORM `dependent` intent of a `hasMany`/`hasOne` against the matching DB foreign key's `ON DELETE` rule (info): a `dependent` association whose DB FK uses `ON DELETE NO ACTION` won't cascade a delete issued directly in SQL (suggests switching the FK to `ON DELETE CASCADE`, preserving the existing `ON UPDATE` rule), and a DB `ON DELETE CASCADE` with a non-`dependent` association means the ORM won't fire child callbacks (suggests adding `'dependent' => true, 'cascadeCallbacks' => true`)
-* a secondary layer flags `*_id` columns that have neither a constraint nor an association (configurable ignore list via `TestHelper.associationAudit.ignoreColumns` for polymorphic columns)
-
-Composite (multi-column) foreign keys are fully diffed in the constraint layer for `belongsTo`/`hasMany`/`hasOne` and for `belongsToMany` junctions; fix snippets render the columns as arrays and pin a non-default `bindingKey`. Composite keys are diffed structurally but not type-checked.
-
-App and first-party plugin tables are scanned by default; vendor tables can be folded in via the toggle.
-
-The summary matrix shows every table against each association type plus the two cross-cutting layers (`Key type` and `Cascade`) as their own columns, color-coded by status:
+Audits whether your declared table associations (`belongsTo`, `hasMany`, `hasOne`, `belongsToMany`) agree with the actual database foreign keys — in both directions, across four layers (constraint, key-type, cascade-rule, loose-column), with copy-paste fixes for each finding. Composite (multi-column) foreign keys are supported.
 
 ![Association audit matrix](img/associations_matrix.png)
 
-Each finding can be opened for detail, including a copy-paste fix:
-
-![Association audit detail with fix](img/associations_fix.png)
-
-A flat scan lists every finding across all in-scope tables at once, ordered worst-first (errors, then warnings, then info), and grouped by table within each severity. Topic chips at the top (Constraints, Columns, Key types, Not verifiable) toggle whole categories of finding in or out, so you can mute, say, the not-verifiable noise and focus on real constraint problems:
-
-![Association audit flat scan](img/associations_scan.png)
+See the [Association audit documentation](Associations.md) for the full guide: every layer, composite keys, the matrix, the flat scan, and configuration.
 
 ### Plugin info/check
 Check your own plugins on hooks and more.
