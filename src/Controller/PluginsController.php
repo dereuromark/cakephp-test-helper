@@ -29,7 +29,7 @@ class PluginsController extends TestHelperAppController {
 		$hooks = $this->Plugins->hooks();
 		$result = $this->Plugins->check($plugins);
 
-		$this->set(compact('plugins', 'hooks', 'result'));
+		$this->set(['plugins' => $plugins, 'hooks' => $hooks, 'result' => $result]);
 	}
 
 	/**
@@ -55,7 +55,7 @@ class PluginsController extends TestHelperAppController {
 			return $this->redirect(['action' => 'recommended', '?' => $this->request->getQuery()]);
 		}
 
-		$this->set(compact('hooks', 'result', 'plugin', 'classContent', 'classContentAfter'));
+		$this->set(['hooks' => $hooks, 'result' => $result, 'plugin' => $plugin, 'classContent' => $classContent, 'classContentAfter' => $classContentAfter]);
 	}
 
 }

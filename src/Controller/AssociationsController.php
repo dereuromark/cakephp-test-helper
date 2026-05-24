@@ -40,7 +40,7 @@ class AssociationsController extends TestHelperAppController {
 		$matrix = $this->buildMatrix($tables, $findings);
 		$totals = $this->totals($findings);
 
-		$this->set(compact('tables', 'findings', 'matrix', 'totals', 'includeVendor'));
+		$this->set(['tables' => $tables, 'findings' => $findings, 'matrix' => $matrix, 'totals' => $totals, 'includeVendor' => $includeVendor]);
 		$this->set('columns', $this->columns);
 	}
 
@@ -72,7 +72,7 @@ class AssociationsController extends TestHelperAppController {
 	 * @return void
 	 */
 	public function view(?string $model = null): void {
-		$model = $model ?? (string)$this->request->getQuery('model');
+		$model ??= (string)$this->request->getQuery('model');
 
 		// Audit the full in-scope set (not just $model) and filter to this table. CakePHP
 		// injects associations onto a table when *another* table is loaded — e.g. a
@@ -95,7 +95,7 @@ class AssociationsController extends TestHelperAppController {
 		$grouped = $this->groupByDirection($findings);
 		$groupOrder = $this->orderedGroupDirections($grouped);
 
-		$this->set(compact('model', 'findings', 'grouped', 'groupOrder', 'includeVendor'));
+		$this->set(['model' => $model, 'findings' => $findings, 'grouped' => $grouped, 'groupOrder' => $groupOrder, 'includeVendor' => $includeVendor]);
 	}
 
 	/**
@@ -111,7 +111,7 @@ class AssociationsController extends TestHelperAppController {
 		$findings = $auditor->sortFindings($auditor->audit($tables));
 		$totals = $this->totals($findings);
 
-		$this->set(compact('findings', 'totals', 'includeVendor'));
+		$this->set(['findings' => $findings, 'totals' => $totals, 'includeVendor' => $includeVendor]);
 	}
 
 	/**

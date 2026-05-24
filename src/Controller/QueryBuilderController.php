@@ -47,7 +47,7 @@ class QueryBuilderController extends TestHelperAppController {
 			}
 		}
 
-		$this->set(compact('sqlQuery', 'result', 'error', 'dialect'));
+		$this->set(['sqlQuery' => $sqlQuery, 'result' => $result, 'error' => $error, 'dialect' => $dialect]);
 	}
 
 }

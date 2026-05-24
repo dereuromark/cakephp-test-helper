@@ -36,7 +36,7 @@ class TestComparisonController extends TestHelperAppController {
 
 		$result = $this->Collector->modelComparison($plugins);
 
-		$this->set(compact('result'));
+		$this->set(['result' => $result]);
 	}
 
 }

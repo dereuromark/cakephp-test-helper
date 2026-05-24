@@ -239,7 +239,7 @@ class FixtureCheckCommand extends Command {
 			}
 
 			if (!isset($liveFields[$fieldName])) {
-				$errors[] = ' * ' . 'Field ' . $fieldName . ' is missing from the live DB!';
+				$errors[] = ' * Field ' . $fieldName . ' is missing from the live DB!';
 
 				continue;
 			}
@@ -418,7 +418,7 @@ class FixtureCheckCommand extends Command {
 		$diff = array_diff_key($one, $two);
 		if (!empty($diff)) {
 			$this->io->warning(sprintf($message, $fixtureClass));
-			foreach ($diff as $missingField => $type) {
+			foreach (array_keys($diff) as $missingField) {
 				$this->_missingFields[$fixtureTable][] = $missingField;
 				$this->io->out(' * ' . $missingField);
 			}
@@ -470,7 +470,7 @@ class FixtureCheckCommand extends Command {
 			}
 
 			$fixture = pathinfo($file, PATHINFO_FILENAME);
-			if (substr($fixture, -7) !== 'Fixture') {
+			if (!str_ends_with($fixture, 'Fixture')) {
 				continue;
 			}
 			$fixtures[] = $fixture;

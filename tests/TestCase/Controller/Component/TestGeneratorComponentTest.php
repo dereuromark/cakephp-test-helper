@@ -141,7 +141,7 @@ class TestGeneratorComponentTest extends TestCase {
 	 * @return void
 	 */
 	protected function createTempStructure(array $files, ?string $baseDir = null): void {
-		$baseDir = $baseDir ?? $this->tempDir;
+		$baseDir ??= $this->tempDir;
 
 		if (!is_dir($baseDir)) {
 			mkdir($baseDir, 0777, true);

@@ -38,7 +38,7 @@ class TestFixturesController extends TestHelperAppController {
 
 		$result = $this->Collector->fixtureComparison($plugins);
 
-		$this->set(compact('result'));
+		$this->set(['result' => $result]);
 	}
 
 	/**

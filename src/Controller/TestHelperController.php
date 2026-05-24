@@ -33,7 +33,7 @@ class TestHelperController extends TestHelperAppController {
 				$this->Flash->error($e->getMessage());
 			}
 
-			$this->set(compact('params'));
+			$this->set(['params' => $params]);
 		}
 
 		$plugins = Plugin::loaded();
@@ -47,7 +47,7 @@ class TestHelperController extends TestHelperAppController {
 
 		$testTypes = $this->getTestTypes($namespace);
 
-		$this->set(compact('plugins', 'namespace', 'testTypes'));
+		$this->set(['plugins' => $plugins, 'namespace' => $namespace, 'testTypes' => $testTypes]);
 	}
 
 	/**

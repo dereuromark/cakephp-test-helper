@@ -48,9 +48,7 @@ class ClassResolver {
 			return $type;
 		}
 
-		$suffix = static::$suffixMap[$type];
-
-		return $suffix;
+		return static::$suffixMap[$type];
 	}
 
 }

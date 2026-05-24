@@ -191,14 +191,12 @@ class QueryBuilderGenerator {
 				$associationName = $this->tableNameToAssociation($tableName);
 
 				// Add comment suggesting association-based join if it looks like a standard foreign key join
-				if ($this->looksLikeAssociationJoin($join)) {
-					if (!$hasJoins) {
-						$code .= "\n" . $this->indent() . '// TIP: If you have a ' . $associationName . ' association, consider using:';
-						$code .= "\n" . $this->indent() . "// ->contain(['" . $associationName . "']) or ->leftJoinWith('" . $associationName . "')";
-						$code .= "\n" . $this->indent() . '// Otherwise, use manual join:';
-						$hasJoins = true;
-					}
-				}
+				if ($this->looksLikeAssociationJoin($join) && !$hasJoins) {
+                    $code .= "\n" . $this->indent() . '// TIP: If you have a ' . $associationName . ' association, consider using:';
+                    $code .= "\n" . $this->indent() . "// ->contain(['" . $associationName . "']) or ->leftJoinWith('" . $associationName . "')";
+                    $code .= "\n" . $this->indent() . '// Otherwise, use manual join:';
+                    $hasJoins = true;
+                }
 
 				// Normalize JOIN conditions if we have ORM aliases
 				$joinConditions = $join['conditions'];
@@ -274,9 +272,8 @@ class QueryBuilderGenerator {
 		$code .= "\n\n// Execute and get results:\n";
 		$code .= "// \$results = \$query->toArray(); // For collection of entities\n";
 		$code .= "// \$result = \$query->first(); // For single entity\n";
-		$code .= '// $count = $query->count(); // For count only';
 
-		return $code;
+		return $code . '// $count = $query->count(); // For count only';
 	}
 
 	/**
@@ -322,9 +319,8 @@ class QueryBuilderGenerator {
 		}
 
 		$code .= "    ])\n";
-		$code .= '    ->execute();';
 
-		return $code;
+		return $code . '    ->execute();';
 	}
 
 	/**
@@ -339,7 +335,7 @@ class QueryBuilderGenerator {
 
 		$code .= "// Option 1: Using saveMany() with entities (recommended)\n";
 		$code .= "\$entities = [];\n";
-		foreach ($parsed['values'] as $index => $valueSet) {
+		foreach ($parsed['values'] as $valueSet) {
 			$code .= "\$entities[] = \$this->newEntity([\n";
 			foreach ($parsed['fields'] as $fieldIndex => $field) {
 				$value = $valueSet[$fieldIndex] ?? 'null';
@@ -358,7 +354,7 @@ class QueryBuilderGenerator {
 		$code .= "\$query = \$this->query();\n";
 		$code .= "\$query->insert(['" . implode("', '", $parsed['fields']) . "']);\n\n";
 
-		foreach ($parsed['values'] as $index => $valueSet) {
+		foreach ($parsed['values'] as $valueSet) {
 			$code .= "\$query->values([\n";
 			foreach ($parsed['fields'] as $fieldIndex => $field) {
 				$value = $valueSet[$fieldIndex] ?? 'null';
@@ -367,9 +363,7 @@ class QueryBuilderGenerator {
 			$code .= "]);\n";
 		}
 
-		$code .= "\n\$query->execute();";
-
-		return $code;
+		return $code . "\n\$query->execute();";
 	}
 
 	/**
@@ -414,9 +408,7 @@ class QueryBuilderGenerator {
 			$code .= '])';
 		}
 
-		$code .= "\n    ->execute();";
-
-		return $code;
+		return $code . "\n    ->execute();";
 	}
 
 	/**
@@ -437,8 +429,8 @@ class QueryBuilderGenerator {
 		$tableUpdates = [];
 		foreach ($parsed['set'] as $field => $value) {
 			// Extract table from field (e.g., "users.last_login" -> "users")
-			if (str_contains($field, '.')) {
-				[$table, $fieldName] = explode('.', $field, 2);
+			if (str_contains((string) $field, '.')) {
+				[$table, $fieldName] = explode('.', (string) $field, 2);
 				$tableUpdates[$table][$fieldName] = $value;
 			} else {
 				$tableUpdates[$parsed['table']][$field] = $value;
@@ -459,9 +451,8 @@ class QueryBuilderGenerator {
 
 		$code .= "// Option 2: Raw SQL (if absolutely necessary)\n";
 		$code .= "// \$connection = \$this->getConnection();\n";
-		$code .= '// $connection->execute("UPDATE ... JOIN ... SET ... WHERE ...");';
 
-		return $code;
+		return $code . '// $connection->execute("UPDATE ... JOIN ... SET ... WHERE ...");';
 	}
 
 	/**
@@ -487,9 +478,7 @@ class QueryBuilderGenerator {
 			$code .= '])';
 		}
 
-		$code .= "\n    ->execute();";
-
-		return $code;
+		return $code . "\n    ->execute();";
 	}
 
 	/**
@@ -503,9 +492,7 @@ class QueryBuilderGenerator {
 		$code .= "// In your Table class:\n";
 
 		if (empty($parsed['queries'])) {
-			$code .= '// ERROR: No queries found in UNION';
-
-			return $code;
+			return $code . '// ERROR: No queries found in UNION';
 		}
 
 		$method = $parsed['unionAll'] ? 'unionAll' : 'union';
@@ -534,9 +521,8 @@ class QueryBuilderGenerator {
 		$code .= ';';
 
 		$code .= "\n\n// Execute and get results:\n";
-		$code .= '// $results = $query->toArray();';
 
-		return $code;
+		return $code . '// $results = $query->toArray();';
 	}
 
 	/**
@@ -558,11 +544,7 @@ class QueryBuilderGenerator {
 			$code .= "\n" . $this->indent() . '->select([';
 			$fields = [];
 			foreach ($parsed['fields'] as $field) {
-				if (is_array($field)) {
-					$fields[] = "'" . $field['field'] . "' => '" . $field['alias'] . "'";
-				} else {
-					$fields[] = "'" . $field . "'";
-				}
+				$fields[] = is_array($field) ? "'" . $field['field'] . "' => '" . $field['alias'] . "'" : "'" . $field . "'";
 			}
 			$code .= implode(', ', $fields) . '])';
 		}
@@ -676,9 +658,8 @@ class QueryBuilderGenerator {
 
 		// Parse and format the modified conditions
 		$parsed = $this->conditionParser->parse($condStr);
-		$code .= $this->conditionParser->formatAsPhpArray($parsed, 2);
 
-		return $code;
+		return $code . $this->conditionParser->formatAsPhpArray($parsed, 2);
 	}
 
 	/**
@@ -697,11 +678,7 @@ class QueryBuilderGenerator {
 			$code .= "\n" . $this->indent() . '->select([';
 			$fields = [];
 			foreach ($parsed['fields'] as $field) {
-				if (is_array($field)) {
-					$fields[] = "'" . $field['field'] . "'";
-				} else {
-					$fields[] = "'" . $field . "'";
-				}
+				$fields[] = is_array($field) ? "'" . $field['field'] . "'" : "'" . $field . "'";
 			}
 			$code .= implode(', ', $fields) . '])';
 		}
@@ -744,9 +721,8 @@ class QueryBuilderGenerator {
 	protected function tableNameToAssociation(string $tableName): string {
 		// Convert snake_case to PascalCase and singularize/pluralize as appropriate
 		$parts = explode('_', $tableName);
-		$pascalCase = implode('', array_map('ucfirst', $parts));
 
-		return $pascalCase;
+		return implode('', array_map('ucfirst', $parts));
 	}
 
 	/**
@@ -788,7 +764,7 @@ class QueryBuilderGenerator {
 		}
 
 		// Extract table name from ORM alias (Authors__id -> Authors)
-		$parts = explode('__', $field['alias']);
+		$parts = explode('__', (string) $field['alias']);
 		$tableName = $parts[0];
 		$fieldName = $parts[1] ?? '';
 
@@ -870,21 +846,14 @@ class QueryBuilderGenerator {
 		$fieldExpr = $field['field'];
 		$type = $field['type'];
 
-		switch ($type) {
-			case 'aggregate':
-				return $this->formatAggregateFunction($fieldExpr);
-			case 'string_func':
-			case 'date_func':
-				return $this->formatFunction($fieldExpr);
-			case 'case':
-				return $this->formatCaseExpression($fieldExpr);
-			case 'math':
-				return $this->formatMathExpression($fieldExpr);
-			case 'window_func':
-				return $this->formatWindowFunction($fieldExpr);
-			default:
-				return "'" . $fieldExpr . "'";
-		}
+		return match ($type) {
+            'aggregate' => $this->formatAggregateFunction($fieldExpr),
+            'string_func', 'date_func' => $this->formatFunction($fieldExpr),
+            'case' => $this->formatCaseExpression($fieldExpr),
+            'math' => $this->formatMathExpression($fieldExpr),
+            'window_func' => $this->formatWindowFunction($fieldExpr),
+            default => "'" . $fieldExpr . "'",
+        };
 	}
 
 	/**
@@ -899,9 +868,8 @@ class QueryBuilderGenerator {
 		$code .= str_repeat(' ', 16) . '// Options:\n';
 		$code .= str_repeat(' ', 16) . '// 1. Use raw SQL: $query->select(["row_num" => $query->newExpr("' . $expr . '")])\n';
 		$code .= str_repeat(' ', 16) . '// 2. Consider using subquery or post-processing in PHP\n';
-		$code .= str_repeat(' ', 16) . '// 3. For RANK/ROW_NUMBER, consider fetching and processing results';
 
-		return $code;
+		return $code . (str_repeat(' ', 16) . '// 3. For RANK/ROW_NUMBER, consider fetching and processing results');
 	}
 
 	/**
@@ -1136,11 +1104,6 @@ class QueryBuilderGenerator {
 			$op = $matches[2];
 			$right = trim($matches[3], '`"\'');
 
-			// If right side is numeric, use it as-is, otherwise quote it
-			if (is_numeric($right)) {
-				return "\$query->newExpr('" . $left . ' ' . $op . ' ' . $right . "')";
-			}
-
 			return "\$query->newExpr('" . $left . ' ' . $op . ' ' . $right . "')";
 		}
 
@@ -1158,14 +1121,14 @@ class QueryBuilderGenerator {
 
 		// Add FROM table alias if present
 		if (!empty($parsed['from']) && !empty($parsed['fromAlias'])) {
-			$map[strtolower($parsed['from'])] = $parsed['fromAlias'];
+			$map[strtolower((string) $parsed['from'])] = $parsed['fromAlias'];
 		}
 
 		// Add JOIN table aliases
 		if (!empty($parsed['joins'])) {
 			foreach ($parsed['joins'] as $join) {
 				if (!empty($join['table']) && !empty($join['alias'])) {
-					$map[strtolower($join['table'])] = $join['alias'];
+					$map[strtolower((string) $join['table'])] = $join['alias'];
 				}
 			}
 		}
@@ -1328,7 +1291,7 @@ class QueryBuilderGenerator {
 	 */
 	protected function formatConcatFunction(string $argsStr): string {
 		$args = $this->parseFunctionArguments($argsStr);
-		$formattedArgs = array_map([$this, 'formatFunctionArg'], $args);
+		$formattedArgs = array_map($this->formatFunctionArg(...), $args);
 
 		return '$query->func()->concat([' . implode(', ', $formattedArgs) . '])';
 	}
@@ -1346,7 +1309,7 @@ class QueryBuilderGenerator {
 		}
 
 		$separator = array_shift($args);
-		$formattedArgs = array_map([$this, 'formatFunctionArg'], $args);
+		$formattedArgs = array_map($this->formatFunctionArg(...), $args);
 
 		return '$query->func()->concat([' . implode(', ' . $separator . ', ', $formattedArgs) . '])';
 	}
@@ -1359,7 +1322,7 @@ class QueryBuilderGenerator {
 	 */
 	protected function formatCoalesceFunction(string $argsStr): string {
 		$args = $this->parseFunctionArguments($argsStr);
-		$formattedArgs = array_map([$this, 'formatFunctionArg'], $args);
+		$formattedArgs = array_map($this->formatFunctionArg(...), $args);
 
 		return '$query->func()->coalesce([' . implode(', ', $formattedArgs) . '])';
 	}

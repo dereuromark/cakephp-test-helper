@@ -142,7 +142,7 @@ class AssociationAuditor {
 			if ($checkIndexes) {
 				try {
 					$indexedColumns[$owner['connection'] . '|' . $owner['table']] = $this->schema->indexedColumns($connection, $owner['table']);
-				} catch (Throwable $e) {
+				} catch (Throwable) {
 					// No index data for this table; the rest of the audit is unaffected.
 				}
 			}
@@ -161,9 +161,8 @@ class AssociationAuditor {
 			$this->indexCandidates($dbKeys, $codeKeys, $looseColumns, $indexedColumns),
 			$reportedLoose,
 		);
-		$findings = array_merge($findings, $this->indexFindings($indexCandidates, $indexedColumns, $this->ignoreColumns(), $checkIndexes, $aliasByPhysical));
 
-		return $findings;
+		return array_merge($findings, $this->indexFindings($indexCandidates, $indexedColumns, $this->ignoreColumns(), $checkIndexes, $aliasByPhysical));
 	}
 
 	/**

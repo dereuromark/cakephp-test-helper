@@ -50,7 +50,7 @@ class MigrationsController extends TestHelperAppController {
 
 		$tmpDatabase = $database . '_tmp';
 
-		$this->set(compact('database', 'tmpDatabase'));
+		$this->set(['database' => $database, 'tmpDatabase' => $tmpDatabase]);
 	}
 
 	/**
@@ -89,7 +89,7 @@ class MigrationsController extends TestHelperAppController {
 			return $this->redirect([]);
 		}
 
-		$this->set((compact('database', 'tmpDatabase', 'dbConfig')));
+		$this->set((['database' => $database, 'tmpDatabase' => $tmpDatabase, 'dbConfig' => $dbConfig]));
 	}
 
 	/**
@@ -147,7 +147,7 @@ class MigrationsController extends TestHelperAppController {
 		$plugins = $this->Migrations->getPluginsWithMigrations();
 		$allTables = $this->Migrations->getApplicationTables();
 
-		$this->set(compact('files', 'plugins', 'allTables'));
+		$this->set(['files' => $files, 'plugins' => $plugins, 'allTables' => $allTables]);
 	}
 
 	/**
@@ -228,7 +228,7 @@ class MigrationsController extends TestHelperAppController {
 			$this->Flash->error('Something went wrong');
 		}
 
-		$this->set(compact('files'));
+		$this->set(['files' => $files]);
 	}
 
 	/**
@@ -262,7 +262,7 @@ class MigrationsController extends TestHelperAppController {
 			$this->Flash->error('Something went wrong');
 		}
 
-		$this->set(compact('seeds'));
+		$this->set(['seeds' => $seeds]);
 	}
 
 	/**
@@ -337,7 +337,7 @@ class MigrationsController extends TestHelperAppController {
 		$differ = new Differ(new DiffOnlyOutputBuilder());
 		$diffArray = $differ->diffToArray($contentBefore, $contentAfter);
 
-		$this->set(compact('contentBefore', 'contentAfter', 'diffArray'));
+		$this->set(['contentBefore' => $contentBefore, 'contentAfter' => $contentAfter, 'diffArray' => $diffArray]);
 	}
 
 	/**
@@ -522,19 +522,7 @@ class MigrationsController extends TestHelperAppController {
 			return $this->exportDrift($format, $drift, $connectionName, $database, $shadowDatabase, $hasDrift, $error);
 		}
 
-		$this->set(compact(
-			'availableConnections',
-			'connectionName',
-			'database',
-			'shadowDatabase',
-			'migrationsToRun',
-			'migrationsFromConfig',
-			'drift',
-			'hasDrift',
-			'error',
-			'isMysql',
-			'isPostgres',
-		));
+		$this->set(['availableConnections' => $availableConnections, 'connectionName' => $connectionName, 'database' => $database, 'shadowDatabase' => $shadowDatabase, 'migrationsToRun' => $migrationsToRun, 'migrationsFromConfig' => $migrationsFromConfig, 'drift' => $drift, 'hasDrift' => $hasDrift, 'error' => $error, 'isMysql' => $isMysql, 'isPostgres' => $isPostgres]);
 	}
 
 	/**
@@ -693,7 +681,7 @@ class MigrationsController extends TestHelperAppController {
 				$lines[] = '### Index Differences';
 				$lines[] = '';
 				foreach ($drift['index_diffs'] as $diff) {
-					$type = strtoupper($diff['type']);
+					$type = strtoupper((string) $diff['type']);
 					$table = $diff['table'];
 					$index = $diff['index'];
 					$lines[] = sprintf('- **%s** `%s.%s`', $type, $table, $index);
@@ -706,7 +694,7 @@ class MigrationsController extends TestHelperAppController {
 				$lines[] = '### Constraint Differences';
 				$lines[] = '';
 				foreach ($drift['constraint_diffs'] as $diff) {
-					$type = strtoupper($diff['type']);
+					$type = strtoupper((string) $diff['type']);
 					$table = $diff['table'];
 					$constraint = $diff['constraint'];
 					$lines[] = sprintf('- **%s** `%s.%s`', $type, $table, $constraint);
@@ -877,7 +865,7 @@ class MigrationsController extends TestHelperAppController {
 	 * @return void
 	 */
 	protected function assertValidIdentifier(string $identifier, string $kind = 'identifier'): void {
-		if ($identifier === '' || !preg_match('/^[A-Za-z0-9_]+$/', $identifier)) {
+		if ($identifier === '' || !preg_match('/^\w+$/', $identifier)) {
 			throw new InvalidArgumentException(sprintf('Invalid %s name: %s', $kind, $identifier));
 		}
 	}

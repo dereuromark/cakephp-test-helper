@@ -65,7 +65,7 @@ class TestCasesController extends TestHelperAppController {
 		}
 
 		$namespace = $appOrPlugin ?: 'app';
-		$this->set(compact('items', 'path', 'breadcrumb', 'namespace', 'plugin'));
+		$this->set(['items' => $items, 'path' => $path, 'breadcrumb' => $breadcrumb, 'namespace' => $namespace, 'plugin' => $plugin]);
 	}
 
 	/**
@@ -114,7 +114,7 @@ class TestCasesController extends TestHelperAppController {
 		$namespace = $appOrPlugin ?: 'app';
 		$className = basename($file, '.php');
 
-		$this->set(compact('methods', 'file', 'testPath', 'breadcrumb', 'namespace', 'plugin', 'className'));
+		$this->set(['methods' => $methods, 'file' => $file, 'testPath' => $testPath, 'breadcrumb' => $breadcrumb, 'namespace' => $namespace, 'plugin' => $plugin, 'className' => $className]);
 
 		return null;
 	}
@@ -228,7 +228,7 @@ class TestCasesController extends TestHelperAppController {
 					];
 				}
 			}
-		} catch (Throwable $e) {
+		} catch (Throwable) {
 			// If reflection fails, fall back to regex
 			return $this->extractTestMethodsViaRegex($content);
 		}
@@ -289,7 +289,7 @@ class TestCasesController extends TestHelperAppController {
 			$this->set($response);
 			$this->viewBuilder()->setOptions(['serialize' => array_keys($response)]);
 		} else {
-			$this->set(compact('result'));
+			$this->set(['result' => $result]);
 		}
 	}
 
@@ -338,7 +338,7 @@ class TestCasesController extends TestHelperAppController {
 			$this->set($response);
 			$this->viewBuilder()->setOptions(['serialize' => array_keys($response)]);
 		} else {
-			$this->set(compact('result'));
+			$this->set(['result' => $result]);
 		}
 	}
 
@@ -487,7 +487,7 @@ class TestCasesController extends TestHelperAppController {
 			];
 		}
 
-		$this->set(compact('files', 'type'));
+		$this->set(['files' => $files, 'type' => $type]);
 
 		return $this->render('handle');
 	}

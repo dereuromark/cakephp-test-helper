@@ -27,7 +27,7 @@ class ConditionParser {
 		// Try to parse the conditions
 		try {
 			return $this->parseExpression($conditions);
-		} catch (Exception $e) {
+		} catch (Exception) {
 			// If parsing fails, return as TODO comment
 			return $conditions;
 		}
@@ -108,15 +108,12 @@ class ConditionParser {
 				$pattern = '/^' . $operator . '\s+/i';
 				if (preg_match($pattern, $remaining, $matches)) {
 					// Check if this is part of a BETWEEN clause
-					if ($operator === 'AND') {
-						// Check if current part contains BETWEEN
-						if (preg_match('/\bBETWEEN\b/i', $current)) {
-							// This is BETWEEN...AND, not a logical AND
-							$current .= $char;
-
-							continue;
-						}
-					}
+                    // Check if current part contains BETWEEN
+                    if ($operator === 'AND' && preg_match('/\bBETWEEN\b/i', $current)) {
+                        // This is BETWEEN...AND, not a logical AND
+                        $current .= $char;
+                        continue;
+                    }
 					// Found operator at depth 0
 					$parts[] = trim($current);
 					$current = '';
@@ -358,13 +355,9 @@ class ConditionParser {
 			}
 
 			if (is_int($key)) {
-				// Numeric key (for OR conditions)
-				if (is_array($value)) {
-					$lines[] = $this->formatArray($value, $indent + 1);
-				} else {
-					$lines[] = $this->formatValue($value);
-				}
-			} else {
+                // Numeric key (for OR conditions)
+                $lines[] = is_array($value) ? $this->formatArray($value, $indent + 1) : $this->formatValue($value);
+            } else {
 				// String key
 				$formattedKey = "'" . $key . "'";
 				if (is_array($value)) {

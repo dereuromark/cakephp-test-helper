@@ -19,7 +19,7 @@ trait SchemaColumnAccessTrait {
 	protected function safeColumns(Table $table): ?array {
 		try {
 			return $table->getSchema()->columns();
-		} catch (Throwable $e) {
+		} catch (Throwable) {
 			return null;
 		}
 	}
@@ -34,7 +34,7 @@ trait SchemaColumnAccessTrait {
 	protected function safeColumnType(Table $table, string $column): ?string {
 		try {
 			return $table->getSchema()->getColumnType($column);
-		} catch (Throwable $e) {
+		} catch (Throwable) {
 			return null;
 		}
 	}

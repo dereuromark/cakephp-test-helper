@@ -28,7 +28,7 @@ class MigrationsComponent extends Component {
 
 		// Validate database name as defense in depth: it is also passed unquoted as an
 		// argument to mysqldump and we want to reject anything outside [A-Za-z0-9_].
-		if ($database === '' || !preg_match('/^[A-Za-z0-9_]+$/', $database)) {
+		if ($database === '' || !preg_match('/^\w+$/', $database)) {
 			$this->getController()->Flash->error('Invalid database name: ' . $database);
 
 			return '';
@@ -49,7 +49,7 @@ class MigrationsComponent extends Component {
 		];
 		$env = ['MYSQL_PWD' => $password] + $_ENV + $_SERVER;
 		// Restrict to scalar values for proc_open env.
-		$env = array_filter($env, fn ($v): bool => is_scalar($v));
+		$env = array_filter($env, is_scalar(...));
 
 		$process = proc_open($command, $descriptors, $pipes, null, $env);
 		if (!is_resource($process)) {
@@ -134,13 +134,8 @@ class MigrationsComponent extends Component {
 		if (in_array($tableName, $this->ignoredTables, true)) {
 			return true;
 		}
-
-		// Ignore plugin phinxlog tables (e.g., blog_phinxlog, users_phinxlog)
-		if (str_ends_with($tableName, '_phinxlog')) {
-			return true;
-		}
-
-		return false;
+        // Ignore plugin phinxlog tables (e.g., blog_phinxlog, users_phinxlog)
+        return str_ends_with($tableName, '_phinxlog');
 	}
 
 	/**

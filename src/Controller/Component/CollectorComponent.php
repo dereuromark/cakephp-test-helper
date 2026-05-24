@@ -130,9 +130,7 @@ class CollectorComponent extends Component {
 				/** @var \Cake\TestSuite\Fixture\TestFixture $fixture */
 				$fixture = new $fullClassName();
 				$table = $fixture->table;
-			} catch (Exception $exception) {
-				$table = '';
-			} catch (Throwable $exception) {
+			} catch (Exception|Throwable) {
 				$table = '';
 			}
 
@@ -172,9 +170,7 @@ class CollectorComponent extends Component {
 				$entityClass = $tableObject->getEntityClass();
 				$entity = $this->shortEntityName($entityClass);
 
-			} catch (Exception $exception) {
-				$table = '';
-			} catch (Throwable $exception) {
+			} catch (Exception|Throwable) {
 				$table = '';
 			}
 
@@ -282,10 +278,8 @@ class CollectorComponent extends Component {
 	 */
 	protected function shouldSkip(string $table): bool {
 		foreach ($this->getConfig('ignoredDbTables') as $ignore) {
-			if (str_starts_with($ignore, '/')) {
-				if ((bool)preg_match($ignore, $table)) {
-					return true;
-				}
+			if (str_starts_with($ignore, '/') && (bool)preg_match($ignore, $table)) {
+				return true;
 			}
 
 			if ($ignore === $table) {
@@ -356,7 +350,7 @@ class CollectorComponent extends Component {
 					'entity' => $entity,
 				];
 			}
-			foreach ($dbTables as $tableName => $table) {
+			foreach (array_keys($dbTables) as $tableName) {
 				$result[Inflector::camelize($tableName)] = [
 					'table' => '',
 					'dbTable' => $tableName,

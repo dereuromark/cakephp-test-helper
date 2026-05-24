@@ -253,11 +253,7 @@ class ArrayUrlsInControllersTask extends AbstractLinterTask {
 			// Add pass parameters (unnamed params)
 			if (isset($params['pass']) && is_array($params['pass'])) {
 				foreach ($params['pass'] as $pass) {
-					if (is_numeric($pass)) {
-						$arrayParts[] = $pass;
-					} else {
-						$arrayParts[] = "'{$pass}'";
-					}
+					$arrayParts[] = is_numeric($pass) ? $pass : "'{$pass}'";
 				}
 			}
 
@@ -270,14 +266,14 @@ class ArrayUrlsInControllersTask extends AbstractLinterTask {
 						if (is_array($value)) {
 							continue; // Skip array values for simplicity
 						}
-						$queryParts[] = "'{$key}' => '" . (string)$value . "'";
+						$queryParts[] = "'{$key}' => '" . $value . "'";
 					}
 					$arrayParts[] = "'?' => [" . implode(', ', $queryParts) . ']';
 				}
 			}
 
 			return '[' . implode(', ', $arrayParts) . ']';
-		} catch (Exception $e) {
+		} catch (Exception) {
 			// Fallback: If routing fails, build basic array manually
 			$url = ltrim($url, '/');
 			$parts = array_filter(explode('/', explode('?', $url)[0]));
@@ -294,11 +290,7 @@ class ArrayUrlsInControllersTask extends AbstractLinterTask {
 			// Add remaining parts as pass parameters
 			$partsCount = count($parts);
 			for ($i = 2; $i < $partsCount; $i++) {
-				if (is_numeric($parts[$i])) {
-					$arrayParts[] = $parts[$i];
-				} else {
-					$arrayParts[] = "'{$parts[$i]}'";
-				}
+				$arrayParts[] = is_numeric($parts[$i]) ? $parts[$i] : "'{$parts[$i]}'";
 			}
 
 			// Add query string if present
@@ -310,7 +302,7 @@ class ArrayUrlsInControllersTask extends AbstractLinterTask {
 						if (is_array($value)) {
 							continue; // Skip array values for simplicity
 						}
-						$queryParts[] = "'{$key}' => '" . (string)$value . "'";
+						$queryParts[] = "'{$key}' => '" . $value . "'";
 					}
 					$arrayParts[] = "'?' => [" . implode(', ', $queryParts) . ']';
 				}
