@@ -64,7 +64,7 @@ class NoMixedInTemplatesTask extends AbstractLinterTask {
 						$verbose,
 					);
 					$issues++;
-				}
+			}
 		}
 
 		return $issues;

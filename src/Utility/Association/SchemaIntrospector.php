@@ -75,7 +75,7 @@ class SchemaIntrospector {
 
 		$loose = [];
 		foreach ($schema->columns() as $column) {
-			if (!str_ends_with((string) $column, '_id')) {
+			if (!str_ends_with((string)$column, '_id')) {
 				continue;
 			}
 			if (isset($constrained[$column])) {

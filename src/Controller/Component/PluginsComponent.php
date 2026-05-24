@@ -159,7 +159,8 @@ class PluginsComponent extends Component {
 		}
 
 		$fileContent = file_get_contents($configPath . 'routes.php');
-        return $fileContent && trim($fileContent) !== '<?php';
+
+		return $fileContent && trim($fileContent) !== '<?php';
 	}
 
 	/**
@@ -280,7 +281,7 @@ TXT;
 		$indentation = '    ';
 
 		foreach ($pieces as $piece) {
-			if (!$piece || !preg_match('/^(\s+)/', (string) $piece, $matches)) {
+			if (!$piece || !preg_match('/^(\s+)/', (string)$piece, $matches)) {
 				continue;
 			}
 

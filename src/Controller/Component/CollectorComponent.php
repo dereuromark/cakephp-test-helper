@@ -130,7 +130,7 @@ class CollectorComponent extends Component {
 				/** @var \Cake\TestSuite\Fixture\TestFixture $fixture */
 				$fixture = new $fullClassName();
 				$table = $fixture->table;
-			} catch (Exception|Throwable) {
+			} catch (Exception | Throwable) {
 				$table = '';
 			}
 
@@ -170,7 +170,7 @@ class CollectorComponent extends Component {
 				$entityClass = $tableObject->getEntityClass();
 				$entity = $this->shortEntityName($entityClass);
 
-			} catch (Exception|Throwable) {
+			} catch (Exception | Throwable) {
 				$table = '';
 			}
 

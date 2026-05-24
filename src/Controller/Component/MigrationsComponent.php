@@ -134,8 +134,9 @@ class MigrationsComponent extends Component {
 		if (in_array($tableName, $this->ignoredTables, true)) {
 			return true;
 		}
-        // Ignore plugin phinxlog tables (e.g., blog_phinxlog, users_phinxlog)
-        return str_ends_with($tableName, '_phinxlog');
+
+		// Ignore plugin phinxlog tables (e.g., blog_phinxlog, users_phinxlog)
+		return str_ends_with($tableName, '_phinxlog');
 	}
 
 	/**

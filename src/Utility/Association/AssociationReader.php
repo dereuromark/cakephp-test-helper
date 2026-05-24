@@ -52,7 +52,7 @@ class AssociationReader {
 				}
 
 				$key = $this->normalize($association, $foreignKey);
-				if (!$key instanceof \TestHelper\Utility\Association\ForeignKey) {
+				if (!$key instanceof ForeignKey) {
 					$unsupported[] = $this->unsupported($table, $association, 'has composite key columns that do not line up (not auto-verified).');
 
 					continue;

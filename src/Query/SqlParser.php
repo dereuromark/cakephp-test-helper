@@ -225,9 +225,9 @@ class SqlParser {
 				$cleanField = trim($part, '`"\'');
 				$fieldType = $this->detectFieldType($part);
 				$fields[] = $fieldType !== 'column' ? [
-						'field' => $cleanField,
-						'type' => $fieldType,
-					] : $cleanField;
+					'field' => $cleanField,
+					'type' => $fieldType,
+				] : $cleanField;
 			}
 		}
 
@@ -524,7 +524,7 @@ class SqlParser {
 			preg_match_all('/\(([^)]+)\)/i', $valuesStr, $valueSets);
 			foreach ($valueSets[1] as $valueSet) {
 					$result['values'][] = $this->splitByComma($valueSet);
-				}
+			}
 		}
 
 		return $result;

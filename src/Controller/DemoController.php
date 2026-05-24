@@ -97,12 +97,12 @@ class DemoController extends TestHelperAppController {
 			$message = $this->request->getData('message') ?: 'This is a sample ' . $type . ' message.';
 
 			match ($type) {
-                'success' => $this->Flash->success($message),
-                'error' => $this->Flash->error($message),
-                'warning' => $this->Flash->warning($message),
-                'info' => $this->Flash->info($message),
-                default => $this->Flash->set($message),
-            };
+				'success' => $this->Flash->success($message),
+				'error' => $this->Flash->error($message),
+				'warning' => $this->Flash->warning($message),
+				'info' => $this->Flash->info($message),
+				default => $this->Flash->set($message),
+			};
 
 			return $this->redirect(['action' => 'flashMessages']);
 		}

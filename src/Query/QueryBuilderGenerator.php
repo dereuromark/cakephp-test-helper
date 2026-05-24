@@ -192,11 +192,11 @@ class QueryBuilderGenerator {
 
 				// Add comment suggesting association-based join if it looks like a standard foreign key join
 				if ($this->looksLikeAssociationJoin($join) && !$hasJoins) {
-                    $code .= "\n" . $this->indent() . '// TIP: If you have a ' . $associationName . ' association, consider using:';
-                    $code .= "\n" . $this->indent() . "// ->contain(['" . $associationName . "']) or ->leftJoinWith('" . $associationName . "')";
-                    $code .= "\n" . $this->indent() . '// Otherwise, use manual join:';
-                    $hasJoins = true;
-                }
+					$code .= "\n" . $this->indent() . '// TIP: If you have a ' . $associationName . ' association, consider using:';
+					$code .= "\n" . $this->indent() . "// ->contain(['" . $associationName . "']) or ->leftJoinWith('" . $associationName . "')";
+					$code .= "\n" . $this->indent() . '// Otherwise, use manual join:';
+					$hasJoins = true;
+				}
 
 				// Normalize JOIN conditions if we have ORM aliases
 				$joinConditions = $join['conditions'];
@@ -429,8 +429,8 @@ class QueryBuilderGenerator {
 		$tableUpdates = [];
 		foreach ($parsed['set'] as $field => $value) {
 			// Extract table from field (e.g., "users.last_login" -> "users")
-			if (str_contains((string) $field, '.')) {
-				[$table, $fieldName] = explode('.', (string) $field, 2);
+			if (str_contains((string)$field, '.')) {
+				[$table, $fieldName] = explode('.', (string)$field, 2);
 				$tableUpdates[$table][$fieldName] = $value;
 			} else {
 				$tableUpdates[$parsed['table']][$field] = $value;
@@ -764,7 +764,7 @@ class QueryBuilderGenerator {
 		}
 
 		// Extract table name from ORM alias (Authors__id -> Authors)
-		$parts = explode('__', (string) $field['alias']);
+		$parts = explode('__', (string)$field['alias']);
 		$tableName = $parts[0];
 		$fieldName = $parts[1] ?? '';
 
@@ -847,13 +847,13 @@ class QueryBuilderGenerator {
 		$type = $field['type'];
 
 		return match ($type) {
-            'aggregate' => $this->formatAggregateFunction($fieldExpr),
-            'string_func', 'date_func' => $this->formatFunction($fieldExpr),
-            'case' => $this->formatCaseExpression($fieldExpr),
-            'math' => $this->formatMathExpression($fieldExpr),
-            'window_func' => $this->formatWindowFunction($fieldExpr),
-            default => "'" . $fieldExpr . "'",
-        };
+			'aggregate' => $this->formatAggregateFunction($fieldExpr),
+			'string_func', 'date_func' => $this->formatFunction($fieldExpr),
+			'case' => $this->formatCaseExpression($fieldExpr),
+			'math' => $this->formatMathExpression($fieldExpr),
+			'window_func' => $this->formatWindowFunction($fieldExpr),
+			default => "'" . $fieldExpr . "'",
+		};
 	}
 
 	/**
@@ -1121,14 +1121,14 @@ class QueryBuilderGenerator {
 
 		// Add FROM table alias if present
 		if (!empty($parsed['from']) && !empty($parsed['fromAlias'])) {
-			$map[strtolower((string) $parsed['from'])] = $parsed['fromAlias'];
+			$map[strtolower((string)$parsed['from'])] = $parsed['fromAlias'];
 		}
 
 		// Add JOIN table aliases
 		if (!empty($parsed['joins'])) {
 			foreach ($parsed['joins'] as $join) {
 				if (!empty($join['table']) && !empty($join['alias'])) {
-					$map[strtolower((string) $join['table'])] = $join['alias'];
+					$map[strtolower((string)$join['table'])] = $join['alias'];
 				}
 			}
 		}

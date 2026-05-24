@@ -681,7 +681,7 @@ class MigrationsController extends TestHelperAppController {
 				$lines[] = '### Index Differences';
 				$lines[] = '';
 				foreach ($drift['index_diffs'] as $diff) {
-					$type = strtoupper((string) $diff['type']);
+					$type = strtoupper((string)$diff['type']);
 					$table = $diff['table'];
 					$index = $diff['index'];
 					$lines[] = sprintf('- **%s** `%s.%s`', $type, $table, $index);
@@ -694,7 +694,7 @@ class MigrationsController extends TestHelperAppController {
 				$lines[] = '### Constraint Differences';
 				$lines[] = '';
 				foreach ($drift['constraint_diffs'] as $diff) {
-					$type = strtoupper((string) $diff['type']);
+					$type = strtoupper((string)$diff['type']);
 					$table = $diff['table'];
 					$constraint = $diff['constraint'];
 					$lines[] = sprintf('- **%s** `%s.%s`', $type, $table, $constraint);
