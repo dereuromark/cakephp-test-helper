@@ -865,7 +865,7 @@ class MigrationsController extends TestHelperAppController {
 	 * @return void
 	 */
 	protected function assertValidIdentifier(string $identifier, string $kind = 'identifier'): void {
-		if ($identifier === '' || !preg_match('/^\w+$/', $identifier)) {
+		if ($identifier === '' || !preg_match('/^[A-Za-z0-9_]+$/', $identifier)) {
 			throw new InvalidArgumentException(sprintf('Invalid %s name: %s', $kind, $identifier));
 		}
 	}
