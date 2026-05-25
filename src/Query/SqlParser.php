@@ -522,7 +522,7 @@ class SqlParser {
 			$valuesStr = $matches[1];
 			// Extract all parenthesized value sets
 			preg_match_all('/\(([^)]+)\)/i', $valuesStr, $valueSets);
-			foreach ($valueSets[1] ?? [] as $valueSet) {
+			foreach ($valueSets[1] as $valueSet) {
 				$result['values'][] = $this->splitByComma($valueSet);
 			}
 		}
