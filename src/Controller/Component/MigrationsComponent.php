@@ -28,7 +28,7 @@ class MigrationsComponent extends Component {
 
 		// Validate database name as defense in depth: it is also passed unquoted as an
 		// argument to mysqldump and we want to reject anything outside [A-Za-z0-9_].
-		if ($database === '' || !preg_match('/^\w+$/', $database)) {
+		if ($database === '' || !preg_match('/^[A-Za-z0-9_]+$/', $database)) {
 			$this->getController()->Flash->error('Invalid database name: ' . $database);
 
 			return '';
