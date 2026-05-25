@@ -260,7 +260,7 @@ TXT;
 				$indentation . '/**',
 				$indentation . ' * @var bool',
 				$indentation . ' */',
-				$indentation . 'protected $' . $part . 'Enabled = ' . (empty($result[$part . 'Exists']) ? 'false' : 'true') . ';',
+				$indentation . 'protected $' . $part . 'Enabled = ' . (!empty($result[$part . 'Exists']) ? 'true' : 'false') . ';',
 			];
 			if (trim($pieces[$pos + 1]) !== '{') {
 				array_unshift($add, '');
