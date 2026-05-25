@@ -33,7 +33,7 @@ class TestHelperController extends TestHelperAppController {
 				$this->Flash->error($e->getMessage());
 			}
 
-			$this->set(['params' => $params]);
+			$this->set(compact('params'));
 		}
 
 		$plugins = Plugin::loaded();

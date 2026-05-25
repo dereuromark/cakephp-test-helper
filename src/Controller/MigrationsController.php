@@ -228,7 +228,7 @@ class MigrationsController extends TestHelperAppController {
 			$this->Flash->error('Something went wrong');
 		}
 
-		$this->set(['files' => $files]);
+		$this->set(compact('files'));
 	}
 
 	/**
@@ -262,7 +262,7 @@ class MigrationsController extends TestHelperAppController {
 			$this->Flash->error('Something went wrong');
 		}
 
-		$this->set(['seeds' => $seeds]);
+		$this->set(compact('seeds'));
 	}
 
 	/**

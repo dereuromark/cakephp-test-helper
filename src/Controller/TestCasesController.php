@@ -289,7 +289,7 @@ class TestCasesController extends TestHelperAppController {
 			$this->set($response);
 			$this->viewBuilder()->setOptions(['serialize' => array_keys($response)]);
 		} else {
-			$this->set(['result' => $result]);
+			$this->set(compact('result'));
 		}
 	}
 
@@ -338,7 +338,7 @@ class TestCasesController extends TestHelperAppController {
 			$this->set($response);
 			$this->viewBuilder()->setOptions(['serialize' => array_keys($response)]);
 		} else {
-			$this->set(['result' => $result]);
+			$this->set(compact('result'));
 		}
 	}
 
