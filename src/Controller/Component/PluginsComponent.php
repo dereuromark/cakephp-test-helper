@@ -160,7 +160,7 @@ class PluginsComponent extends Component {
 
 		$fileContent = file_get_contents($configPath . 'routes.php');
 
-		return $fileContent && trim($fileContent) !== '<?php';
+		return $fileContent !== false && trim($fileContent) !== '<?php';
 	}
 
 	/**
