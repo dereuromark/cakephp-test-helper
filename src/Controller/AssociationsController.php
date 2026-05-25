@@ -40,7 +40,7 @@ class AssociationsController extends TestHelperAppController {
 		$matrix = $this->buildMatrix($tables, $findings);
 		$totals = $this->totals($findings);
 
-		$this->set(['tables' => $tables, 'findings' => $findings, 'matrix' => $matrix, 'totals' => $totals, 'includeVendor' => $includeVendor]);
+		$this->set(compact('tables', 'findings', 'matrix', 'totals', 'includeVendor'));
 		$this->set('columns', $this->columns);
 	}
 
@@ -95,7 +95,7 @@ class AssociationsController extends TestHelperAppController {
 		$grouped = $this->groupByDirection($findings);
 		$groupOrder = $this->orderedGroupDirections($grouped);
 
-		$this->set(['model' => $model, 'findings' => $findings, 'grouped' => $grouped, 'groupOrder' => $groupOrder, 'includeVendor' => $includeVendor]);
+		$this->set(compact('model', 'findings', 'grouped', 'groupOrder', 'includeVendor'));
 	}
 
 	/**
@@ -111,7 +111,7 @@ class AssociationsController extends TestHelperAppController {
 		$findings = $auditor->sortFindings($auditor->audit($tables));
 		$totals = $this->totals($findings);
 
-		$this->set(['findings' => $findings, 'totals' => $totals, 'includeVendor' => $includeVendor]);
+		$this->set(compact('findings', 'totals', 'includeVendor'));
 	}
 
 	/**

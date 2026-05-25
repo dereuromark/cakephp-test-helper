@@ -65,7 +65,7 @@ class TestCasesController extends TestHelperAppController {
 		}
 
 		$namespace = $appOrPlugin ?: 'app';
-		$this->set(['items' => $items, 'path' => $path, 'breadcrumb' => $breadcrumb, 'namespace' => $namespace, 'plugin' => $plugin]);
+		$this->set(compact('items', 'path', 'breadcrumb', 'namespace', 'plugin'));
 	}
 
 	/**
@@ -114,7 +114,7 @@ class TestCasesController extends TestHelperAppController {
 		$namespace = $appOrPlugin ?: 'app';
 		$className = basename($file, '.php');
 
-		$this->set(['methods' => $methods, 'file' => $file, 'testPath' => $testPath, 'breadcrumb' => $breadcrumb, 'namespace' => $namespace, 'plugin' => $plugin, 'className' => $className]);
+		$this->set(compact('methods', 'file', 'testPath', 'breadcrumb', 'namespace', 'plugin', 'className'));
 
 		return null;
 	}
@@ -487,7 +487,7 @@ class TestCasesController extends TestHelperAppController {
 			];
 		}
 
-		$this->set(['files' => $files, 'type' => $type]);
+		$this->set(compact('files', 'type'));
 
 		return $this->render('handle');
 	}

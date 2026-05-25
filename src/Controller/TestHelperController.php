@@ -47,7 +47,7 @@ class TestHelperController extends TestHelperAppController {
 
 		$testTypes = $this->getTestTypes($namespace);
 
-		$this->set(['plugins' => $plugins, 'namespace' => $namespace, 'testTypes' => $testTypes]);
+		$this->set(compact('plugins', 'namespace', 'testTypes'));
 	}
 
 	/**

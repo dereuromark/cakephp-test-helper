@@ -50,7 +50,7 @@ class MigrationsController extends TestHelperAppController {
 
 		$tmpDatabase = $database . '_tmp';
 
-		$this->set(['database' => $database, 'tmpDatabase' => $tmpDatabase]);
+		$this->set(compact('database', 'tmpDatabase'));
 	}
 
 	/**
@@ -147,7 +147,7 @@ class MigrationsController extends TestHelperAppController {
 		$plugins = $this->Migrations->getPluginsWithMigrations();
 		$allTables = $this->Migrations->getApplicationTables();
 
-		$this->set(['files' => $files, 'plugins' => $plugins, 'allTables' => $allTables]);
+		$this->set(compact('files', 'plugins', 'allTables'));
 	}
 
 	/**
@@ -337,7 +337,7 @@ class MigrationsController extends TestHelperAppController {
 		$differ = new Differ(new DiffOnlyOutputBuilder());
 		$diffArray = $differ->diffToArray($contentBefore, $contentAfter);
 
-		$this->set(['contentBefore' => $contentBefore, 'contentAfter' => $contentAfter, 'diffArray' => $diffArray]);
+		$this->set(compact('contentBefore', 'contentAfter', 'diffArray'));
 	}
 
 	/**
@@ -522,7 +522,7 @@ class MigrationsController extends TestHelperAppController {
 			return $this->exportDrift($format, $drift, $connectionName, $database, $shadowDatabase, $hasDrift, $error);
 		}
 
-		$this->set(['availableConnections' => $availableConnections, 'connectionName' => $connectionName, 'database' => $database, 'shadowDatabase' => $shadowDatabase, 'migrationsToRun' => $migrationsToRun, 'migrationsFromConfig' => $migrationsFromConfig, 'drift' => $drift, 'hasDrift' => $hasDrift, 'error' => $error, 'isMysql' => $isMysql, 'isPostgres' => $isPostgres]);
+		$this->set(compact('availableConnections', 'connectionName', 'database', 'shadowDatabase', 'migrationsToRun', 'migrationsFromConfig', 'drift', 'hasDrift', 'error', 'isMysql', 'isPostgres'));
 	}
 
 	/**
