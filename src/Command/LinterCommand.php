@@ -220,11 +220,9 @@ class LinterCommand extends Command {
 				$io->success('  ✓ No issues found');
 			} else {
 				$message = "  ✗ Found {$issues} issue(s)";
-				if ($task->supportsAutoFix()) {
-					if (!$fix) {
-						$message .= ' (auto-fixable with --fix)';
-						$autoFixableIssues += $issues;
-					}
+				if ($task->supportsAutoFix() && !$fix) {
+					$message .= ' (auto-fixable with --fix)';
+					$autoFixableIssues += $issues;
 				}
 				$io->warning($message);
 			}
@@ -298,11 +296,8 @@ class LinterCommand extends Command {
 
 			// Match by class name (without namespace)
 			$shortName = (new ReflectionClass($task))->getShortName();
-			if ($shortName === $filter) {
-				return true;
-			}
 
-			return false;
+			return $shortName === $filter;
 		});
 	}
 
@@ -322,13 +317,11 @@ class LinterCommand extends Command {
 			if (is_int($key)) {
 				// Simple list: ['Task1', 'Task2']
 				$tasks[$task] = $task;
-			} else {
+			} elseif ($task === false) {
 				// Associative: ['Task1' => 'Task1', 'Task2' => false]
-				if ($task === false) {
-					unset($tasks[$key]);
-				} else {
-					$tasks[$key] = $task;
-				}
+				unset($tasks[$key]);
+			} else {
+				$tasks[$key] = $task;
 			}
 		}
 

@@ -89,7 +89,7 @@ class MigrationsController extends TestHelperAppController {
 			return $this->redirect([]);
 		}
 
-		$this->set((compact('database', 'tmpDatabase', 'dbConfig')));
+		$this->set((['database' => $database, 'tmpDatabase' => $tmpDatabase, 'dbConfig' => $dbConfig]));
 	}
 
 	/**
@@ -522,19 +522,7 @@ class MigrationsController extends TestHelperAppController {
 			return $this->exportDrift($format, $drift, $connectionName, $database, $shadowDatabase, $hasDrift, $error);
 		}
 
-		$this->set(compact(
-			'availableConnections',
-			'connectionName',
-			'database',
-			'shadowDatabase',
-			'migrationsToRun',
-			'migrationsFromConfig',
-			'drift',
-			'hasDrift',
-			'error',
-			'isMysql',
-			'isPostgres',
-		));
+		$this->set(compact('availableConnections', 'connectionName', 'database', 'shadowDatabase', 'migrationsToRun', 'migrationsFromConfig', 'drift', 'hasDrift', 'error', 'isMysql', 'isPostgres'));
 	}
 
 	/**
@@ -693,7 +681,7 @@ class MigrationsController extends TestHelperAppController {
 				$lines[] = '### Index Differences';
 				$lines[] = '';
 				foreach ($drift['index_diffs'] as $diff) {
-					$type = strtoupper($diff['type']);
+					$type = strtoupper((string)$diff['type']);
 					$table = $diff['table'];
 					$index = $diff['index'];
 					$lines[] = sprintf('- **%s** `%s.%s`', $type, $table, $index);
@@ -706,7 +694,7 @@ class MigrationsController extends TestHelperAppController {
 				$lines[] = '### Constraint Differences';
 				$lines[] = '';
 				foreach ($drift['constraint_diffs'] as $diff) {
-					$type = strtoupper($diff['type']);
+					$type = strtoupper((string)$diff['type']);
 					$table = $diff['table'];
 					$constraint = $diff['constraint'];
 					$lines[] = sprintf('- **%s** `%s.%s`', $type, $table, $constraint);

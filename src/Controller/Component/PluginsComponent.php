@@ -110,7 +110,7 @@ class PluginsComponent extends Component {
 			preg_match('#protected \$' . $part . 'Enabled\s*=\s*(\w+);#', $pluginContent, $matches);
 			$enabled = null;
 			if ($matches) {
-				$enabled = trim($matches[1]) === 'false' ? false : true;
+				$enabled = trim($matches[1]) !== 'false';
 			}
 
 			$result[$part . 'Enabled'] = $enabled;
@@ -160,11 +160,13 @@ class PluginsComponent extends Component {
 
 		$fileContent = file_get_contents($configPath . 'routes.php');
 
-		if ($fileContent && trim($fileContent) !== '<?php') {
-			return true;
+		if ($fileContent === false) {
+			return false;
 		}
 
-		return false;
+		$fileContent = trim($fileContent);
+
+		return $fileContent !== '' && $fileContent !== '<?php';
 	}
 
 	/**
@@ -285,11 +287,11 @@ TXT;
 		$indentation = '    ';
 
 		foreach ($pieces as $piece) {
-			if (!$piece || !preg_match('/^(\s+)/', $piece, $matches)) {
+			if (!$piece || !preg_match('/^(\s+)/', (string)$piece, $matches)) {
 				continue;
 			}
 
-			if (substr($matches[1], 0, 1) !== "\t") {
+			if (!str_starts_with($matches[1], "\t")) {
 				continue;
 			}
 

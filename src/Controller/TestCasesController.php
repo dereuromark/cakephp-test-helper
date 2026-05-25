@@ -228,7 +228,7 @@ class TestCasesController extends TestHelperAppController {
 					];
 				}
 			}
-		} catch (Throwable $e) {
+		} catch (Throwable) {
 			// If reflection fails, fall back to regex
 			return $this->extractTestMethodsViaRegex($content);
 		}

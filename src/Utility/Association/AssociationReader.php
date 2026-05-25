@@ -52,7 +52,7 @@ class AssociationReader {
 				}
 
 				$key = $this->normalize($association, $foreignKey);
-				if ($key === null) {
+				if (!$key instanceof ForeignKey) {
 					$unsupported[] = $this->unsupported($table, $association, 'has composite key columns that do not line up (not auto-verified).');
 
 					continue;
@@ -87,7 +87,7 @@ class AssociationReader {
 						$claimed[] = $connection . '|' . $physicalTable . '|' . $column;
 					}
 				}
-			} catch (Throwable $e) {
+			} catch (Throwable) {
 				// Non-introspectable association: nothing to claim.
 			}
 		}
@@ -222,7 +222,7 @@ class AssociationReader {
 		$target = null;
 		try {
 			$target = $association->getTarget()->getAlias();
-		} catch (Throwable $e) {
+		} catch (Throwable) {
 			// Leave target unresolved.
 		}
 

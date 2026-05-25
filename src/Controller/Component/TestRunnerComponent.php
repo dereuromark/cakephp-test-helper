@@ -31,14 +31,12 @@ class TestRunnerComponent extends Component {
 		chdir(ROOT);
 		exec($command, $output, $res);
 
-		$result = [
+		return [
 			'command' => $command,
 			'content' => $output,
 			'output' => '<h2>Result</h2>' . implode('<br>', $output),
 			'code' => $res,
 		];
-
-		return $result;
 	}
 
 	/**
@@ -79,7 +77,7 @@ HTML;
 			$output = '<i>Coverage file could not be created, coverage driver issues?</i>';
 		}
 
-		$result = [
+		return [
 			'command' => $command,
 			'file' => $file,
 			'url' => $url,
@@ -87,8 +85,6 @@ HTML;
 			'content' => $fileExists ? file_get_contents($testFile) : null,
 			'output' => '<h2>Coverage-Result</h2>' . $output,
 		];
-
-		return $result;
 	}
 
 	/**

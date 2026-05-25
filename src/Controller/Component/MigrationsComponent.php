@@ -49,7 +49,7 @@ class MigrationsComponent extends Component {
 		];
 		$env = ['MYSQL_PWD' => $password] + $_ENV + $_SERVER;
 		// Restrict to scalar values for proc_open env.
-		$env = array_filter($env, fn ($v): bool => is_scalar($v));
+		$env = array_filter($env, is_scalar(...));
 
 		$process = proc_open($command, $descriptors, $pipes, null, $env);
 		if (!is_resource($process)) {
@@ -136,11 +136,7 @@ class MigrationsComponent extends Component {
 		}
 
 		// Ignore plugin phinxlog tables (e.g., blog_phinxlog, users_phinxlog)
-		if (str_ends_with($tableName, '_phinxlog')) {
-			return true;
-		}
-
-		return false;
+		return str_ends_with($tableName, '_phinxlog');
 	}
 
 	/**

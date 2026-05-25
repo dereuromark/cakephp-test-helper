@@ -183,7 +183,7 @@ class SchemaIntrospectorTest extends TestCase {
 			foreach ($schema->dropSql($this->connection) as $sql) {
 				try {
 					$this->connection->execute($sql);
-				} catch (Throwable $e) {
+				} catch (Throwable) {
 					// Table may not exist yet; ignore.
 				}
 			}

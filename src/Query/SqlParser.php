@@ -224,14 +224,10 @@ class SqlParser {
 			} else {
 				$cleanField = trim($part, '`"\'');
 				$fieldType = $this->detectFieldType($part);
-				if ($fieldType !== 'column') {
-					$fields[] = [
-						'field' => $cleanField,
-						'type' => $fieldType,
-					];
-				} else {
-					$fields[] = $cleanField;
-				}
+				$fields[] = $fieldType !== 'column' ? [
+					'field' => $cleanField,
+					'type' => $fieldType,
+				] : $cleanField;
 			}
 		}
 
@@ -526,10 +522,8 @@ class SqlParser {
 			$valuesStr = $matches[1];
 			// Extract all parenthesized value sets
 			preg_match_all('/\(([^)]+)\)/i', $valuesStr, $valueSets);
-			if (!empty($valueSets[1])) {
-				foreach ($valueSets[1] as $valueSet) {
-					$result['values'][] = $this->splitByComma($valueSet);
-				}
+			foreach ($valueSets[1] as $valueSet) {
+				$result['values'][] = $this->splitByComma($valueSet);
 			}
 		}
 

@@ -123,7 +123,7 @@ class JoinTableResolver {
 			}
 
 			return $junction->getAssociation($targetAlias)->getBindingKey();
-		} catch (Throwable $e) {
+		} catch (Throwable) {
 			return null;
 		}
 	}

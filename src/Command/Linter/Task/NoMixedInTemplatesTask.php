@@ -52,20 +52,18 @@ class NoMixedInTemplatesTask extends AbstractLinterTask {
 			$matches = [];
 			preg_match_all('/^\s*\*?\s*@var\s+mixed\s+(\$\w+)/m', $content, $matches, PREG_OFFSET_CAPTURE);
 
-			if (!empty($matches[0])) {
-				foreach ($matches[0] as $index => $match) {
-					$line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
-					$varName = $matches[1][$index][0];
-					$this->outputIssue(
-						$io,
-						$file,
-						$line,
-						"Template variable {$varName} must have a specific type annotation, not 'mixed'",
-						trim($match[0]),
-						$verbose,
-					);
-					$issues++;
-				}
+			foreach ($matches[0] as $index => $match) {
+				$line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
+				$varName = $matches[1][$index][0];
+				$this->outputIssue(
+					$io,
+					$file,
+					$line,
+					"Template variable {$varName} must have a specific type annotation, not 'mixed'",
+					trim($match[0]),
+					$verbose,
+				);
+				$issues++;
 			}
 		}
 

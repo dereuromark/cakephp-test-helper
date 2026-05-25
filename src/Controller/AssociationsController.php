@@ -72,7 +72,7 @@ class AssociationsController extends TestHelperAppController {
 	 * @return void
 	 */
 	public function view(?string $model = null): void {
-		$model = $model ?? (string)$this->request->getQuery('model');
+		$model ??= (string)$this->request->getQuery('model');
 
 		// Audit the full in-scope set (not just $model) and filter to this table. CakePHP
 		// injects associations onto a table when *another* table is loaded — e.g. a
