@@ -522,8 +522,8 @@ class SqlParser {
 			$valuesStr = $matches[1];
 			// Extract all parenthesized value sets
 			preg_match_all('/\(([^)]+)\)/i', $valuesStr, $valueSets);
-			foreach ($valueSets[1] as $valueSet) {
-					$result['values'][] = $this->splitByComma($valueSet);
+			foreach ($valueSets[1] ?? [] as $valueSet) {
+				$result['values'][] = $this->splitByComma($valueSet);
 			}
 		}
 
@@ -671,7 +671,7 @@ class SqlParser {
 		for ($i = 0; $i < $length; $i++) {
 			$char = $str[$i];
 
-			if ((in_array($char, ['"', "'", '`'], true)) && ($i === 0 || $str[$i - 1] !== '\\')) {
+			if (($char === '"' || $char === "'" || $char === '`') && ($i === 0 || $str[$i - 1] !== '\\')) {
 				if (!$inQuote) {
 					$inQuote = true;
 					$quoteChar = $char;

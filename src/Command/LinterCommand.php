@@ -321,7 +321,7 @@ class LinterCommand extends Command {
 				// Associative: ['Task1' => 'Task1', 'Task2' => false]
 				unset($tasks[$key]);
 			} else {
-					$tasks[$key] = $task;
+				$tasks[$key] = $task;
 			}
 		}
 
