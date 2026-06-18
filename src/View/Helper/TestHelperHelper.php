@@ -160,7 +160,7 @@ class TestHelperHelper extends Helper {
 				$params[$element] = null;
 			}
 
-			if (isset($params[$element]) || $always || $always === false && $verbose) {
+			if (isset($params[$element]) || $always || $always === false) {
 				$output[] = "'" . $element . "' => " . $this->export($params[$element]);
 			}
 		}
