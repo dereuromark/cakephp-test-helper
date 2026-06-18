@@ -449,6 +449,7 @@ class MigrationsController extends TestHelperAppController {
 
 				if ($existingTables) {
 					$testDriver = $testConnection->getDriver();
+					// @phpstan-ignore if.alwaysTrue (cake config driver PHPDoc lets phpstan constant-fold str_contains; both branches live at runtime)
 					if ($isMysql) {
 						$testConnection->execute('SET FOREIGN_KEY_CHECKS = 0')->closeCursor();
 						foreach ($existingTables as $table) {
