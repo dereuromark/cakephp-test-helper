@@ -6,7 +6,6 @@ use App\Controller\AppController;
 use Cake\Core\App;
 use Cake\Core\Plugin;
 use Cake\Event\EventInterface;
-use Cake\Filesystem\Folder;
 use RuntimeException;
 use TestHelper\Utility\ClassResolver;
 
@@ -26,10 +25,8 @@ class TestCasesController extends AppController {
 		$this->loadComponent('TestHelper.TestRunner');
 		$this->loadComponent('TestHelper.TestGenerator');
 
-		$this->viewBuilder()->setHelpers([
-			'TestHelper.TestHelper',
-			'Tools.Format',
-		]);
+		$this->viewBuilder()->addHelper('TestHelper.TestHelper');
+		$this->viewBuilder()->addHelper('Tools.Format');
 	}
 
 	/**
@@ -57,7 +54,7 @@ class TestCasesController extends AppController {
 		$result = $this->TestRunner->run($file);
 
 		$this->set(compact('result'));
-		$this->set('_serialize', 'result');
+		$this->viewBuilder()->setOption('serialize', 'result');
 	}
 
 	/**
@@ -77,7 +74,7 @@ class TestCasesController extends AppController {
 		$result = $this->TestRunner->coverage($file, $name, $type, (bool)$force);
 
 		$this->set(compact('result'));
-		$this->set('_serialize', 'result');
+		$this->viewBuilder()->setOption('serialize', 'result');
 	}
 
 	/**
@@ -168,7 +165,7 @@ class TestCasesController extends AppController {
 		$appOrPlugin = $this->request->getQuery('namespace');
 		$plugin = $appOrPlugin !== 'app' ? $appOrPlugin : null;
 		$classType = ClassResolver::type($type);
-		$paths = App::path($classType, $plugin);
+		$paths = App::classPath($classType, $plugin);
 		$files = $this->TestGenerator->getFiles($paths);
 
 		if ($this->request->is('post')) {
@@ -249,22 +246,8 @@ class TestCasesController extends AppController {
 	 */
 	protected function getFiles(array $folders) {
 		$names = [];
-		foreach ($folders as $folder) {
-			$folderContent = (new Folder($folder))->read(Folder::SORT_NAME, true);
-
-			foreach ($folderContent[1] as $file) {
-				$name = pathinfo($file, PATHINFO_FILENAME);
-				$names[] = $name;
-			}
-
-			foreach ($folderContent[0] as $subFolder) {
-				$folderContent = (new Folder($folder . $subFolder))->read(Folder::SORT_NAME, true);
-
-				foreach ($folderContent[1] as $file) {
-					$name = pathinfo($file, PATHINFO_FILENAME);
-					$names[] = $subFolder . '.' . $name;
-				}
-			}
+		foreach ($this->TestGenerator->getFiles($folders) as $name) {
+			$names[] = str_replace('/', '.', $name);
 		}
 
 		return $names;

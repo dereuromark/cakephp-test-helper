@@ -5,6 +5,7 @@ namespace TestHelper\Controller;
 use App\Controller\AppController;
 use Cake\Core\Plugin;
 use Cake\Event\EventInterface;
+use Cake\Http\ServerRequest;
 use Cake\Routing\Router;
 
 class TestHelperController extends AppController {
@@ -17,10 +18,8 @@ class TestHelperController extends AppController {
 
 		$this->loadComponent('Flash');
 
-		$this->viewBuilder()->setHelpers([
-			'TestHelper.TestHelper',
-			'Tools.Format',
-		]);
+		$this->viewBuilder()->addHelper('TestHelper.TestHelper');
+		$this->viewBuilder()->addHelper('Tools.Format');
 	}
 
 	/**
@@ -51,7 +50,7 @@ class TestHelperController extends AppController {
 				$url = str_replace($origin, '', $url);
 			}
 
-			$params = Router::getRouteCollection()->parse($url);
+			$params = Router::parseRequest(new ServerRequest(['url' => $url]));
 
 			$this->set(compact('params'));
 		}

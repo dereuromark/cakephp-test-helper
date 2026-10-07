@@ -22,10 +22,8 @@ class TestFixturesController extends AppController {
 		$this->loadComponent('TestHelper.TestGenerator');
 		$this->loadComponent('TestHelper.TestFixtures');
 
-		$this->viewBuilder()->setHelpers([
-			'TestHelper.TestHelper',
-			'Tools.Format',
-		]);
+		$this->viewBuilder()->addHelper('TestHelper.TestHelper');
+		$this->viewBuilder()->addHelper('Tools.Format');
 	}
 
 	/**

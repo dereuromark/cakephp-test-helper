@@ -43,7 +43,7 @@
 			url: url,
 			beforeSend: function(xhr) {
 				xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-				xhr.setRequestHeader('X-CSRF-Token', '<?php echo $this->request->getParam('_csrfToken'); ?>');
+				xhr.setRequestHeader('X-CSRF-Token', '<?php echo $this->request->getAttribute('csrfToken'); ?>');
 			},
 			data: {
 			},
