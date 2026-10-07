@@ -4,7 +4,6 @@ namespace TestHelper\Controller\Component;
 
 use Cake\Controller\Component;
 use Cake\Core\Plugin;
-use Cake\Filesystem\Folder;
 
 /**
  * @property \Cake\Controller\Component\FlashComponent $Flash
@@ -110,7 +109,7 @@ class TestGeneratorComponent extends Component {
 	public function getFiles(array $folders) {
 		$names = [];
 		foreach ($folders as $folder) {
-			$folderContent = (new Folder($folder))->read(Folder::SORT_NAME, true);
+			$folderContent = $this->read($folder);
 
 			foreach ($folderContent[1] as $file) {
 				$name = pathinfo($file, PATHINFO_FILENAME);
@@ -118,7 +117,7 @@ class TestGeneratorComponent extends Component {
 			}
 
 			foreach ($folderContent[0] as $subFolder) {
-				$folderContent = (new Folder($folder . $subFolder))->read(Folder::SORT_NAME, true);
+				$folderContent = $this->read($folder . $subFolder);
 
 				foreach ($folderContent[1] as $file) {
 					$name = pathinfo($file, PATHINFO_FILENAME);
@@ -128,6 +127,37 @@ class TestGeneratorComponent extends Component {
 		}
 
 		return $names;
+	}
+
+	/**
+	 * Lists the visible sub folders and files of a directory, sorted by name.
+	 *
+	 * @param string $path
+	 *
+	 * @return array<array<string>> Folders first, files second.
+	 */
+	protected function read(string $path): array {
+		$folders = [];
+		$files = [];
+		if (!is_dir($path)) {
+			return [$folders, $files];
+		}
+
+		$path = rtrim($path, DS) . DS;
+		foreach ((array)scandir($path) as $name) {
+			$name = (string)$name;
+			if ($name === '' || $name[0] === '.') {
+				continue;
+			}
+			if (is_dir($path . $name)) {
+				$folders[] = $name;
+
+				continue;
+			}
+			$files[] = $name;
+		}
+
+		return [$folders, $files];
 	}
 
 }

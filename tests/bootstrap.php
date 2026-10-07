@@ -4,7 +4,6 @@ use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
 use Cake\Datasource\ConnectionManager;
-use Cake\Filesystem\Folder;
 use TestApp\Controller\AppController;
 use TestApp\View\AppView;
 use TestHelper\Plugin as TestHelperPlugin;
@@ -51,10 +50,11 @@ Configure::write('debug', true);
 
 mb_internal_encoding('UTF-8');
 
-$Tmp = new Folder(TMP);
-$Tmp->create(TMP . 'cache/models', 0770);
-$Tmp->create(TMP . 'cache/persistent', 0770);
-$Tmp->create(TMP . 'cache/views', 0770);
+foreach (['cache/models', 'cache/persistent', 'cache/views'] as $dir) {
+	if (!is_dir(TMP . $dir)) {
+		mkdir(TMP . $dir, 0770, true);
+	}
+}
 
 $cache = [
 	'default' => [

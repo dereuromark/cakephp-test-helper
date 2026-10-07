@@ -19,9 +19,7 @@ class PluginsController extends AppController {
 
 		$this->loadComponent('TestHelper.Plugins');
 
-		$this->viewBuilder()->setHelpers([
-			'Tools.Format',
-		]);
+		$this->viewBuilder()->addHelper('Tools.Format');
 	}
 
 	/**

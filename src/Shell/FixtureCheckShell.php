@@ -9,7 +9,6 @@ use Cake\Core\Exception\CakeException;
 use Cake\Core\Plugin;
 use Cake\Datasource\ConnectionManager;
 use Cake\Error\Debugger;
-use Cake\Filesystem\Folder;
 use Cake\ORM\Table;
 
 if (!defined('TESTS')) {
@@ -435,12 +434,9 @@ class FixtureCheckShell extends Shell {
 			$fixtureFolder = Plugin::path($plugin) . 'tests' . DS . 'Fixture' . DS;
 		}
 
-		$folder = new Folder($fixtureFolder);
-		$content = $folder->read();
-
 		$fixtures = [];
-		foreach ($content[1] as $file) {
-			$fixture = substr($file, 0, -4);
+		foreach ((array)glob($fixtureFolder . '*.php') as $file) {
+			$fixture = basename((string)$file, '.php');
 			if (substr($fixture, -7) !== 'Fixture') {
 				continue;
 			}
