@@ -309,7 +309,7 @@ class QueryBuilderGenerator {
 		$code .= '}';
 
 		$code .= "\n\n// Alternative: Insert query\n";
-		$code .= "\$query = \$this->query();\n";
+		$code .= "\$query = \$this->insertQuery();\n";
 		$code .= "\$query->insert(['" . implode("', '", $parsed['fields']) . "'])\n";
 		$code .= "    ->values([\n";
 
@@ -351,7 +351,7 @@ class QueryBuilderGenerator {
 		$code .= "}\n\n";
 
 		$code .= "// Option 2: Bulk insert query\n";
-		$code .= "\$query = \$this->query();\n";
+		$code .= "\$query = \$this->insertQuery();\n";
 		$code .= "\$query->insert(['" . implode("', '", $parsed['fields']) . "']);\n\n";
 
 		foreach ($parsed['values'] as $valueSet) {
@@ -392,9 +392,9 @@ class QueryBuilderGenerator {
 		$code .= "}\n\n";
 
 		$code .= "// Option 2: Update query (bulk update)\n";
-		$code .= "\$query = \$this->query();\n";
-		$code .= "\$query->update()\n";
-		$code .= "    ->set([\n";
+		$code .= "\$query = \$this->updateQuery();\n";
+		$code .= '$query';
+		$code .= "->set([\n";
 
 		foreach ($parsed['set'] as $field => $value) {
 			$code .= "        '" . $field . "' => " . $this->formatSetValue($value) . ",\n";
@@ -469,8 +469,8 @@ class QueryBuilderGenerator {
 		$code .= "}\n\n";
 
 		$code .= "// Option 2: Delete query (bulk delete)\n";
-		$code .= "\$query = \$this->query();\n";
-		$code .= '$query->delete()';
+		$code .= "\$query = \$this->deleteQuery();\n";
+		$code .= '$query';
 
 		if (!empty($parsed['where'])) {
 			$code .= "\n    ->where([";
@@ -1386,7 +1386,7 @@ class QueryBuilderGenerator {
 			'NOW' => '$query->func()->now()',
 			'CURDATE' => '$query->func()->curdate()',
 			'CURTIME' => '$query->func()->curtime()',
-			default => "'$funcName()' // TODO: Use FrozenTime helper",
+			default => "'$funcName()' // TODO: Use Cake\\I18n\\DateTime",
 		};
 	}
 

@@ -4,18 +4,18 @@ description: Run project-specific code-quality checks in CakePHP via bin/cake li
 
 # Cake Linter Tasks
 
-The TestHelper plugin provides a flexible linter system for running project-specific code quality checks. Unlike general-purpose tools (phpcs, phpstan, rector), these linters are designed for quick validation of project-specific conventions that don't fit into standard static analysis tools.
+TestHelper provides CLI checks for project conventions, including URL formats, template annotations, and current CakePHP APIs. Configure the tasks your application needs.
 
 ::: tip
 Run all configured tasks with `bin/cake linter`. Each task is a small, focused check you
-can enable, configure, or write yourself — see [Creating a custom task](#creating-custom-tasks).
+can enable, configure, or write yourself, see [Creating a custom task](#creating-custom-tasks).
 :::
 
 ![linter](img/linter_output.png)
 
 ## Why Linter Tasks?
 
-* **Cake rules**: Enforce CakePHP conventions and best practices (plugin based tasks)
+* **Cake rules**: Check CakePHP conventions (plugin based tasks)
 * **Project-specific rules**: Enforce conventions unique to your codebase (extension level)
 * **Fast execution**: Simple checks that run in seconds
 * **Easy to extend**: Create custom tasks without complex tool configuration
@@ -292,7 +292,7 @@ Checks for incorrect generic Query imports which should use specific query types
 **Example violations:**
 ```php
 use Cake\Database\Query;
-use Cake\ORM\Query;
+// Or: use Cake\ORM\Query;
 ```
 
 **Should be:**
@@ -313,14 +313,18 @@ Flags deprecated `AbstractMigration` and `AbstractSeed` usage, recommending `Bas
 ```php
 use Migrations\AbstractMigration;
 
-class CreateUsersTable extends AbstractMigration
+class CreateUsersTable extends AbstractMigration {
+    // Migration methods go here.
+}
 ```
 
 **Should be:**
 ```php
 use Migrations\BaseMigration;
 
-class CreateUsersTable extends BaseMigration
+class CreateUsersTable extends BaseMigration {
+    // Migration methods go here.
+}
 ```
 
 Note: Not auto-fixed here, if found, use [upgrade tool](https://github.com/cakephp/upgrade) to auto-fix.

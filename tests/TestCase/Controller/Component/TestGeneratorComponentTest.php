@@ -7,6 +7,7 @@ use Cake\Controller\Controller;
 use Cake\Core\Configure;
 use Cake\Http\ServerRequest;
 use Cake\TestSuite\TestCase;
+use InvalidArgumentException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
@@ -131,6 +132,32 @@ class TestGeneratorComponentTest extends TestCase {
 		$result = $this->invokeMethod($this->component, 'getPhpBinary');
 
 		$this->assertSame('/usr/bin/php8.1', $result);
+	}
+
+	public function testGenerateQuotesNamesAndSeparatesOptions(): void {
+		$component = $this->getMockBuilder(TestGeneratorComponent::class)
+			->setConstructorArgs([new ComponentRegistry(new Controller(new ServerRequest()))])
+			->onlyMethods(['executeCommand'])->getMock();
+		$component->expects($this->once())->method('executeCommand')
+			->with($this->callback(function (string $command): bool {
+				$this->assertStringContainsString('cd ' . escapeshellarg(ROOT), $command);
+				$this->assertStringContainsString('test ' . escapeshellarg('Controller') . ' ' . escapeshellarg('Users ; literal') . ' -q', $command);
+				$this->assertStringContainsString(' --connection ' . escapeshellarg('test connection') . ' --force', $command);
+				$this->assertStringNotContainsString('--skip', $command);
+
+				return true;
+			}))->willReturn([['Generated'], 0]);
+		$this->assertTrue($component->generate('Users ; literalController', 'Controller', null, ['connection' => 'test connection', 'force' => true, 'skip' => false]));
+	}
+
+	public function testGenerateFixtureRejectsInvalidOptionName(): void {
+		$this->expectException(InvalidArgumentException::class);
+		$this->component->generateFixture('Posts', null, ['bad;option' => 'value']);
+	}
+
+	public function testGetFilesWithoutTrailingSeparator(): void {
+		$this->createTempStructure(['Admin/PostsController.php']);
+		$this->assertSame(['Admin/PostsController'], $this->component->getFiles([rtrim($this->tempDir, DS)]));
 	}
 
 	/**

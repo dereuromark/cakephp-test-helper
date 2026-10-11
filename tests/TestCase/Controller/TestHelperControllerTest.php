@@ -22,6 +22,14 @@ class TestHelperControllerTest extends TestCase {
 		$this->assertResponseCode(200);
 	}
 
+	public function testBeginnerReverseLookup(): void {
+		$this->post('/test-helper', ['url' => '/test-helper', 'verbose' => true]);
+		$this->assertResponseCode(200);
+		$this->assertResponseContains("'plugin' => 'TestHelper'");
+		$this->assertResponseContains("'controller' => 'TestHelper'");
+		$this->assertResponseContains("'action' => 'index'");
+	}
+
 	/**
 	 * Without the config, no admin back link is rendered in the layout.
 	 *

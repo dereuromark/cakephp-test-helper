@@ -4,8 +4,8 @@ description: Compare your CakePHP fixtures against the live database schema and 
 
 # Fixture Check
 
-Compare your fixture files against the live database schema — fields and attributes,
-constraints and indexes — and get the `bake` commands needed to update any that have
+Compare your fixture files against the live database schema, fields and attributes,
+constraints and indexes, and get the `bake` commands needed to update any that have
 drifted.
 
 ::: warning Deprecated

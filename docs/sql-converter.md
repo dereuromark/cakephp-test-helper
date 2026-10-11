@@ -4,7 +4,7 @@ description: Convert raw SQL (SELECT/INSERT/UPDATE/DELETE, joins, subqueries, CT
 
 # SQL to Query Builder Converter
 
-Convert raw SQL queries to clean, production-ready CakePHP Query Builder code with just a few clicks!
+Convert supported SQL statements into a starting point for CakePHP Query Builder code. Review the result before using it in an application; complex expressions and database-specific behavior can require manual changes.
 
 ## Quick Start
 
@@ -38,7 +38,7 @@ $query = $articles->find()
 
 ### Supported Query Types
 
-* **SELECT** - Full support with all clauses
+* **SELECT** - Supported clauses include selection, joins, conditions, ordering, grouping, and limits
 * **INSERT** - Single and bulk (multiple rows)
 * **UPDATE** - Single and multi-table with JOINs
 * **DELETE** - With complex WHERE conditions
@@ -55,10 +55,10 @@ $query = $articles->find()
 * `REPLACE()` → Guidance provided
 
 #### Date Functions
-* `NOW()`, `CURDATE()`, `CURTIME()` → `$query->func()->now()`
+* `NOW()`, `CURDATE()`, `CURTIME()` → `now()`, `curdate()`, `curtime()` respectively
 * `YEAR()`, `MONTH()`, `DAY()` → `$query->func()->year()` etc.
 * `DATEDIFF()` → `$query->func()->dateDiff([])`
-* `DATE_FORMAT()` → Guidance for FrozenTime
+* `DATE_FORMAT()` → Guidance for `Cake\I18n\DateTime`
 * `DATE_ADD()`, `DATE_SUB()` → Guidance provided
 
 #### Aggregate Functions
@@ -81,12 +81,12 @@ END AS status_label
 
 **Generated:**
 ```php
-'status_label' => $query->newExpr()->case()
+$query->select(['status_label' => $query->newExpr()->case()
     ->when(['status' => 1])
     ->then('Active')
     ->when(['status' => 2])
     ->then('Pending')
-    ->else('Inactive')
+    ->else('Inactive')]);
 ```
 
 #### Subqueries ✅
@@ -137,7 +137,7 @@ LEFT JOIN posts AS p ON p.user_id = u.id AND p.status = 'published'
 
 Generates:
 ```php
-->leftJoin(['p' => 'posts'], 'p.user_id = u.id AND p.status = \'published\'')
+$query->leftJoin(['p' => 'posts'], 'p.user_id = u.id AND p.status = \'published\'');
 ```
 
 ### Multi-table UPDATE
@@ -155,8 +155,8 @@ WHERE u.id = 5
 **Generated:**
 ```php
 $this->getConnection()->transactional(function () {
-    $this->UsersTable->updateAll([...], [...]);
-    $this->ProfilesTable->updateAll([...], [...]);
+    $this->UsersTable->updateAll($userChanges, $userConditions);
+    $this->ProfilesTable->updateAll($profileChanges, $profileConditions);
 });
 ```
 
@@ -209,11 +209,11 @@ Each example includes:
 
 1. Find raw SQL queries in your legacy application
 2. Convert them one-by-one using the tool
-3. Review generated code for best practices
+3. Review generated conditions, bindings, and query types
 4. Test in your application
 5. Refactor further as needed
 
-## Tips & Best Practices
+## Reviewing generated code
 
 ### When to Use Generated Code
 
@@ -235,7 +235,7 @@ The generator suggests association alternatives when appropriate:
 
 ```php
 // Manual join (generated)
-->leftJoin(['Posts' => 'posts'], 'posts.user_id = users.id')
+$query->leftJoin(['Posts' => 'posts'], 'posts.user_id = users.id');
 
 // TIP: If you have a Posts association, consider using:
 // ->contain(['Posts']) or ->leftJoinWith('Posts')
@@ -253,7 +253,7 @@ FROM authors AS Authors
 
 **Generated (simplified):**
 ```php
-->select(['Authors.id', 'Authors.name'])
+$query->select(['Authors.id', 'Authors.name']);
 // TIP: ORM-style aliases detected. Consider using:
 // ->contain() or ->leftJoinWith() for automatic aliasing
 ```
@@ -263,7 +263,8 @@ FROM authors AS Authors
 ### Database-Specific Features
 
 * **Focus**: MySQL syntax
-* **Future**: PostgreSQL, SQLite support planned (Phase 5)
+* **PostgreSQL**: selected dialect-specific functions are handled; review generated code against the target driver
+* **SQLite**: no dedicated dialect setting
 
 ### Not Supported
 
@@ -405,10 +406,10 @@ SELECT COALESCE(SUM(amount), 0) AS total
 
 Generates:
 ```php
-'total' => $query->func()->coalesce([
+$query->select(['total' => $query->func()->coalesce([
     $query->func()->sum('amount'),
     0
-])
+])]);
 ```
 
 ### Multiline CASE Expressions

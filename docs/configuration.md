@@ -1,5 +1,5 @@
 ---
-description: All TestHelper configuration keys — authorization bypass, the admin back-link, test runner options, and templates.
+description: All TestHelper configuration keys, authorization bypass, the admin back-link, test runner options, and templates.
 ---
 
 # Configuration
@@ -10,7 +10,7 @@ canonical, copy-paste reference.
 ## Authorization
 
 If you use the [CakePHP Authorization plugin](https://github.com/cakephp/authorization),
-bypass its checks for the TestHelper routes:
+TestHelper skips its checks automatically while debug is enabled. To deliberately skip them outside debug, use:
 
 ```php
 Configure::write('TestHelper.ignoreAuthorization', true);
@@ -37,12 +37,12 @@ Leave `adminBackUrl` unset to hide the link (the default).
 'TestHelper' => [
     // Custom phpunit command. Both `php phpunit.phar` and `vendor/bin/phpunit` work out of the box.
     'command' => null,
-    // Set to 'xdebug' if enabled; otherwise pcov is used by default.
-    'coverage' => null,
     // Custom PHP binary path, e.g. '/usr/bin/php8.2'.
     'php' => null,
 ],
 ```
+
+PHPUnit selects the available coverage driver in the CLI process. TestHelper enables Xdebug coverage mode for that process; PCOV must be installed and enabled in CLI PHP. The legacy `coverage` key does not select or install a driver.
 
 ## Your own templates
 
@@ -53,4 +53,4 @@ template for your own at the project level, as documented in the CakePHP docs.
 
 Some tools have their own keys, documented on their pages:
 
-* [Association vs DB Audit](/associations#configuration) — `associationAudit.ignoreColumns`, `associationAudit.preferIntegerKeys`
+* [Association vs DB Audit](/associations#configuration), `associationAudit.ignoreColumns`, `associationAudit.preferIntegerKeys`

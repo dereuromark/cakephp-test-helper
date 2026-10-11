@@ -10,11 +10,11 @@ hero:
     alt: cakephp-test-helper
   actions:
     - theme: brand
-      text: Get Started
-      link: /guide
+      text: Installation
+      link: /installation
     - theme: alt
-      text: Association Audit
-      link: /associations
+      text: Getting started
+      link: /guide
     - theme: alt
       text: View on GitHub
       link: https://github.com/dereuromark/cakephp-test-helper
@@ -22,7 +22,7 @@ hero:
 features:
   - icon: 🔗
     title: Association vs DB Audit
-    details: Compares your declared associations against the real database foreign keys across five layers — constraint, key-type, cascade-rule, loose-column and index-presence — with copy-paste fixes.
+    details: Compares your declared associations against the real database foreign keys across five layers, constraint, key-type, cascade-rule, loose-column and index-presence, with copy-paste fixes.
     link: /associations
     linkText: Read the guide
   - icon: 🧰
@@ -47,7 +47,7 @@ features:
     linkText: Read the guide
   - icon: 🧩
     title: Plugin Info & Hooks
-    details: Inspect your plugins, their hooks and more — with auto-suggested improvements.
+    details: Inspect your plugins, their hooks and more, with auto-suggested improvements.
     link: /plugins
     linkText: Read the guide
 ---

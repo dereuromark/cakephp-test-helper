@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace TestHelper\Test\TestCase\Query;
 
+use Cake\Database\Connection;
+use Cake\Database\Driver\Sqlite;
+use Cake\ORM\Table;
 use Cake\TestSuite\TestCase;
 use RuntimeException;
 use TestHelper\Query\QueryBuilderGenerator;
@@ -29,6 +32,38 @@ class QueryBuilderGeneratorTest extends TestCase {
 		parent::setUp();
 		$this->generator = new QueryBuilderGenerator();
 		$this->parser = new SqlParser();
+	}
+
+	public function testGeneratedMutationAlternativesExecute(): void {
+		$connection = new Connection(['driver' => Sqlite::class, 'database' => ':memory:']);
+		$connection->execute('CREATE TABLE audit_records (id INTEGER PRIMARY KEY, title TEXT)');
+		$table = new Table(['table' => 'audit_records', 'connection' => $connection]);
+		$examples = [
+			["INSERT INTO audit_records (id, title) VALUES (1, 'first')", '// Alternative: Insert query'],
+			["INSERT INTO audit_records (id, title) VALUES (2, 'second'), (3, 'third')", '// Option 2: Bulk insert query'],
+			["UPDATE audit_records SET title = 'updated' WHERE id = 1", '// Option 2: Update query (bulk update)'],
+			['DELETE FROM audit_records WHERE id = 2', '// Option 2: Delete query (bulk delete)'],
+		];
+		try {
+			foreach ($examples as [$sql, $marker]) {
+				$parsed = $this->parser->parse($sql);
+				if ($marker === '// Alternative: Insert query') {
+					$parsed['values'] = $parsed['values'][0];
+				}
+				$code = $this->generator->generate($parsed);
+				$this->assertStringContainsString($marker, $code);
+				$alternative = substr($code, strpos($code, $marker) + strlen($marker));
+				(function () use ($alternative): void {
+					eval($alternative);
+				})->call($table);
+			}
+			$this->assertSame([
+				['id' => 1, 'title' => 'updated'],
+				['id' => 3, 'title' => 'third'],
+			], $table->find()->orderBy(['id' => 'ASC'])->disableHydration()->toArray());
+		} finally {
+			$connection->getDriver()->disconnect();
+		}
 	}
 
 	/**
@@ -221,7 +256,7 @@ class QueryBuilderGeneratorTest extends TestCase {
 		$code = $this->generator->generate($parsed);
 
 		$this->assertStringContainsString('$this->delete($entity)', $code);
-		$this->assertStringContainsString('$query->delete()', $code);
+		$this->assertStringContainsString('$this->deleteQuery()', $code);
 		$this->assertStringContainsString('->where([', $code);
 	}
 

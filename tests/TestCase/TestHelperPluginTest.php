@@ -2,6 +2,8 @@
 
 namespace TestHelper\Test\TestCase;
 
+use Cake\Core\PluginApplicationInterface;
+use Cake\Http\MiddlewareQueue;
 use Cake\TestSuite\TestCase;
 use TestHelper\TestHelperPlugin;
 
@@ -27,9 +29,7 @@ class TestHelperPluginTest extends TestCase {
 	 */
 	public function testMiddleware() {
 		$plugin = new TestHelperPlugin();
-		$middlewareQueue = $this->getMockBuilder('Cake\Http\MiddlewareQueue')
-			->disableOriginalConstructor()
-			->getMock();
+		$middlewareQueue = new MiddlewareQueue();
 
 		$result = $plugin->middleware($middlewareQueue);
 		$this->assertSame($middlewareQueue, $result);
@@ -42,7 +42,7 @@ class TestHelperPluginTest extends TestCase {
 	 */
 	public function testBootstrap() {
 		$plugin = new TestHelperPlugin();
-		$app = $this->getMockBuilder('Cake\Core\PluginApplicationInterface')->getMock();
+		$app = $this->createStub(PluginApplicationInterface::class);
 
 		// Bootstrap should do nothing since it's disabled
 		$plugin->bootstrap($app);
