@@ -45,7 +45,7 @@ $columnLabel = function (string $column): string {
 		<?php echo $this->Html->link(
 			$this->TestHelper->icon('next') . ' Flat scan',
 			['action' => 'scan', '?' => ['vendor' => $includeVendor ? 1 : null]],
-			['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-primary'],
+			['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-sm btn-outline-primary'],
 		); ?>
 		<?php if ($includeVendor) { ?>
 			<?php echo $this->Html->link('Hide vendor tables', ['action' => 'index'], ['class' => 'btn btn-sm btn-outline-secondary']); ?>

@@ -34,7 +34,7 @@ $plugins = Plugin::loaded();
 			<?php echo $this->Html->link(
 				$this->TestHelper->icon('home') . ' TestCase',
 				['action' => 'browse', '?' => ['namespace' => $namespace]],
-				['escapeTitle' => false],
+				['escape' => false, 'escapeAttributes' => true],
 			); ?>
 		</li>
 		<?php foreach ($breadcrumb as $index => $crumb) { ?>
@@ -63,7 +63,7 @@ $plugins = Plugin::loaded();
 		echo $this->Html->link(
 			$this->TestHelper->icon('back') . ' Back',
 			['action' => 'browse', '?' => array_filter(['namespace' => $namespace, 'path' => $parentPath ?: null])],
-			['escapeTitle' => false, 'class' => 'btn btn-outline-secondary btn-sm'],
+			['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-outline-secondary btn-sm'],
 		);
 		?>
 	</div>
@@ -119,12 +119,12 @@ $plugins = Plugin::loaded();
 							<?php echo $this->Html->link(
 								$this->TestHelper->icon('run', ['title' => 'Run all tests']),
 								['action' => 'run', '?' => ['test' => $testPath]],
-								['escapeTitle' => false, 'target' => '_blank', 'class' => 'btn btn-sm btn-outline-success run', 'data-test-case' => $testPath],
+								['escape' => false, 'escapeAttributes' => true, 'target' => '_blank', 'class' => 'btn btn-sm btn-outline-success run', 'data-test-case' => $testPath],
 							); ?>
 							<?php echo $this->Html->link(
 								$this->TestHelper->icon('next', ['title' => 'View methods']),
 								['action' => 'view', '?' => ['namespace' => $namespace, 'file' => $itemPath]],
-								['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-primary'],
+								['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-sm btn-outline-primary'],
 							); ?>
 						<?php } ?>
 					</td>

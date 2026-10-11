@@ -22,7 +22,7 @@
 			<?php echo $this->Html->link(
 				$this->TestHelper->icon('home') . ' TestCase',
 				['action' => 'browse', '?' => ['namespace' => $namespace]],
-				['escapeTitle' => false],
+				['escape' => false, 'escapeAttributes' => true],
 			); ?>
 		</li>
 		<?php foreach ($breadcrumb as $crumb) { ?>
@@ -47,18 +47,18 @@
 	echo $this->Html->link(
 		$this->TestHelper->icon('back') . ' Back to directory',
 		['action' => 'browse', '?' => array_filter(['namespace' => $namespace, 'path' => $parentPath ?: null])],
-		['escapeTitle' => false, 'class' => 'btn btn-outline-secondary btn-sm me-2'],
+		['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-outline-secondary btn-sm me-2'],
 	);
 	?>
 	<?php echo $this->Html->link(
 		$this->TestHelper->icon('run') . ' Run all tests',
 		['action' => 'run', '?' => ['test' => $testPath]],
-		['escapeTitle' => false, 'target' => '_blank', 'class' => 'btn btn-success btn-sm run', 'data-test-case' => $testPath],
+		['escape' => false, 'escapeAttributes' => true, 'target' => '_blank', 'class' => 'btn btn-success btn-sm run', 'data-test-case' => $testPath],
 	); ?>
 	<?php echo $this->Html->link(
 		$this->TestHelper->icon('coverage') . ' Coverage',
 		['action' => 'coverage', '?' => ['test' => $testPath, 'name' => basename($file, 'Test.php'), 'type' => dirname($file)]],
-		['escapeTitle' => false, 'target' => '_blank', 'class' => 'btn btn-info btn-sm ms-1 coverage', 'data-test-case' => $testPath],
+		['escape' => false, 'escapeAttributes' => true, 'target' => '_blank', 'class' => 'btn btn-info btn-sm ms-1 coverage', 'data-test-case' => $testPath],
 	); ?>
 </div>
 
@@ -94,7 +94,7 @@
 						<?php echo $this->Html->link(
 							$this->TestHelper->icon('run') . ' Run',
 							['action' => 'run', '?' => ['test' => $testPath, 'filter' => $method['name']]],
-							['escapeTitle' => false, 'target' => '_blank', 'class' => 'btn btn-sm btn-outline-success run', 'data-test-case' => $testPath, 'data-filter' => $method['name']],
+							['escape' => false, 'escapeAttributes' => true, 'target' => '_blank', 'class' => 'btn btn-sm btn-outline-success run', 'data-test-case' => $testPath, 'data-filter' => $method['name']],
 						); ?>
 					</td>
 				</tr>

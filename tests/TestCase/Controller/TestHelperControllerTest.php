@@ -20,6 +20,8 @@ class TestHelperControllerTest extends TestCase {
 		$this->get(['plugin' => 'TestHelper', 'controller' => 'TestHelper', 'action' => 'index']);
 
 		$this->assertResponseCode(200);
+		$this->assertResponseContains('<i class="fas fa-arrow-right"');
+		$this->assertResponseNotContains('&lt;i class=');
 	}
 
 	public function testBeginnerReverseLookup(): void {
