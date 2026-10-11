@@ -107,6 +107,30 @@ class QueryBuilderGeneratorTest extends TestCase {
 		}
 	}
 
+	public function testGeneratedFunctionSqlLiteralsExecute(): void {
+		$connection = new Connection(['driver' => Sqlite::class, 'database' => ':memory:']);
+		$connection->execute('CREATE TABLE audit_records (id INTEGER PRIMARY KEY, title TEXT)');
+		$connection->execute("INSERT INTO audit_records VALUES (1, 'first')");
+		$table = new Table(['table' => 'audit_records', 'connection' => $connection]);
+		try {
+			$sql = "SELECT COALESCE(NULL, title) AS label, COALESCE(NULL, TRUE) AS enabled, COALESCE(NULL, FALSE) AS disabled, COALESCE(NULL, 'NULL') AS quoted FROM audit_records";
+			$code = $this->generator->generate($this->parser->parse($sql));
+			$rows = (function () use ($code): array {
+				eval($code);
+
+				return $query->disableHydration()->toArray();
+			})->call($table);
+			$this->assertSame([['label' => 'first', 'enabled' => 1, 'disabled' => 0, 'quoted' => 'NULL']], $rows);
+		} finally {
+			$connection->getDriver()->disconnect();
+		}
+	}
+
+	public function testDateFormatHasDialectWarning(): void {
+		$code = $this->generator->generate($this->parser->parse("SELECT DATE_FORMAT(created, '%Y') AS year FROM audit_records"));
+		$this->assertStringContainsString('/* MySQL-specific DATE_FORMAT() */', $code);
+	}
+
 	public function testGeneratedMutationAlternativesExecute(): void {
 		$connection = new Connection(['driver' => Sqlite::class, 'database' => ':memory:']);
 		$connection->execute('CREATE TABLE audit_records (id INTEGER PRIMARY KEY, title TEXT)');

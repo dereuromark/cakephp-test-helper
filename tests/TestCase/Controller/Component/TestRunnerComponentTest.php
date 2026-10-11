@@ -116,7 +116,9 @@ class TestRunnerComponentTest extends TestCase {
 
 				return true;
 			}))->willReturn([[], 0]);
+		$previousMode = getenv('XDEBUG_MODE');
 		$component->coverage('tests/TestCase/TestHelperPluginTest.php', 'MissingReport', 'Controller', true);
+		$this->assertSame($previousMode, getenv('XDEBUG_MODE'));
 	}
 
 	public function testCoverageReportsProcessFailureDiagnostics(): void {

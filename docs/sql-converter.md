@@ -58,7 +58,7 @@ $query = $articles->find()
 * `NOW()`, `CURDATE()`, `CURTIME()` → `now()`, `curdate()`, `curtime()` respectively
 * `YEAR()`, `MONTH()`, `DAY()` → `$query->func()->year()` etc.
 * `DATEDIFF()` → `$query->func()->dateDiff([])`
-* `DATE_FORMAT()` → Guidance for `Cake\I18n\DateTime`
+* `DATE_FORMAT()` → MySQL-specific SQL function call; review format compatibility before using another driver
 * `DATE_ADD()`, `DATE_SUB()` → Guidance provided
 
 #### Aggregate Functions

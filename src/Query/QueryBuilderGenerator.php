@@ -1290,6 +1290,10 @@ class QueryBuilderGenerator {
 			return $this->formatFunction($arg);
 		}
 
+		if (in_array(strtoupper($arg), ['NULL', 'TRUE', 'FALSE'], true)) {
+			return 'new \\Cake\\Database\\Expression\\QueryExpression(' . var_export(strtoupper($arg), true) . ')';
+		}
+
 		// Keep column arguments as identifiers rather than bound string values.
 		return '$query->identifier(' . var_export(trim($arg, '`"'), true) . ')';
 	}
@@ -1431,7 +1435,7 @@ class QueryBuilderGenerator {
 		$field = $this->formatFunctionArg($args[0]);
 		$format = $args[1];
 
-		return "\$query->func()->date_format([$field, $format])";
+		return "\$query->func()->date_format([$field, $format]) /* MySQL-specific DATE_FORMAT() */";
 	}
 
 	/**
