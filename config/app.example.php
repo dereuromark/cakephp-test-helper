@@ -4,7 +4,6 @@ return [
 	'TestHelper' => [
 		'php' => null, // Custom PHP binary path, e.g. '/usr/bin/php8.2'
 		'command' => null,
-		'coverage' => null, // Legacy setting; PHPUnit selects the installed CLI coverage driver.
 
 		// Set to true to bypass authorization checks for TestHelper routes
 		// when using the CakePHP Authorization plugin

@@ -54,3 +54,5 @@ template for your own at the project level, as documented in the CakePHP docs.
 Some tools have their own keys, documented on their pages:
 
 * [Association vs DB Audit](/associations#configuration), `associationAudit.ignoreColumns`, `associationAudit.preferIntegerKeys`
+
+`TestHelper.php` accepts one executable path. It is quoted as a single command argument, so values such as `php -d memory_limit=-1` must use a wrapper executable instead. For the test runner, `TestHelper.command` can contain the full PHPUnit command, including PHP options. Test and fixture generation always uses the executable path.

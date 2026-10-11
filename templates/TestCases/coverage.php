@@ -11,7 +11,7 @@
 <br><br>
 
 <div style="float: right">
-	<?php echo $this->Html->link('Refresh', ['?' => ['force' => true] + $this->request->getQuery()]); ?> | <?php echo $this->Html->link('Open in new tab', $result['url']); ?>
+	<?php echo $this->Html->link('Refresh', ['?' => ['force' => true] + $this->request->getQuery()]); ?><?php if ($result['testFileExists']) { ?> | <?php echo $this->Html->link('Open in new tab', $result['url']); ?><?php } ?>
 </div>
 
 Coverage-Result of <?php echo h($result['file']); ?>
@@ -19,7 +19,7 @@ Coverage-Result of <?php echo h($result['file']); ?>
 <h2>Details</h2>
 
 <?php if ($result['testFileExists']) { ?>
-<iframe src="<?php echo $result['url']; ?>" style="width: 98%; height: 800px;"></iframe>
+<iframe src="<?php echo h($result['url']); ?>" style="width: 98%; height: 800px;"></iframe>
 <?php } else { ?>
-<i>Coverage file could not be created, coverage driver issues?</i>
+<?php echo $result['output']; ?>
 <?php } ?>

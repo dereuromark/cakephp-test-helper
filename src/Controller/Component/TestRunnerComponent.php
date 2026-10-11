@@ -4,6 +4,7 @@ namespace TestHelper\Controller\Component;
 
 use Cake\Controller\Component;
 use Cake\Core\Configure;
+use Cake\Core\Plugin;
 use RuntimeException;
 use function Cake\Core\h;
 
@@ -49,23 +50,51 @@ class TestRunnerComponent extends Component {
 	public function coverage(string $file, string $name, string $type, bool $force = false): array {
 		$command = $this->getCommand();
 
-		$testFile = ROOT . DS . 'webroot/coverage/src/' . $type . '/' . $name . '.php.html';
-		$testFile = str_replace(['/', '\\'], DS, $testFile);
+		[$plugin, $classType] = pluginSplit($type);
+		$sourceRoot = $plugin ? Plugin::path($plugin) . 'src/' : ROOT . DS . 'src/';
+		$sourceDirectory = $sourceRoot . $classType . '/';
+		$relativeSource = str_replace('\\', '/', str_replace(ROOT . DS, '', $sourceRoot));
+		$reportName = str_replace(['.', '\\'], '/', $name);
+		$reportPaths = [
+			$relativeSource . $classType . '/' . $reportName . '.php.html',
+			$classType . '/' . $reportName . '.php.html',
+		];
+		$testFile = ROOT . DS . 'webroot/coverage/' . $reportPaths[0];
+		foreach ($reportPaths as $reportPath) {
+			$candidate = ROOT . DS . 'webroot/coverage/' . $reportPath;
+			if (file_exists($candidate)) {
+				$testFile = $candidate;
 
-		$command = 'XDEBUG_MODE=coverage ' . $command;
+				break;
+			}
+		}
 
 		$command .= ' ' . escapeshellarg($file);
-		$command .= ' --log-junit webroot/coverage/unitreport.xml --coverage-html webroot/coverage --coverage-clover webroot/coverage/coverage.xml --coverage-filter ' . escapeshellarg('src/' . $type . '/');
+		$command .= ' --log-junit webroot/coverage/unitreport.xml --coverage-html webroot/coverage --coverage-clover webroot/coverage/coverage.xml --coverage-filter ' . escapeshellarg($sourceDirectory);
 
 		$commandOutput = [];
 		$code = null;
 		if (!file_exists($testFile) || $force) {
-			[$commandOutput, $code] = $this->executeCommand($command);
+			$previousMode = getenv('XDEBUG_MODE');
+			putenv('XDEBUG_MODE=coverage');
+			try {
+				[$commandOutput, $code] = $this->executeCommand($command);
+			} finally {
+				putenv($previousMode === false ? 'XDEBUG_MODE' : 'XDEBUG_MODE=' . $previousMode);
+			}
 		}
 
-		$url = str_replace('\\', '/', '/coverage/src/' . $type . '/' . $name . '.php.html');
+		foreach ($reportPaths as $reportPath) {
+			$candidate = ROOT . DS . 'webroot/coverage/' . $reportPath;
+			if (file_exists($candidate)) {
+				$testFile = $candidate;
 
-		$fileExists = file_exists($testFile);
+				break;
+			}
+		}
+		$url = '/coverage/' . str_replace('\\', '/', substr($testFile, strlen(ROOT . DS . 'webroot/coverage/')));
+
+		$fileExists = file_exists($testFile) && ($code === null || $code === 0);
 		if ($fileExists) {
 			$output = '<a href="' . h($url) . '" target="_blank">' . h($file) . '</a>';
 		} else {

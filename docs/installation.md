@@ -1,3 +1,7 @@
+---
+description: Install and load TestHelper for a CakePHP development application.
+---
+
 # Installation
 
 Install the plugin as a development dependency from your CakePHP application's root:
@@ -26,7 +30,7 @@ Continue with [Getting started](/guide) to open the dashboard and try a route lo
 | Run browser-selected tests | A compatible PHPUnit installation and permission for the web PHP process to launch CLI PHP |
 | Coverage reports | Xdebug or PCOV enabled for CLI PHP |
 | Migration and schema comparison | `cakephp/migrations`, the database driver, and a configured connection |
-| Text diffs in migration comparison | `sebastian/diff` |
+| Text diffs in migration comparison and recommended plugin classes | `sebastian/diff` |
 
 Development dependencies from this repository are not automatically installed in consuming applications. Install the packages needed by your selected tools, for example:
 

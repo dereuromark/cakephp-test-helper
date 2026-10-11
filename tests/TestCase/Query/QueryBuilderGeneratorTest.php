@@ -8,6 +8,7 @@ use Cake\Database\Connection;
 use Cake\Database\Driver\Sqlite;
 use Cake\ORM\Table;
 use Cake\TestSuite\TestCase;
+use LogicException;
 use RuntimeException;
 use TestHelper\Query\QueryBuilderGenerator;
 use TestHelper\Query\SqlParser;
@@ -34,6 +35,102 @@ class QueryBuilderGeneratorTest extends TestCase {
 		$this->parser = new SqlParser();
 	}
 
+	public function testMultiTableUpdateRequiresConditionsAndUsesCorrectTables(): void {
+		$connection = new Connection(['driver' => Sqlite::class, 'database' => ':memory:']);
+		$connection->execute('CREATE TABLE audit_records (id INTEGER PRIMARY KEY, title TEXT)');
+		$connection->execute('CREATE TABLE audit_notes (id INTEGER PRIMARY KEY, note TEXT)');
+		$connection->execute("INSERT INTO audit_records VALUES (1, 'first'), (2, 'untouched')");
+		$connection->execute("INSERT INTO audit_notes VALUES (1, 'first'), (2, 'untouched')");
+		$table = new Table(['table' => 'audit_records', 'connection' => $connection]);
+		try {
+			$sql = "UPDATE audit_records r JOIN audit_notes n ON n.id = r.id SET r.title = 'updated', n.note = 'changed' WHERE r.id = 1";
+			$code = $this->generator->generate($this->parser->parse($sql));
+			try {
+				(function () use ($code): void {
+					eval($code);
+				})->call($table);
+				$this->fail('The template must require explicit conditions before executing.');
+			} catch (LogicException $exception) {
+				$this->assertStringContainsString('table-specific update conditions', $exception->getMessage());
+			}
+			$this->assertSame('first', $table->get(1)->title);
+			$conditionsByTable = ['r' => ['id' => 1], 'n' => ['id' => 1]];
+			(function () use ($code, $conditionsByTable): void {
+				eval($code);
+			})->call($table);
+			$this->assertSame(['updated', 'untouched'], $table->find()->orderBy(['id'])->all()->extract('title')->toList());
+			$this->assertSame(['changed', 'untouched'], array_column($connection->execute('SELECT note FROM audit_notes ORDER BY id')->fetchAll('assoc'), 'note'));
+		} finally {
+			$connection->getDriver()->disconnect();
+		}
+	}
+
+	public function testGeneratedSelectAliasesExecute(): void {
+		$connection = new Connection(['driver' => Sqlite::class, 'database' => ':memory:']);
+		$connection->execute('CREATE TABLE audit_records (id INTEGER PRIMARY KEY, title TEXT)');
+		$connection->execute("INSERT INTO audit_records VALUES (1, 'first')");
+		$table = new Table(['table' => 'audit_records', 'connection' => $connection]);
+		try {
+			foreach (['SELECT r.title AS label FROM audit_records r', 'SELECT title AS label FROM audit_records'] as $sql) {
+				$code = $this->generator->generate($this->parser->parse($sql));
+				$rows = (function () use ($code): array {
+					eval($code);
+
+					return $query->disableHydration()->toArray();
+				})->call($table);
+				$this->assertSame([['label' => 'first']], $rows);
+			}
+		} finally {
+			$connection->getDriver()->disconnect();
+		}
+	}
+
+	public function testGeneratedFunctionsExecuteWithColumnArguments(): void {
+		$connection = new Connection(['driver' => Sqlite::class, 'database' => ':memory:']);
+		$connection->execute('CREATE TABLE audit_records (id INTEGER PRIMARY KEY, title TEXT)');
+		$connection->execute("INSERT INTO audit_records VALUES (1, '  first  '), (2, NULL)");
+		$table = new Table(['table' => 'audit_records', 'connection' => $connection]);
+		try {
+			$sql = "SELECT UPPER(TRIM(title)) AS label, LENGTH(title) AS size, COALESCE(title, 'fallback') AS value FROM audit_records ORDER BY id";
+			$code = $this->generator->generate($this->parser->parse($sql));
+			$rows = (function () use ($code): array {
+				eval($code);
+
+				return $query->disableHydration()->toArray();
+			})->call($table);
+			$this->assertSame([
+				['label' => 'FIRST', 'size' => 9, 'value' => '  first  '],
+				['label' => null, 'size' => null, 'value' => 'fallback'],
+			], $rows);
+		} finally {
+			$connection->getDriver()->disconnect();
+		}
+	}
+
+	public function testGeneratedFunctionSqlLiteralsExecute(): void {
+		$connection = new Connection(['driver' => Sqlite::class, 'database' => ':memory:']);
+		$connection->execute('CREATE TABLE audit_records (id INTEGER PRIMARY KEY, title TEXT)');
+		$connection->execute("INSERT INTO audit_records VALUES (1, 'first')");
+		$table = new Table(['table' => 'audit_records', 'connection' => $connection]);
+		try {
+			$sql = "SELECT COALESCE(NULL, title) AS label, COALESCE(NULL, TRUE) AS enabled, COALESCE(NULL, FALSE) AS disabled, COALESCE(NULL, 'NULL') AS quoted FROM audit_records";
+			$code = $this->generator->generate($this->parser->parse($sql));
+			$rows = (function () use ($code): array {
+				eval($code);
+
+				return $query->disableHydration()->toArray();
+			})->call($table);
+			$this->assertSame([['label' => 'first', 'enabled' => 1, 'disabled' => 0, 'quoted' => 'NULL']], $rows);
+		} finally {
+			$connection->getDriver()->disconnect();
+		}
+	}
+
+	public function testDateFormatHasDialectWarning(): void {
+		$code = $this->generator->generate($this->parser->parse("SELECT DATE_FORMAT(created, '%Y') AS year FROM audit_records"));
+		$this->assertStringContainsString('/* MySQL-specific DATE_FORMAT() */', $code);
+	}
+
 	public function testGeneratedMutationAlternativesExecute(): void {
 		$connection = new Connection(['driver' => Sqlite::class, 'database' => ':memory:']);
 		$connection->execute('CREATE TABLE audit_records (id INTEGER PRIMARY KEY, title TEXT)');
@@ -47,9 +144,6 @@ class QueryBuilderGeneratorTest extends TestCase {
 		try {
 			foreach ($examples as [$sql, $marker]) {
 				$parsed = $this->parser->parse($sql);
-				if ($marker === '// Alternative: Insert query') {
-					$parsed['values'] = $parsed['values'][0];
-				}
 				$code = $this->generator->generate($parsed);
 				$this->assertStringContainsString($marker, $code);
 				$alternative = substr($code, strpos($code, $marker) + strlen($marker));
@@ -211,7 +305,7 @@ class QueryBuilderGeneratorTest extends TestCase {
 		$parsed = $this->parser->parse($sql);
 		$code = $this->generator->generate($parsed);
 
-		$this->assertStringContainsString('newEntity', $code);
+		$this->assertStringContainsString('newEmptyEntity', $code);
 		$this->assertStringContainsString("'username'", $code);
 		$this->assertStringContainsString("'email'", $code);
 	}

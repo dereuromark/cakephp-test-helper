@@ -4,7 +4,9 @@ namespace TestHelper\Test\TestCase\Controller\Component;
 
 use Cake\Controller\ComponentRegistry;
 use Cake\Controller\Controller;
+use Cake\Core\BasePlugin;
 use Cake\Core\Configure;
+use Cake\Core\Plugin;
 use Cake\Http\ServerRequest;
 use Cake\TestSuite\TestCase;
 use ReflectionClass;
@@ -107,13 +109,16 @@ class TestRunnerComponentTest extends TestCase {
 			->onlyMethods(['executeCommand'])->getMock();
 		$component->expects($this->once())->method('executeCommand')
 			->with($this->callback(function (string $command): bool {
-				$this->assertStringContainsString('XDEBUG_MODE=coverage', $command);
-				$this->assertStringContainsString('--coverage-filter ' . escapeshellarg('src/Controller/'), $command);
+				$this->assertSame('coverage', getenv('XDEBUG_MODE'));
+				$this->assertStringNotContainsString('XDEBUG_MODE=', $command);
+				$this->assertStringContainsString('--coverage-filter ' . escapeshellarg(ROOT . DS . 'src/Controller/'), $command);
 				$this->assertStringNotContainsString(' --include ', $command);
 
 				return true;
 			}))->willReturn([[], 0]);
+		$previousMode = getenv('XDEBUG_MODE');
 		$component->coverage('tests/TestCase/TestHelperPluginTest.php', 'MissingReport', 'Controller', true);
+		$this->assertSame($previousMode, getenv('XDEBUG_MODE'));
 	}
 
 	public function testCoverageReportsProcessFailureDiagnostics(): void {
@@ -125,6 +130,58 @@ class TestRunnerComponentTest extends TestCase {
 		$this->assertFalse($result['testFileExists']);
 		$this->assertSame(2, $result['code']);
 		$this->assertStringContainsString('&lt;error&gt;driver missing', $result['output']);
+	}
+
+	public function testPluginCoverageUsesPluginSourceDirectoryAndReport(): void {
+		$path = ROOT . DS . 'plugins/CoverageFixture/';
+		Plugin::getCollection()->add(new BasePlugin(['name' => 'CoverageFixture', 'path' => $path]));
+		$directory = ROOT . DS . 'webroot/coverage/plugins/CoverageFixture/src/Controller/Admin';
+		if (!is_dir($directory)) {
+			mkdir($directory, 0770, true);
+		}
+		$report = $directory . '/ReportsController.php.html';
+		file_put_contents($report, 'Plugin coverage');
+		$component = $this->getMockBuilder(TestRunnerComponent::class)
+			->setConstructorArgs([new ComponentRegistry(new Controller(new ServerRequest()))])
+			->onlyMethods(['executeCommand'])->getMock();
+		$component->expects($this->once())->method('executeCommand')
+			->with($this->callback(function (string $command) use ($path): bool {
+				$this->assertStringContainsString('--coverage-filter ' . escapeshellarg($path . 'src/Controller/'), $command);
+
+				return true;
+			}))->willReturn([[], 0]);
+		try {
+			$result = $component->coverage('tests/TestCase/TestHelperPluginTest.php', 'Admin.ReportsController', 'CoverageFixture.Controller', true);
+			$this->assertTrue($result['testFileExists']);
+			$this->assertSame('/coverage/plugins/CoverageFixture/src/Controller/Admin/ReportsController.php.html', $result['url']);
+		} finally {
+			unlink($report);
+			Plugin::getCollection()->remove('CoverageFixture');
+		}
+	}
+
+	public function testFailedForcedCoverageDoesNotReuseOldReport(): void {
+		$directory = ROOT . DS . 'webroot/coverage/src/Controller';
+		if (!is_dir($directory)) {
+			mkdir($directory, 0770, true);
+		}
+		$report = $directory . '/StaleReport.php.html';
+		file_put_contents($report, 'Old coverage report');
+		$previousMode = getenv('XDEBUG_MODE');
+		$component = $this->getMockBuilder(TestRunnerComponent::class)
+			->setConstructorArgs([new ComponentRegistry(new Controller(new ServerRequest()))])
+			->onlyMethods(['executeCommand'])->getMock();
+		$component->expects($this->once())->method('executeCommand')->willReturn([['Failed coverage'], 2]);
+		try {
+			$result = $component->coverage('tests/TestCase/TestHelperPluginTest.php', 'StaleReport', 'Controller', true);
+			$this->assertFalse($result['testFileExists']);
+			$this->assertNull($result['content']);
+			$this->assertSame(2, $result['code']);
+			$this->assertStringContainsString('Failed coverage', $result['output']);
+			$this->assertSame($previousMode, getenv('XDEBUG_MODE'));
+		} finally {
+			unlink($report);
+		}
 	}
 
 	/**

@@ -2,6 +2,7 @@
 
 namespace TestHelper\Test\TestCase\Controller;
 
+use Cake\Core\Configure;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
@@ -11,6 +12,66 @@ use Cake\TestSuite\TestCase;
 class TestCasesControllerTest extends TestCase {
 
 	use IntegrationTestTrait;
+
+	public function testCoverageReportFrameEscapesUrl(): void {
+		$directory = ROOT . DS . 'webroot/coverage/src/Controller';
+		if (!is_dir($directory)) {
+			mkdir($directory, 0770, true);
+		}
+		$name = 'Report" onload="alert(1)';
+		$report = $directory . '/' . $name . '.php.html';
+		file_put_contents($report, 'Existing report');
+		try {
+			$this->get('/test-helper/test-cases/coverage?' . http_build_query([
+				'test' => 'tests/TestCase/TestHelperPluginTest.php',
+				'name' => $name,
+				'type' => 'Controller',
+			]));
+			$this->assertResponseCode(200);
+			$this->assertResponseContains('<iframe');
+			$this->assertResponseContains('&quot; onload=&quot;alert(1)');
+			$this->assertResponseNotContains('onload="alert(1)');
+		} finally {
+			unlink($report);
+		}
+	}
+
+	public function testCoverageFailureHtmlShowsDiagnostics(): void {
+		Configure::write('TestHelper.command', escapeshellarg(PHP_BINARY) . ' -r ' . escapeshellarg('fwrite(STDERR, "<error>coverage failed"); exit(2);') . ' --');
+		try {
+			$this->get('/test-helper/test-cases/coverage?' . http_build_query([
+				'test' => 'tests/TestCase/TestHelperPluginTest.php',
+				'name' => 'MissingReport',
+				'type' => 'Controller',
+				'force' => 1,
+			]));
+			$this->assertResponseCode(200);
+			$this->assertResponseContains('&lt;error&gt;coverage failed');
+			$this->assertResponseNotContains('<iframe');
+		} finally {
+			Configure::delete('TestHelper.command');
+		}
+	}
+
+	public function testCoverageFailureAjaxShowsDiagnostics(): void {
+		Configure::write('TestHelper.command', escapeshellarg(PHP_BINARY) . ' -r ' . escapeshellarg('fwrite(STDERR, "<error>coverage failed"); exit(2);') . ' --');
+		$this->configRequest(['headers' => ['X-Requested-With' => 'XMLHttpRequest']]);
+		try {
+			$this->get('/test-helper/test-cases/coverage?' . http_build_query([
+				'test' => 'tests/TestCase/TestHelperPluginTest.php',
+				'name' => 'MissingReport',
+				'type' => 'Controller',
+				'force' => 1,
+			]));
+			$this->assertResponseCode(200);
+			$data = json_decode((string)$this->_response->getBody(), true);
+			$this->assertSame(2, $data['code']);
+			$this->assertStringContainsString('&lt;error&gt;coverage failed', $data['output']);
+			$this->assertFalse($data['testFileExists']);
+		} finally {
+			Configure::delete('TestHelper.command');
+		}
+	}
 
 	/**
 	 * @return void

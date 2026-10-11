@@ -320,20 +320,24 @@ class TestCasesController extends TestHelperAppController {
 			$output .= '<div style="float: right">';
 			$output .= '<a href="' . h($refreshUrl) . '">Refresh</a>';
 			$output .= ' | ';
-			$output .= '<a href="' . h($result['url']) . '" target="_blank">Open in new tab</a>';
+			if ($result['testFileExists']) {
+				$output .= '<a href="' . h($result['url']) . '" target="_blank">Open in new tab</a>';
+			}
 			$output .= '</div>';
 			$output .= 'Coverage-Result of ' . h($result['file']);
 			$output .= '<h2>Details</h2>';
 			if ($result['testFileExists']) {
 				$output .= '<iframe src="' . h($result['url']) . '" style="width: 98%; height: 800px;"></iframe>';
 			} else {
-				$output .= '<i>Coverage file could not be created, coverage driver issues?</i>';
+				$output .= $result['output'];
 			}
 
 			$response = [
 				'output' => $output,
 				'url' => $result['url'],
 				'testFileExists' => $result['testFileExists'],
+				'code' => $result['code'],
+				'processOutput' => $result['processOutput'],
 			];
 			$this->set($response);
 			$this->viewBuilder()->setOptions(['serialize' => array_keys($response)]);
