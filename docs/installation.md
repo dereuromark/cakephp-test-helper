@@ -1,13 +1,18 @@
 ---
+
 description: Install and load TestHelper for a CakePHP development application.
 ---
 
 # Installation
 
+This development branch requires PHP 8.5 and CakePHP 6. The application must allow development stability for unreleased framework and companion packages. Keep stable packages preferred.
+
 Install the plugin as a development dependency from your CakePHP application's root:
 
 ```bash
-composer require --dev dereuromark/cakephp-test-helper
+composer config minimum-stability dev
+composer config prefer-stable true
+composer require --dev dereuromark/cakephp-test-helper:dev-cake6
 ```
 
 Composer checks the supported PHP and CakePHP versions. See the [version map](https://github.com/dereuromark/cakephp-test-helper/wiki#cakephp-version-map) for other CakePHP branches.
@@ -35,7 +40,7 @@ Continue with [Getting started](/guide) to open the dashboard and try a route lo
 Development dependencies from this repository are not automatically installed in consuming applications. Install the packages needed by your selected tools, for example:
 
 ```bash
-composer require --dev cakephp/bake cakephp/migrations sebastian/diff
+composer require --dev 'cakephp/bake:^4.0@dev' cakephp/migrations:dev-fix/6.x-cakephp-compatibility sebastian/diff
 ```
 
 Register Bake and Migrations as appropriate for the application, preserving other `config/plugins.php` entries. Their development-only registrations must be optional or restricted to debug mode so a production installation without those packages can boot.
@@ -45,3 +50,7 @@ The backend executes tests as the web-server user. That process needs access to 
 ## CLI use outside development
 
 If you deliberately need CLI functionality in an environment installed without development dependencies, install TestHelper as a regular dependency and register it with `['routes' => false]`. This keeps its web backend disabled. Do not expose developer routes as part of that registration.
+
+## Custom extensions on CakePHP 6
+
+Custom linter tasks implement `run(ConsoleIoInterface $io, array $options = []): int`. Replace the concrete `ConsoleIo` parameter in existing task overrides with the interface. Custom commands implement `execute(): int` and use the inherited argument and console properties. Tests use PHPUnit 13.

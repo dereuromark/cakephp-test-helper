@@ -64,7 +64,7 @@ class TestCasesControllerTest extends TestCase {
 				'force' => 1,
 			]));
 			$this->assertResponseCode(200);
-			$data = json_decode((string)$this->_response->getBody(), true);
+			$data = json_decode((string)$this->response->getBody(), true);
 			$this->assertSame(2, $data['code']);
 			$this->assertStringContainsString('&lt;error&gt;coverage failed', $data['output']);
 			$this->assertFalse($data['testFileExists']);

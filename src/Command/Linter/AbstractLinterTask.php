@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace TestHelper\Command\Linter;
 
-use Cake\Console\ConsoleIo;
+use Cake\Console\ConsoleIoInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
@@ -94,7 +94,7 @@ abstract class AbstractLinterTask implements LinterTaskInterface {
 	/**
      * Output an issue found
      *
-     * @param \Cake\Console\ConsoleIo $io Console IO
+     * @param \Cake\Console\ConsoleIoInterface $io Console IO
      * @param string $file File path
      * @param int $line Line number
      * @param string $issue Issue description
@@ -104,7 +104,7 @@ abstract class AbstractLinterTask implements LinterTaskInterface {
      * @return void
      */
 	protected function outputIssue(
-		ConsoleIo $io,
+		ConsoleIoInterface $io,
 		string $file,
 		int $line,
 		string $issue,

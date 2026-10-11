@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace TestHelper\Command\Linter\Task;
 
-use Cake\Console\ConsoleIo;
+use Cake\Console\ConsoleIoInterface;
 use TestHelper\Command\Linter\AbstractLinterTask;
 
 class DeprecatedFindOptionsTask extends AbstractLinterTask {
@@ -44,7 +44,7 @@ class DeprecatedFindOptionsTask extends AbstractLinterTask {
      *
      * @param array<string, mixed> $options
      */
-	public function run(ConsoleIo $io, array $options = []): int {
+	public function run(ConsoleIoInterface $io, array $options = []): int {
 		$paths = $options['paths'] ?? $this->defaultPaths();
 		$files = $this->getFiles($paths, '*.php');
 		$verbose = $options['verbose'] ?? false;
@@ -61,14 +61,14 @@ class DeprecatedFindOptionsTask extends AbstractLinterTask {
 	/**
      * Check a single file for deprecated find() options usage.
      *
-     * @param \Cake\Console\ConsoleIo $io Console IO
+     * @param \Cake\Console\ConsoleIoInterface $io Console IO
      * @param string $file File path
      * @param bool $verbose Whether to show verbose output
      * @param bool $fix Whether to auto-fix issues
      *
      * @return int Number of issues found
      */
-	protected function checkFile(ConsoleIo $io, string $file, bool $verbose, bool $fix): int {
+	protected function checkFile(ConsoleIoInterface $io, string $file, bool $verbose, bool $fix): int {
 		$content = file_get_contents($file);
 		if ($content === false) {
 			return 0;

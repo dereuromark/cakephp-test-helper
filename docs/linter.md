@@ -394,7 +394,7 @@ declare(strict_types=1);
 
 namespace App\Command\Linter\Task;
 
-use Cake\Console\ConsoleIo;
+use Cake\Console\ConsoleIoInterface;
 use TestHelper\Command\Linter\AbstractLinterTask;
 
 class MyCustomTask extends AbstractLinterTask
@@ -442,11 +442,11 @@ class MyCustomTask extends AbstractLinterTask
     /**
      * Run the linter task
      *
-     * @param \Cake\Console\ConsoleIo $io Console IO
+     * @param \Cake\Console\ConsoleIoInterface $io Console IO
      * @param array<string, mixed> $options Options including paths, fix mode
      * @return int Number of issues found
      */
-    public function run(ConsoleIo $io, array $options = []): int
+    public function run(ConsoleIoInterface $io, array $options = []): int
     {
         $paths = $options['paths'] ?? $this->defaultPaths();
         $files = $this->getFiles($paths, '*.php');
@@ -581,7 +581,7 @@ $this->outputIssue(
 ### Checking for Deprecated Functions
 
 ```php
-public function run(ConsoleIo $io, array $options = []): int
+public function run(ConsoleIoInterface $io, array $options = []): int
 {
     $paths = $options['paths'] ?? $this->defaultPaths();
     $files = $this->getFiles($paths, '*.php');
@@ -620,7 +620,7 @@ public function run(ConsoleIo $io, array $options = []): int
 ### Checking File Naming Conventions
 
 ```php
-public function run(ConsoleIo $io, array $options = []): int
+public function run(ConsoleIoInterface $io, array $options = []): int
 {
     $paths = $options['paths'] ?? $this->defaultPaths();
     $files = $this->getFiles($paths, '*.php');
@@ -649,7 +649,7 @@ public function run(ConsoleIo $io, array $options = []): int
 ### Validating Documentation
 
 ```php
-public function run(ConsoleIo $io, array $options = []): int
+public function run(ConsoleIoInterface $io, array $options = []): int
 {
     $paths = $options['paths'] ?? $this->defaultPaths();
     $files = $this->getFiles($paths, '*.php');

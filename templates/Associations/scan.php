@@ -25,7 +25,7 @@ $topicCounts = array_count_values(array_map(fn (Finding $finding): string => $fi
 <div class="page-header mb-3">
 	<h1><?php echo $this->TestHelper->icon('sitemap'); ?> Flat scan</h1>
 	<p>
-		<?php echo $this->Html->link($this->TestHelper->icon('previous') . ' Back to matrix', ['action' => 'index', '?' => ['vendor' => $includeVendor ? 1 : null]], ['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-secondary']); ?>
+		<?php echo $this->Html->link($this->TestHelper->icon('previous') . ' Back to matrix', ['action' => 'index', '?' => ['vendor' => $includeVendor ? 1 : null]], ['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-sm btn-outline-secondary']); ?>
 	</p>
 </div>
 

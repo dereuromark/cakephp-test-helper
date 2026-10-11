@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace TestHelper\Command;
 
 use Cake\Command\Command;
-use Cake\Console\Arguments;
-use Cake\Console\ConsoleIo;
+use Cake\Console\ConsoleIoInterface;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
@@ -40,7 +39,7 @@ class LinterCommand extends Command {
      *
      * @var string
      */
-	protected string $name = 'linter';
+	protected string $name = 'cake linter';
 
 	/**
      * Default tasks provided by the plugin
@@ -119,12 +118,12 @@ class LinterCommand extends Command {
 	/**
      * Implement this method with your command's logic.
      *
-     * @param \Cake\Console\Arguments $args The command arguments.
-     * @param \Cake\Console\ConsoleIo $io The console io
      *
      * @return int The exit code
      */
-	public function execute(Arguments $args, ConsoleIo $io): int {
+	public function execute(): int {
+		$args = $this->args;
+		$io = $this->io;
 		// Enable CI mode if requested
 		if ($args->getOption('ci')) {
 			ConnectionHelper::addTestAliases();
@@ -192,7 +191,7 @@ class LinterCommand extends Command {
 
 			$options = [
 				'fix' => $fix,
-				'verbose' => $io->level() >= ConsoleIo::VERBOSE,
+				'verbose' => $io->level() >= ConsoleIoInterface::VERBOSE,
 			];
 
 			// Determine paths to check
@@ -248,12 +247,12 @@ class LinterCommand extends Command {
 	/**
      * List all available tasks
      *
-     * @param \Cake\Console\ConsoleIo $io Console IO
+     * @param \Cake\Console\ConsoleIoInterface $io
      * @param array<\TestHelper\Command\Linter\LinterTaskInterface> $tasks Tasks
      *
      * @return int Exit code
      */
-	protected function listTasks(ConsoleIo $io, array $tasks): int {
+	protected function listTasks(ConsoleIoInterface $io, array $tasks): int {
 		$io->out('<info>Available linter tasks:</info>');
 		$io->out('');
 
@@ -361,11 +360,11 @@ class LinterCommand extends Command {
      * Resolve plugin names based on plugin option
      *
      * @param string $pluginOption Plugin name, wildcard pattern, or "all"
-     * @param \Cake\Console\ConsoleIo $io Console IO
+     * @param \Cake\Console\ConsoleIoInterface $io
      *
      * @return array<string>|null Array of plugin names or null on error
      */
-	protected function resolvePlugins(string $pluginOption, ConsoleIo $io): ?array {
+	protected function resolvePlugins(string $pluginOption, ConsoleIoInterface $io): ?array {
 		// Get all app plugins (exclude vendor plugins)
 		$loadedPlugins = Plugin::loaded();
 		$appPlugins = [];

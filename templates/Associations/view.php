@@ -35,7 +35,7 @@ $severityBadge = function (string $severity): string {
 <div class="page-header mb-3">
 	<h1><?php echo $this->TestHelper->icon('sitemap'); ?> Associations: <?php echo h($model); ?></h1>
 	<p>
-		<?php echo $this->Html->link($this->TestHelper->icon('previous') . ' Back to matrix', ['action' => 'index', '?' => ['vendor' => $includeVendor ? 1 : null]], ['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-secondary']); ?>
+		<?php echo $this->Html->link($this->TestHelper->icon('previous') . ' Back to matrix', ['action' => 'index', '?' => ['vendor' => $includeVendor ? 1 : null]], ['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-sm btn-outline-secondary']); ?>
 	</p>
 </div>
 

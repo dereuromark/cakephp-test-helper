@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace TestHelper\Test\TestCase\Command;
 
-use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Core\Configure;
 use Cake\TestSuite\TestCase;
@@ -55,9 +54,8 @@ class LinterCommandTest extends TestCase {
 	 */
 	public function testDefaultTasks(): void {
 		$io = new ConsoleIo($this->out, $this->err);
-		$args = new Arguments([], ['list' => true], []);
 
-		$this->command->execute($args, $io);
+		$this->command->run(['--list'], $io);
 
 		$output = $this->out->output();
 		$this->assertStringContainsString('Available linter tasks:', $output);
@@ -81,9 +79,8 @@ class LinterCommandTest extends TestCase {
 		]);
 
 		$io = new ConsoleIo($this->out, $this->err);
-		$args = new Arguments([], ['list' => true], []);
 
-		$this->command->execute($args, $io);
+		$this->command->run(['--list'], $io);
 
 		$output = $this->out->output();
 		$this->assertStringContainsString('use-orm-query', $output);
@@ -102,9 +99,8 @@ class LinterCommandTest extends TestCase {
 		]);
 
 		$io = new ConsoleIo($this->out, $this->err);
-		$args = new Arguments([], ['list' => true], []);
 
-		$this->command->execute($args, $io);
+		$this->command->run(['--list'], $io);
 
 		$output = $this->out->output();
 		// All default tasks should still be present

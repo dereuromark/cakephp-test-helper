@@ -81,7 +81,7 @@ $this->assign('title', 'Test Helper Dashboard');
 							<?php echo $this->Html->link(
 								$this->TestHelper->icon($type['icon']) . ' ' . $label,
 								['controller' => 'TestCases', 'action' => $type['action'], '?' => ['namespace' => $namespace]],
-								['escapeTitle' => false, 'class' => $btnClass],
+								['escape' => false, 'escapeAttributes' => true, 'class' => $btnClass],
 							); ?>
 						</div>
 					<?php } ?>
@@ -93,7 +93,7 @@ $this->assign('title', 'Test Helper Dashboard');
 				<?php echo $this->Html->link(
 					$this->TestHelper->icon('next') . ' Browse Tests',
 					['controller' => 'TestCases', 'action' => 'browse', '?' => ['namespace' => $namespace]],
-					['escapeTitle' => false, 'class' => 'btn btn-sm btn-outline-primary'],
+					['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-sm btn-outline-primary'],
 				); ?>
 			</div>
 		</div>
@@ -110,7 +110,7 @@ $this->assign('title', 'Test Helper Dashboard');
 			<div class="card-body">
 				<p class="card-text">Convert raw SQL queries (MySQL) into CakePHP Query Builder code. Supports SELECT, INSERT, UPDATE, DELETE with JOINs, WHERE conditions, GROUP BY, ORDER BY, and more.</p>
 				<ul class="list-unstyled">
-					<li><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Open Query Builder Converter', ['controller' => 'QueryBuilder', 'action' => 'index'], ['escapeTitle' => false, 'class' => 'btn btn-primary']); ?></li>
+					<li><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Open Query Builder Converter', ['controller' => 'QueryBuilder', 'action' => 'index'], ['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-primary']); ?></li>
 				</ul>
 			</div>
 		</div>
@@ -128,7 +128,7 @@ $this->assign('title', 'Test Helper Dashboard');
 			<div class="card-body">
 				<p class="card-text">Check plugin hooks and get improvement suggestions.</p>
 				<ul class="list-unstyled">
-					<li><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Check Plugin Hooks', ['controller' => 'Plugins'], ['escapeTitle' => false, 'class' => 'btn btn-sm btn-info text-white']); ?></li>
+					<li><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Check Plugin Hooks', ['controller' => 'Plugins'], ['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-sm btn-info text-white']); ?></li>
 				</ul>
 			</div>
 		</div>
@@ -143,8 +143,8 @@ $this->assign('title', 'Test Helper Dashboard');
 			<div class="card-body">
 				<p class="card-text">Tools for managing database migrations and snapshots.</p>
 				<ul class="list-unstyled mb-0">
-					<li class="mb-2"><?= $this->Html->link($this->TestHelper->icon('next') . ' Schema Drift Detection', ['controller' => 'Migrations', 'action' => 'driftCheck'], ['escapeTitle' => false, 'class' => 'btn btn-sm btn-warning']) ?></li>
-					<li><?= $this->Html->link($this->TestHelper->icon('next') . ' Migration Re-Do', ['controller' => 'Migrations'], ['escapeTitle' => false, 'class' => 'btn btn-sm btn-warning']) ?></li>
+					<li class="mb-2"><?= $this->Html->link($this->TestHelper->icon('next') . ' Schema Drift Detection', ['controller' => 'Migrations', 'action' => 'driftCheck'], ['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-sm btn-warning']) ?></li>
+					<li><?= $this->Html->link($this->TestHelper->icon('next') . ' Migration Re-Do', ['controller' => 'Migrations'], ['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-sm btn-warning']) ?></li>
 				</ul>
 			</div>
 		</div>
@@ -159,9 +159,9 @@ $this->assign('title', 'Test Helper Dashboard');
 			<div class="card-body">
 				<p class="card-text">Compare and validate your application structure.</p>
 				<ul class="list-unstyled mb-0">
-					<li class="mb-2"><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Compare Models & DB Tables', ['controller' => 'TestComparison'], ['escapeTitle' => false, 'class' => 'btn btn-sm btn-danger text-white']); ?></li>
-					<li class="mb-2"><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Compare Fixtures vs Tables', ['controller' => 'TestFixtures'], ['escapeTitle' => false, 'class' => 'btn btn-sm btn-danger text-white']); ?></li>
-					<li><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Audit Associations vs DB FKs', ['controller' => 'Associations'], ['escapeTitle' => false, 'class' => 'btn btn-sm btn-danger text-white']); ?></li>
+					<li class="mb-2"><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Compare Models & DB Tables', ['controller' => 'TestComparison'], ['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-sm btn-danger text-white']); ?></li>
+					<li class="mb-2"><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Compare Fixtures vs Tables', ['controller' => 'TestFixtures'], ['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-sm btn-danger text-white']); ?></li>
+					<li><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Audit Associations vs DB FKs', ['controller' => 'Associations'], ['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-sm btn-danger text-white']); ?></li>
 				</ul>
 			</div>
 		</div>
@@ -178,7 +178,7 @@ $this->assign('title', 'Test Helper Dashboard');
 			<div class="card-body">
 				<p class="card-text">View layout examples and HTML5 element demos.</p>
 				<ul class="list-unstyled">
-					<li><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Layouting and More', ['controller' => 'Demo'], ['escapeTitle' => false, 'class' => 'btn btn-sm btn-secondary text-white']); ?></li>
+					<li><?php echo $this->Html->link($this->TestHelper->icon('next') . ' Layouting and More', ['controller' => 'Demo'], ['escape' => false, 'escapeAttributes' => true, 'class' => 'btn btn-sm btn-secondary text-white']); ?></li>
 				</ul>
 			</div>
 		</div>

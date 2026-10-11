@@ -81,7 +81,7 @@ export default defineConfig({
       provider: 'local',
     },
     editLink: {
-      pattern: 'https://github.com/dereuromark/cakephp-test-helper/edit/master/docs/:path',
+      pattern: 'https://github.com/dereuromark/cakephp-test-helper/edit/cake6/docs/:path',
       text: 'Edit this page on GitHub',
     },
     footer: {

@@ -4,7 +4,7 @@ namespace TestHelper\Command;
 
 use Cake\Command\Command;
 use Cake\Console\Arguments;
-use Cake\Console\ConsoleIo;
+use Cake\Console\ConsoleIoInterface;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
 use Cake\Core\Exception\CakeException;
@@ -48,7 +48,7 @@ class FixtureCheckCommand extends Command {
 	 *
 	 * @var array<string, mixed>
 	 */
-	protected array $_config = [
+	protected array $config = [
 		'ignoreClasses' => [],
 	];
 
@@ -70,9 +70,9 @@ class FixtureCheckCommand extends Command {
 	protected Arguments $args;
 
 	/**
-	 * @var \Cake\Console\ConsoleIo
+	 * @var \Cake\Console\ConsoleIo|\Cake\Console\ConsoleIoInterface
 	 */
-	protected ConsoleIo $io;
+	protected ConsoleIoInterface $io;
 
 	/**
 	 * @inheritDoc
@@ -80,17 +80,17 @@ class FixtureCheckCommand extends Command {
 	public function initialize(): void {
 		parent::initialize();
 
-		$this->_config = (array)Configure::read('FixtureCheck') + $this->_config;
+		$this->config = (array)Configure::read('FixtureCheck') + $this->config;
 	}
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingNativeTypeHint
-	 * @param \Cake\Console\Arguments $args The command arguments.
-	 * @param \Cake\Console\ConsoleIo $io The console io
 	 * @return int|null|void The exit code or null for success
 	 */
-	public function execute(Arguments $args, ConsoleIo $io) {
-		parent::execute($args, $io);
+	public function execute() {
+		$args = $this->args;
+		$io = $this->io;
+		parent::execute();
 
 		$this->args = $args;
 		$this->io = $io;
@@ -115,7 +115,7 @@ class FixtureCheckCommand extends Command {
 				continue;
 			}
 
-			if (in_array($fixtureClass, $this->_config['ignoreClasses'])) {
+			if (in_array($fixtureClass, $this->config['ignoreClasses'])) {
 				continue;
 			}
 
@@ -176,9 +176,9 @@ class FixtureCheckCommand extends Command {
 			}
 		}
 
-		if (!empty($this->_config['ignoreClasses'])) {
+		if (!empty($this->config['ignoreClasses'])) {
 			$this->io->info('Ignored fixture classes:');
-			foreach ($this->_config['ignoreClasses'] as $ignoredFixture) {
+			foreach ($this->config['ignoreClasses'] as $ignoredFixture) {
 				$this->io->out(' * ' . $ignoredFixture);
 			}
 		}

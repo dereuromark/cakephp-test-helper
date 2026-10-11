@@ -24,7 +24,7 @@ class MigrationsControllerTest extends TestCase {
 	 * @param string $action
 	 * @return array<string, string>
 	 */
-	protected function url(string $action): array {
+	protected function actionUrl(string $action): array {
 		return ['plugin' => 'TestHelper', 'controller' => 'Migrations', 'action' => $action];
 	}
 
@@ -36,7 +36,7 @@ class MigrationsControllerTest extends TestCase {
 	public function testIndex(): void {
 		$this->disableErrorHandlerMiddleware();
 
-		$this->get($this->url('index'));
+		$this->get($this->actionUrl('index'));
 
 		$this->assertResponseCode(200);
 		$this->assertResponseContains('Default DB');
@@ -55,9 +55,9 @@ class MigrationsControllerTest extends TestCase {
 
 		$this->enableRetainFlashMessages();
 
-		$this->get($this->url('tmpDb'));
+		$this->get($this->actionUrl('tmpDb'));
 
-		$this->assertRedirect($this->url('index'));
+		$this->assertRedirect($this->actionUrl('index'));
 		$this->assertFlashMessage(__('The temporary database feature requires MySQL.'));
 	}
 
@@ -67,7 +67,7 @@ class MigrationsControllerTest extends TestCase {
 	public function testSnapshotRenders(): void {
 		$this->disableErrorHandlerMiddleware();
 
-		$this->get($this->url('snapshot'));
+		$this->get($this->actionUrl('snapshot'));
 
 		$this->assertResponseCode(200);
 	}
@@ -78,7 +78,7 @@ class MigrationsControllerTest extends TestCase {
 	public function testSnapshotTestRenders(): void {
 		$this->disableErrorHandlerMiddleware();
 
-		$this->get($this->url('snapshotTest'));
+		$this->get($this->actionUrl('snapshotTest'));
 
 		$this->assertResponseCode(200);
 	}
@@ -89,7 +89,7 @@ class MigrationsControllerTest extends TestCase {
 	public function testSeedTestRenders(): void {
 		$this->disableErrorHandlerMiddleware();
 
-		$this->get($this->url('seedTest'));
+		$this->get($this->actionUrl('seedTest'));
 
 		$this->assertResponseCode(200);
 	}
@@ -100,7 +100,7 @@ class MigrationsControllerTest extends TestCase {
 	public function testConfirmRenders(): void {
 		$this->disableErrorHandlerMiddleware();
 
-		$this->get($this->url('confirm'));
+		$this->get($this->actionUrl('confirm'));
 
 		$this->assertResponseCode(200);
 	}
@@ -111,7 +111,7 @@ class MigrationsControllerTest extends TestCase {
 	public function testCleanupRenders(): void {
 		$this->disableErrorHandlerMiddleware();
 
-		$this->get($this->url('cleanup'));
+		$this->get($this->actionUrl('cleanup'));
 
 		$this->assertResponseCode(200);
 	}
@@ -125,7 +125,7 @@ class MigrationsControllerTest extends TestCase {
 	public function testDriftCheckRenders(): void {
 		$this->disableErrorHandlerMiddleware();
 
-		$this->get($this->url('driftCheck'));
+		$this->get($this->actionUrl('driftCheck'));
 
 		$this->assertResponseCode(200);
 		$this->assertResponseContains('Schema Drift Detection');
@@ -139,7 +139,7 @@ class MigrationsControllerTest extends TestCase {
 	public function testDriftCheckWithConnectionParam(): void {
 		$this->disableErrorHandlerMiddleware();
 
-		$this->get($this->url('driftCheck') + ['?' => ['connection' => 'default']]);
+		$this->get($this->actionUrl('driftCheck') + ['?' => ['connection' => 'default']]);
 
 		$this->assertResponseCode(200);
 		$this->assertResponseContains('Schema Drift Detection');

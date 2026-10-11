@@ -76,7 +76,7 @@ class QueryBuilderGeneratorTest extends TestCase {
 				$rows = (function () use ($code): array {
 					eval($code);
 
-					return $query->disableHydration()->toArray();
+					return $query->enableHydration(false)->toArray();
 				})->call($table);
 				$this->assertSame([['label' => 'first']], $rows);
 			}
@@ -96,7 +96,7 @@ class QueryBuilderGeneratorTest extends TestCase {
 			$rows = (function () use ($code): array {
 				eval($code);
 
-				return $query->disableHydration()->toArray();
+				return $query->enableHydration(false)->toArray();
 			})->call($table);
 			$this->assertSame([
 				['label' => 'FIRST', 'size' => 9, 'value' => '  first  '],
@@ -118,7 +118,7 @@ class QueryBuilderGeneratorTest extends TestCase {
 			$rows = (function () use ($code): array {
 				eval($code);
 
-				return $query->disableHydration()->toArray();
+				return $query->enableHydration(false)->toArray();
 			})->call($table);
 			$this->assertSame([['label' => 'first', 'enabled' => 1, 'disabled' => 0, 'quoted' => 'NULL']], $rows);
 		} finally {
@@ -154,7 +154,7 @@ class QueryBuilderGeneratorTest extends TestCase {
 			$this->assertSame([
 				['id' => 1, 'title' => 'updated'],
 				['id' => 3, 'title' => 'third'],
-			], $table->find()->orderBy(['id' => 'ASC'])->disableHydration()->toArray());
+			], $table->find()->orderBy(['id' => 'ASC'])->enableHydration(false)->toArray());
 		} finally {
 			$connection->getDriver()->disconnect();
 		}
