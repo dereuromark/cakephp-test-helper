@@ -39,7 +39,7 @@ The web PHP process launches PHPUnit from the application root. The configured `
 
 Results include stdout and stderr. Tests run as the web-server user, so that account needs the same application configuration, database access, and file permissions as a CLI test run.
 
-Coverage uses PHPUnit's `--coverage-filter` option and writes reports under `webroot/coverage`. Install and enable Xdebug or PCOV in CLI PHP; selecting a driver in configuration does not install it. TestHelper sets Xdebug's coverage environment mode for the launched process. The legacy `coverage` setting no longer selects a driver. An unsuccessful coverage command displays its captured diagnostics when no report was created.
+Coverage uses PHPUnit's `--coverage-filter` option and writes reports under `webroot/coverage`. Install and enable Xdebug or PCOV in CLI PHP; selecting a driver in configuration does not install it. TestHelper sets Xdebug's coverage environment mode for the launched process. The legacy `coverage` setting no longer selects a driver. An unsuccessful coverage command displays its captured diagnostics and does not present an older report as the result of that failed run.
 
 The output directory is publicly served by many application web servers. Keep the developer backend and generated reports on a private development instance; remove reports when they are no longer needed.
 

@@ -79,7 +79,7 @@ CASE
 END AS status_label
 ```
 
-**Generated:**
+**Equivalent usage:**
 ```php
 $query->select(['status_label' => $query->newExpr()->case()
     ->when(['status' => 1])
@@ -98,7 +98,7 @@ SELECT * FROM users
 WHERE id IN (SELECT user_id FROM active_sessions)
 ```
 
-**Generated:**
+**Equivalent usage:**
 ```php
 $subquery1 = $this->find()
     ->select(['user_id'])
@@ -142,7 +142,7 @@ $query->leftJoin(['p' => 'posts'], 'p.user_id = u.id AND p.status = \'published\
 
 ### Multi-table UPDATE
 
-Detects UPDATE queries with JOINs and provides transaction-based approach:
+Detects UPDATE queries with JOINs and provides a transaction template. Define nonempty conditions for each table in `$conditionsByTable` before running it; the converter does not translate JOIN conditions into separate update filters automatically. Missing conditions stop the template before it writes rows.
 
 **SQL:**
 ```sql
@@ -152,11 +152,13 @@ SET u.last_login = NOW(), p.updated = NOW()
 WHERE u.id = 5
 ```
 
-**Generated:**
+**Equivalent usage:**
 ```php
-$this->getConnection()->transactional(function () {
-    $this->UsersTable->updateAll($userChanges, $userConditions);
-    $this->ProfilesTable->updateAll($profileChanges, $profileConditions);
+$this->getConnection()->transactional(function () use ($userChanges, $userConditions, $profileChanges, $profileConditions) {
+    $users = \Cake\ORM\TableRegistry::getTableLocator()->get('Users');
+    $profiles = \Cake\ORM\TableRegistry::getTableLocator()->get('Profiles');
+    $users->updateAll($userChanges, $userConditions);
+    $profiles->updateAll($profileChanges, $profileConditions);
 });
 ```
 
@@ -251,7 +253,7 @@ SELECT authors.id AS Authors__id, authors.name
 FROM authors AS Authors
 ```
 
-**Generated (simplified):**
+**Equivalent usage (simplified):**
 ```php
 $query->select(['Authors.id', 'Authors.name']);
 // TIP: ORM-style aliases detected. Consider using:
@@ -316,14 +318,14 @@ ORDER BY created DESC
 LIMIT 10
 ```
 
-**Generated:**
+**Equivalent usage:**
 ```php
 $query = $this->find()
     ->select(function (\Cake\ORM\Query\SelectQuery $query) {
         return [
-            'full_name' => $query->func()->concat(['first_name', "' '", 'last_name']),
-            'email_upper' => $query->func()->upper('email'),
-            'signup_year' => $query->func()->year(['created'])
+            'full_name' => $query->func()->concat([$query->identifier('first_name'), ' ', $query->identifier('last_name')]),
+            'email_upper' => $query->func()->upper([$query->identifier('email')]),
+            'signup_year' => $query->func()->year([$query->identifier('created')])
         ];
     })
     ->where(['active' => 1])
@@ -348,9 +350,10 @@ HAVING COUNT(p.id) > 5
 ORDER BY total_views DESC
 ```
 
-**Generated:**
+**Equivalent usage:**
 ```php
 $query = $this->find()
+    ->from(['u' => 'users'], true)
     ->select(function (\Cake\ORM\Query\SelectQuery $query) {
         return [
             'u.id',
@@ -379,7 +382,7 @@ SELECT id, name, 'admin' AS type FROM admins WHERE active = 1
 ORDER BY name
 ```
 
-**Generated:**
+**Equivalent usage:**
 ```php
 $query1 = $this->find()
     ->select(['id', 'name', 'type' => '\'user\''])

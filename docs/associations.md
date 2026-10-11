@@ -27,8 +27,8 @@ The audit runs in several layers.
 A symmetric diff between the foreign keys your associations imply and the foreign keys that
 actually exist in the database:
 
-* an association whose **owner column does not exist at all**, error; suggests an `addColumn()` migration line (a foreign key cannot be placed on a missing column)
-* an association whose **column exists but has no matching DB foreign-key constraint**, warning; suggests an `addForeignKey()` migration line
+* an association whose **owner column does not exist at all** reports an error and suggests an `addColumn()` migration line (a foreign key cannot be placed on a missing column)
+* an association whose **column exists but has no matching DB foreign-key constraint** reports a warning and suggests an `addForeignKey()` migration line
 * a **DB foreign key with no matching association**, suggests the `belongsTo`/`hasMany` call
 * a **target/column disagreement** between the two
 
@@ -36,8 +36,8 @@ actually exist in the database:
 
 Compares each declared foreign key's column type against the referenced (primary) key:
 
-* a **different type family** (e.g. `integer` referencing `uuid`) is an **error**, suggests a `changeColumn()` migration line aligning the column to its target
-* an **owner key narrower than the referenced key** (e.g. `integer` referencing `biginteger`) is a **warning**, it cannot hold every referenced value; same `changeColumn()` fix
+* a **different type family** (e.g. `integer` referencing `uuid`) is an **error** and suggests a `changeColumn()` migration line aligning the column to its target
+* an **owner key narrower than the referenced key** (e.g. `integer` referencing `biginteger`) is a **warning** because it cannot hold every referenced value; same `changeColumn()` fix
 * **matching non-integer keys** are an **info** hint that integer keys are generally preferred
 
 Silence the non-integer info hint with `TestHelper.associationAudit.preferIntegerKeys => false`
@@ -53,8 +53,8 @@ Compares the ORM `dependent` intent of a `hasMany`/`hasOne` against the matching
 key's `ON DELETE` rule (reported as **info**, since either side can legitimately own the
 cascade):
 
-* a `dependent` association whose DB FK uses `ON DELETE NO ACTION` won't cascade a delete issued **directly in SQL** (outside the ORM), suggests switching the FK to `ON DELETE CASCADE`, preserving the existing `ON UPDATE` rule
-* a DB `ON DELETE CASCADE` with a **non-`dependent`** association means the ORM won't fire child callbacks, suggests adding `'dependent' => true, 'cascadeCallbacks' => true` (both are needed; `dependent` alone uses a bulk `deleteAll()` that skips child callbacks)
+* a `dependent` association whose DB FK uses `ON DELETE NO ACTION` won't cascade a delete issued **directly in SQL** (outside the ORM). The audit suggests switching the FK to `ON DELETE CASCADE`, preserving the existing `ON UPDATE` rule
+* a DB `ON DELETE CASCADE` with a **non-`dependent`** association means the ORM won't fire child callbacks. The audit suggests adding `'dependent' => true, 'cascadeCallbacks' => true` (both are needed; `dependent` alone uses a bulk `deleteAll()` that skips child callbacks)
 
 `ON UPDATE` has no ORM-level equivalent and is not compared.
 

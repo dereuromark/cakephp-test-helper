@@ -1,5 +1,5 @@
 ---
-description: Overview of the TestHelper developer backend for CakePHP and its tools, plus installation steps.
+description: Try the TestHelper dashboard and its route-lookup tool.
 ---
 
 # Getting started

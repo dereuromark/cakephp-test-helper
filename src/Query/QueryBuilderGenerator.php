@@ -124,6 +124,14 @@ class QueryBuilderGenerator {
 		$code .= '$query = $this->find()';
 
 		$this->indentLevel = 1;
+		if (!empty($parsed['fromAlias']) && !empty($parsed['from'])) {
+			$alias = var_export($parsed['fromAlias'], true);
+			$table = var_export($parsed['from'], true);
+			$code .= "\n" . $this->indent() . "->from([$alias => $table], true)";
+			if ($parsed['fields'] === ['*']) {
+				$code .= "\n" . $this->indent() . '->select([' . var_export($parsed['fromAlias'] . '.*', true) . '])';
+			}
+		}
 
 		// Build table-to-alias mapping when ORM aliases are present
 		$tableAliasMap = [];
@@ -172,7 +180,7 @@ class QueryBuilderGenerator {
 							$cleanField = $this->convertOrmAliasedField($field);
 							$fields[] = "'" . $cleanField . "'";
 						} else {
-							$fields[] = "'" . $field['field'] . "' => '" . $field['alias'] . "'";
+							$fields[] = var_export($field['alias'], true) . ' => ' . var_export($field['field'], true);
 						}
 					} else {
 						$fields[] = "'" . $field . "'";
@@ -283,7 +291,11 @@ class QueryBuilderGenerator {
 	 * @return string Generated code
 	 */
 	protected function generateInsert(array $parsed): string {
-		$isBulkInsert = isset($parsed['values'][0]) && is_array($parsed['values'][0]);
+		$nestedValues = isset($parsed['values'][0]) && is_array($parsed['values'][0]);
+		$isBulkInsert = $nestedValues && count($parsed['values']) > 1;
+		if ($nestedValues && !$isBulkInsert) {
+			$parsed['values'] = $parsed['values'][0];
+		}
 
 		if ($isBulkInsert) {
 			return $this->generateBulkInsert($parsed);
@@ -418,41 +430,40 @@ class QueryBuilderGenerator {
 	 * @return string Generated code
 	 */
 	protected function generateMultiTableUpdate(array $parsed): string {
-		$code = "// Multi-table UPDATE with JOINs\n";
-		$code .= "// Note: CakePHP doesn't support multi-table updates directly\n";
-		$code .= "// Recommended approach: Update tables separately within a transaction\n\n";
-
-		$code .= "// Option 1: Transaction with separate updates (recommended)\n";
-		$code .= "\$this->getConnection()->transactional(function () {\n";
-
-		// Group SET clauses by table
+		$code = "// Multi-table UPDATE requires manually defined conditions for each table.\n";
+		$code .= "// Preserve the original JOIN and WHERE semantics in \$conditionsByTable.\n";
+		$tables = [$parsed['tableAlias'] ?? $parsed['table'] => $parsed['table']];
+		foreach ($parsed['joins'] ?? [] as $join) {
+			$tables[$join['alias'] ?? $join['table']] = $join['table'];
+		}
 		$tableUpdates = [];
 		foreach ($parsed['set'] as $field => $value) {
-			// Extract table from field (e.g., "users.last_login" -> "users")
 			if (str_contains((string)$field, '.')) {
 				[$table, $fieldName] = explode('.', (string)$field, 2);
-				$tableUpdates[$table][$fieldName] = $value;
 			} else {
-				$tableUpdates[$parsed['table']][$field] = $value;
+				$table = $parsed['tableAlias'] ?? $parsed['table'];
+				$fieldName = $field;
 			}
+			$tableUpdates[$table][$fieldName] = $value;
 		}
-
-		foreach ($tableUpdates as $table => $fields) {
-			$code .= '    // Update ' . $table . "\n";
-			$code .= '    $this->' . $this->tableNameToAssociation($table) . "Table = \$this->fetchTable('" . $this->tableNameToAssociation($table) . "');\n";
-			$code .= '    $this->' . $this->tableNameToAssociation($table) . "Table->updateAll([\n";
+		foreach ($tableUpdates as $alias => $fields) {
+			$key = var_export($alias, true);
+			$code .= "if (empty(\$conditionsByTable[$key])) {\n";
+			$code .= "    throw new \\LogicException('Define table-specific update conditions before running this example.');\n}\n";
+		}
+		$code .= "\n\$this->getConnection()->transactional(function () use (\$conditionsByTable) {\n";
+		foreach ($tableUpdates as $alias => $fields) {
+			$tableName = var_export($tables[$alias] ?? $alias, true);
+			$key = var_export($alias, true);
+			$code .= "    \$table = new \\Cake\\ORM\\Table(['table' => $tableName, 'connection' => \$this->getConnection()]);\n";
+			$code .= "    \$query = \$table->updateQuery();\n    \$query->set([\n";
 			foreach ($fields as $field => $value) {
-				$code .= "        '" . $field . "' => " . $value . ",\n";
+				$code .= '        ' . var_export($field, true) . ' => ' . $this->formatSetValue($value) . ",\n";
 			}
-			$code .= "    ], [/* conditions */]);\n\n";
+			$code .= "    ])->where(\$conditionsByTable[$key])->execute();\n\n";
 		}
 
-		$code .= "});\n\n";
-
-		$code .= "// Option 2: Raw SQL (if absolutely necessary)\n";
-		$code .= "// \$connection = \$this->getConnection();\n";
-
-		return $code . '// $connection->execute("UPDATE ... JOIN ... SET ... WHERE ...");';
+		return $code . '});';
 	}
 
 	/**
@@ -1279,8 +1290,8 @@ class QueryBuilderGenerator {
 			return $this->formatFunction($arg);
 		}
 
-		// Otherwise, it's a field name - quote it
-		return "'" . trim($arg, '`"\'') . "'";
+		// Keep column arguments as identifiers rather than bound string values.
+		return '$query->identifier(' . var_export(trim($arg, '`"'), true) . ')';
 	}
 
 	/**
@@ -1372,7 +1383,7 @@ class QueryBuilderGenerator {
 	protected function formatSimpleStringFunction(string $funcName, string $argsStr): string {
 		$arg = $this->formatFunctionArg($argsStr);
 
-		return '$query->func()->' . $funcName . '(' . $arg . ')';
+		return '$query->func()->' . $funcName . '([' . $arg . '])';
 	}
 
 	/**
@@ -1401,7 +1412,7 @@ class QueryBuilderGenerator {
 		$arg = $this->formatFunctionArg($argsStr);
 		$funcName = strtolower($funcName);
 
-		return '$query->func()->' . $funcName . '(' . $arg . ')';
+		return '$query->func()->' . $funcName . '([' . $arg . '])';
 	}
 
 	/**
@@ -1420,7 +1431,7 @@ class QueryBuilderGenerator {
 		$field = $this->formatFunctionArg($args[0]);
 		$format = $args[1];
 
-		return "\$query->func()->datePart('format', [$field, $format]) // TODO: Verify format string";
+		return "\$query->func()->date_format([$field, $format])";
 	}
 
 	/**
