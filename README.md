@@ -1,5 +1,5 @@
 # CakePHP TestHelper plugin
-[![CI](https://github.com/dereuromark/cakephp-test-helper/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/dereuromark/cakephp-test-helper/actions/workflows/ci.yml?query=branch%3Amaster)
+[![CI](https://github.com/dereuromark/cakephp-test-helper/actions/workflows/ci.yml/badge.svg?branch=cake6)](https://github.com/dereuromark/cakephp-test-helper/actions/workflows/ci.yml?query=branch%3Amaster)
 [![Coverage Status](https://img.shields.io/codecov/c/github/dereuromark/cakephp-test-helper/master.svg)](https://codecov.io/github/dereuromark/cakephp-test-helper/branch/master)
 [![PHPStan](https://img.shields.io/badge/PHPStan-level%208-brightgreen.svg?style=flat)](https://phpstan.org/)
 [![Latest Stable Version](https://poser.pugx.org/dereuromark/cakephp-test-helper/v/stable.svg)](https://packagist.org/packages/dereuromark/cakephp-test-helper)
@@ -7,6 +7,10 @@
 [![License](https://poser.pugx.org/dereuromark/cakephp-test-helper/license.svg)](LICENSE)
 [![Total Downloads](https://poser.pugx.org/dereuromark/cakephp-test-helper/d/total)](https://packagist.org/packages/dereuromark/cakephp-test-helper)
 [![Coding Standards](https://img.shields.io/badge/cs-PSR--2--R-purple.svg?style=flat-square)](https://github.com/php-fig-rectified/fig-rectified-standards)
+
+This branch targets CakePHP 6 and PHP 8.5 or later. Use the `cake6` branches of companion CakePHP plugins during development.
+
+Composer applications consuming this development branch must set `minimum-stability` to `dev` and `prefer-stable` to `true`, then require this plugin as `dev-cake6`. Companion plugins also use their `cake6` branches. The published documentation website covers stable CakePHP 5 releases; use this branch's `docs/` directory for the upgrade documentation.
 
 Developer tools for browsing application classes, generating tests and fixtures, running PHPUnit, and checking database associations.
 

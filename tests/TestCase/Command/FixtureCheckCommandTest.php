@@ -2,12 +2,10 @@
 
 namespace TestHelper\Test\TestCase\Command;
 
-use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 use TestHelper\Command\FixtureCheckCommand;
-use TestHelper\Test\TestSuite\ConsoleOutput;
 
 /**
  * @uses \TestHelper\Command\FixtureCheckCommand
@@ -23,10 +21,6 @@ class FixtureCheckCommandTest extends TestCase {
 		'plugin.TestHelper.Posts',
 	];
 
-	protected ConsoleOutput $out;
-
-	protected ConsoleOutput $err;
-
 	protected FixtureCheckCommand $FixtureCheckCommand;
 
 	/**
@@ -37,8 +31,8 @@ class FixtureCheckCommandTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$this->out = new ConsoleOutput();
-		$this->err = new ConsoleOutput();
+		$this->out = new StubConsoleOutput();
+		$this->err = new StubConsoleOutput();
 		$this->FixtureCheckCommand = new FixtureCheckCommand();
 	}
 
@@ -58,8 +52,7 @@ class FixtureCheckCommandTest extends TestCase {
 	 */
 	public function testDiff() {
 		$io = new ConsoleIo($this->out, $this->err);
-		$args = new Arguments([], [], []);
-		$this->FixtureCheckCommand->execute($args, $io);
+		$this->FixtureCheckCommand->run([], $io);
 
 		$output = $this->out->output();
 		$this->assertNotEmpty($output, $output);

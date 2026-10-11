@@ -24,12 +24,12 @@ class TestHelperPlugin extends BasePlugin {
 	public function routes(RouteBuilder $routes): void {
 		$routes->plugin(
 			'TestHelper',
-			['path' => '/test-helper'],
 			function (RouteBuilder $routes): void {
 				$routes->connect('/', ['controller' => 'TestHelper', 'action' => 'index']);
 
 				$routes->fallbacks();
 			},
+			['path' => '/test-helper'],
 		);
 	}
 

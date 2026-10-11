@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace TestHelper\Command\Linter;
 
-use Cake\Console\ConsoleIo;
+use Cake\Console\ConsoleIoInterface;
 
 interface LinterTaskInterface {
 
@@ -25,12 +25,12 @@ interface LinterTaskInterface {
 	/**
      * Run the linter task
      *
-     * @param \Cake\Console\ConsoleIo $io Console IO
+     * @param \Cake\Console\ConsoleIoInterface $io Console IO
      * @param array<string, mixed> $options Options including paths, fix mode, etc.
      *
      * @return int Number of issues found
      */
-	public function run(ConsoleIo $io, array $options = []): int;
+	public function run(ConsoleIoInterface $io, array $options = []): int;
 
 	/**
      * Get default paths to check

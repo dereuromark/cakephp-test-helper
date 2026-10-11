@@ -78,7 +78,7 @@ class TestHelperControllerTest extends TestCase {
 
 		$this->assertResponseCode(200);
 
-		$content = (string)$this->_response->getBody();
+		$content = (string)$this->response->getBody();
 		$expected = <<<TXT
     'prefix' => null,
     'plugin' => null,
@@ -103,7 +103,7 @@ TXT;
 
 		$this->assertResponseCode(200);
 
-		$content = (string)$this->_response->getBody();
+		$content = (string)$this->response->getBody();
 		$expected = <<<TXT
     'prefix' => null,
     'plugin' => null,

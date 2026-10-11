@@ -18,7 +18,7 @@ class CollectorComponent extends Component {
 	/**
 	 * @var array<string, mixed>
 	 */
-	protected array $_defaultConfig = [
+	protected array $defaultConfig = [
 		'blacklist' => [
 			'DebugKit',
 		],

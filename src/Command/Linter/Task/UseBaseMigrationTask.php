@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace TestHelper\Command\Linter\Task;
 
-use Cake\Console\ConsoleIo;
+use Cake\Console\ConsoleIoInterface;
 use TestHelper\Command\Linter\AbstractLinterTask;
 
 class UseBaseMigrationTask extends AbstractLinterTask {
@@ -37,7 +37,7 @@ class UseBaseMigrationTask extends AbstractLinterTask {
      *
      * @param array<string, mixed> $options
      */
-	public function run(ConsoleIo $io, array $options = []): int {
+	public function run(ConsoleIoInterface $io, array $options = []): int {
 		$paths = $options['paths'] ?? $this->defaultPaths();
 		$files = $this->getFiles($paths, '*.php');
 		$verbose = $options['verbose'] ?? false;
