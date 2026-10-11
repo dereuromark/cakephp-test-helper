@@ -2,7 +2,7 @@
 description: Overview of the TestHelper developer backend for CakePHP and its tools, plus installation steps.
 ---
 
-# Overview
+# Getting started
 
 TestHelper adds a browseable developer backend at `/test-helper` for your CakePHP app,
 collecting several day-to-day tools in one place.
@@ -10,7 +10,7 @@ collecting several day-to-day tools in one place.
 ![TestHelper dashboard](img/dashboard.png)
 
 ::: tip
-Everything here is a development aid — mount it behind your admin/dev gate. See
+These tools run application tests and can generate files. Keep them behind your development access gate. See
 [Configuration](/configuration) for the authorization and back-link options.
 :::
 
@@ -26,32 +26,26 @@ Everything here is a development aid — mount it behind your admin/dev gate. Se
 | [Plugin Info](/plugins) | Inspect plugins, their hooks, and suggested improvements |
 | [Custom Linter Tasks](/linter) | Project-specific code-quality checks via `bin/cake linter` |
 
-## Requirements
+## Try the backend
 
-* PHP 8.2+
-* CakePHP 5.1+
+Complete [Installation](/installation) first, then open `/test-helper` in your local application. The dashboard lists available class types and links to the tools.
 
-## Installation
+Start with the **Reverse URL Lookup** form on the dashboard: enter the path of an existing application route, such as `/test-helper`, and submit it. The result shows the route parameters that CakePHP matched. This checks routing without running tests or modifying database tables.
+
+For a first CLI check, run:
 
 ```bash
-composer require --dev dereuromark/cakephp-test-helper
+bin/cake linter --help
 ```
 
-Load the plugin (development only):
+Review [Custom Linter Tasks](/linter) before selecting tasks. Some tasks can update files; inspect their options and use a disposable checkout for the first run.
 
-```php
-// src/Application.php
-public function bootstrap(): void
-{
-    parent::bootstrap();
+## Access and optional tools
 
-    if (Configure::read('debug')) {
-        $this->addPlugin('TestHelper');
-    }
-}
-```
+The backend uses its own controller base, so it does not inherit your application's AppController authentication callbacks. Application middleware still applies. Debug-only loading limits where the routes exist; it does not authenticate visitors to a publicly reachable development server.
 
-Then browse to `/test-helper`.
+Keep the backend on a private development instance or behind your application middleware access gate. With the Authorization plugin, TestHelper automatically skips authorization checks while debug is enabled; `TestHelper.ignoreAuthorization` also skips them. See [Configuration](/configuration) for these settings.
 
-See [Configuration](/configuration) for the available options and
-[Troubleshooting](/troubleshooting) if something doesn't render.
+The dashboard and URL tools do not require Bake or a coverage extension. Generating tests needs Bake; browser test execution needs PHPUnit and permission to launch PHP processes. Database tools need the relevant database connection. See [Installation](/installation#optional-tools) for the optional packages.
+
+See [Troubleshooting](/troubleshooting) if the backend does not render.

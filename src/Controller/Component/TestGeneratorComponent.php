@@ -6,6 +6,7 @@ use Cake\Controller\Component;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
 use DirectoryIterator;
+use InvalidArgumentException;
 
 /**
  * @property \Cake\Controller\Component\FlashComponent $Flash
@@ -30,26 +31,24 @@ class TestGeneratorComponent extends Component {
 			[$prefix, $name] = explode('/', $name, 2);
 		}
 
-		if (preg_match("#$type$#", $name, $matches)) {
+		if ($type !== '' && str_ends_with($name, $type)) {
 			$name = substr($name, 0, -strlen($type));
 		}
 
-		$arguments = 'test ' . $type . ' ' . $name . ' -q';
+		$arguments = 'test ' . escapeshellarg($type) . ' ' . escapeshellarg($name) . ' -q';
 		if (Plugin::isLoaded('Setup')) {
 			$arguments .= ' -t Setup';
 		}
 		if ($plugin) {
-			$arguments .= ' -p ' . $plugin;
+			$arguments .= ' -p ' . escapeshellarg($plugin);
 		}
 		if ($prefix) {
-			$arguments .= ' --prefix=' . $prefix;
+			$arguments .= ' --prefix=' . escapeshellarg($prefix);
 		}
-		foreach ($options as $key => $option) {
-			$arguments .= '--' . $key . ' ' . $option;
-		}
+		$arguments .= $this->buildOptions($options);
 
-		$command = 'cd ' . ROOT . ' && ' . $this->getPhpBinary() . ' bin/cake.php bake ' . $arguments;
-		exec($command, $output, $return);
+		$command = 'cd ' . escapeshellarg(ROOT) . ' && ' . escapeshellarg($this->getPhpBinary()) . ' bin/cake.php bake ' . $arguments;
+		[$output, $return] = $this->executeCommand($command);
 
 		if ($return !== 0) {
 			$this->Flash->error('Error code ' . $return . ': ' . print_r($output, true) . ' [' . $command . ']');
@@ -70,20 +69,18 @@ class TestGeneratorComponent extends Component {
 	 * @return bool
 	 */
 	public function generateFixture($name, $plugin, array $options = []) {
-		$arguments = 'fixture ' . $name . ' -q';
+		$arguments = 'fixture ' . escapeshellarg($name) . ' -q';
 		if (Plugin::isLoaded('Setup')) {
 			$arguments .= ' -t Setup';
 		}
 		if ($plugin) {
-			$arguments .= ' -p ' . $plugin;
+			$arguments .= ' -p ' . escapeshellarg($plugin);
 		}
-		foreach ($options as $key => $option) {
-			$arguments .= '--' . $key . ' ' . $option;
-		}
+		$arguments .= $this->buildOptions($options);
 
-		$command = 'cd ' . ROOT . ' && ' . $this->getPhpBinary() . ' bin/cake.php bake ' . $arguments;
+		$command = 'cd ' . escapeshellarg(ROOT) . ' && ' . escapeshellarg($this->getPhpBinary()) . ' bin/cake.php bake ' . $arguments;
 		if (PHP_SAPI !== 'cli') {
-			exec($command, $output, $return);
+			[$output, $return] = $this->executeCommand($command);
 		} else {
 			$return = 0;
 			$output = 'CLI dry-run: `' . $command . '`';
@@ -125,7 +122,7 @@ class TestGeneratorComponent extends Component {
 			foreach ($iterator as $fileInfo) {
 				if ($fileInfo->isDir() && !$fileInfo->isDot()) {
 					$subFolder = $fileInfo->getFilename();
-					$subIterator = new DirectoryIterator($folder . $subFolder);
+					$subIterator = new DirectoryIterator(rtrim($folder, DS) . DS . $subFolder);
 					foreach ($subIterator as $subFileInfo) {
 						if ($subFileInfo->isFile() && $subFileInfo->getExtension() === 'php') {
 							$name = $subFileInfo->getBasename('.php');
@@ -144,6 +141,38 @@ class TestGeneratorComponent extends Component {
 	 */
 	protected function getPhpBinary(): string {
 		return Configure::read('TestHelper.php') ?: 'php';
+	}
+
+	/**
+	 * @param array<string, mixed> $options
+	 * @return string
+	 */
+	protected function buildOptions(array $options): string {
+		$arguments = '';
+		foreach ($options as $key => $value) {
+			if (!preg_match('/^[a-z][a-z0-9-]*$/i', $key) || (!is_scalar($value) && $value !== null)) {
+				throw new InvalidArgumentException('Invalid bake option: ' . $key);
+			}
+			if ($value === false || $value === null) {
+				continue;
+			}
+			$arguments .= ' --' . $key;
+			if ($value !== true) {
+				$arguments .= ' ' . escapeshellarg((string)$value);
+			}
+		}
+
+		return $arguments;
+	}
+
+	/**
+	 * @param string $command
+	 * @return array{list<string>, int}
+	 */
+	protected function executeCommand(string $command): array {
+		exec($command . ' 2>&1', $output, $code);
+
+		return [$output, $code];
 	}
 
 }

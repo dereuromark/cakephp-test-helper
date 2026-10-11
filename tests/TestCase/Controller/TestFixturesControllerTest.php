@@ -42,7 +42,7 @@ class TestFixturesControllerTest extends TestCase {
 
 		$flash = (new TestSession($_SESSION))->readOrFail('Flash.flash');
 		$flash = Hash::combine($flash, '{n}.element', '{n}.message');
-		$this->assertTextContains('bake fixture MyCoolRecords -q -p Tools', $flash['flash/info']);
+		$this->assertTextContains("bake fixture 'MyCoolRecords' -q -p 'Tools'", $flash['flash/info']);
 		$this->assertSame('MyCoolRecordsFixture generated.', $flash['flash/success']);
 	}
 

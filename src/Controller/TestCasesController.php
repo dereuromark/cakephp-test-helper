@@ -501,27 +501,7 @@ class TestCasesController extends TestHelperAppController {
 	 * @return bool
 	 */
 	protected function generate($name, $type, $plugin, array $options = []) {
-		$arguments = 'test ' . $type . ' ' . $name . ' -q';
-		if (Plugin::isLoaded('Setup')) {
-			$arguments .= ' -t Setup';
-		}
-		if ($plugin) {
-			$arguments .= ' -p ' . $plugin;
-		}
-		foreach ($options as $key => $option) {
-			$arguments .= '--' . $key . ' ' . $option;
-		}
-
-		$command = 'cd ' . ROOT . ' && ' . $this->getPhpBinary() . ' bin/cake.php bake ' . $arguments;
-		exec($command, $output, $return);
-
-		if ($return !== 0) {
-			$this->Flash->error('Error code ' . $return . ': ' . print_r($output, true) . ' [' . $command . ']');
-		}
-
-		$this->Flash->success((string)json_encode($output));
-
-		return $return === 0;
+		return $this->TestGenerator->generate((string)$name, (string)$type, $plugin, $options);
 	}
 
 	/**

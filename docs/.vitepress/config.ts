@@ -17,7 +17,8 @@ function docsSidebar() {
     {
       text: 'Guide',
       items: [
-        { text: 'Overview', link: '/guide' },
+        { text: 'Installation', link: '/installation' },
+        { text: 'Getting started', link: '/guide' },
         { text: 'Configuration', link: '/configuration' },
         { text: 'Troubleshooting', link: '/troubleshooting' },
       ],
@@ -54,7 +55,8 @@ export default defineConfig({
   themeConfig: {
     logo: '/logo.svg',
     nav: [
-      { text: 'Guide', link: '/guide', activeMatch: '/(guide|configuration|troubleshooting)' },
+      { text: 'Installation', link: '/installation' },
+      { text: 'Getting started', link: '/guide', activeMatch: '/(guide|configuration|troubleshooting)' },
       {
         text: 'Tools',
         items: toolItems(),

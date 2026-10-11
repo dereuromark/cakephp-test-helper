@@ -5,6 +5,7 @@ namespace TestHelper\Controller\Component;
 use Cake\Controller\Component;
 use Cake\Core\Configure;
 use RuntimeException;
+use function Cake\Core\h;
 
 class TestRunnerComponent extends Component {
 
@@ -20,21 +21,19 @@ class TestRunnerComponent extends Component {
 		}
 
 		$command = $this->getCommand();
-		$command .= ' ' . $file;
+		$command .= ' ' . escapeshellarg($file);
 
 		if ($filter) {
 			// Escape filter for shell and add --filter option
 			$command .= ' --filter ' . escapeshellarg($filter);
 		}
 
-		$command = str_replace(['/', '\\'], DS, $command);
-		chdir(ROOT);
-		exec($command, $output, $res);
+		[$output, $res] = $this->executeCommand($command);
 
 		return [
 			'command' => $command,
 			'content' => $output,
-			'output' => '<h2>Result</h2>' . implode('<br>', $output),
+			'output' => '<h2>Result</h2>' . implode('<br>', array_map(h(...), $output)),
 			'code' => $res,
 		];
 	}
@@ -53,28 +52,27 @@ class TestRunnerComponent extends Component {
 		$testFile = ROOT . DS . 'webroot/coverage/src/' . $type . '/' . $name . '.php.html';
 		$testFile = str_replace(['/', '\\'], DS, $testFile);
 
-		if (Configure::read('TestHelper.coverage') !== 'xdebug') {
-			$command = 'XDEBUG_MODE=coverage ' . $this->getPhpBinary() . ' -d ' . ROOT . ' ' . $command;
-		}
+		$command = 'XDEBUG_MODE=coverage ' . $command;
 
-		$command .= ' ' . $file;
-		$command .= ' --log-junit webroot/coverage/unitreport.xml --coverage-html webroot/coverage --coverage-clover webroot/coverage/coverage.xml --include src/' . $type . '/';
-		$command = str_replace(['/', '\\'], DS, $command);
+		$command .= ' ' . escapeshellarg($file);
+		$command .= ' --log-junit webroot/coverage/unitreport.xml --coverage-html webroot/coverage --coverage-clover webroot/coverage/coverage.xml --coverage-filter ' . escapeshellarg('src/' . $type . '/');
 
+		$commandOutput = [];
+		$code = null;
 		if (!file_exists($testFile) || $force) {
-			chdir(ROOT);
-			exec($command, $output, $res);
+			[$commandOutput, $code] = $this->executeCommand($command);
 		}
 
 		$url = str_replace('\\', '/', '/coverage/src/' . $type . '/' . $name . '.php.html');
 
 		$fileExists = file_exists($testFile);
 		if ($fileExists) {
-			$output = <<<HTML
-<a href="$url" target="_blank">$file</a>
-HTML;
+			$output = '<a href="' . h($url) . '" target="_blank">' . h($file) . '</a>';
 		} else {
 			$output = '<i>Coverage file could not be created, coverage driver issues?</i>';
+			if ($commandOutput) {
+				$output .= '<pre>' . h(implode(PHP_EOL, $commandOutput)) . '</pre>';
+			}
 		}
 
 		return [
@@ -84,6 +82,8 @@ HTML;
 			'testFileExists' => $fileExists,
 			'content' => $fileExists ? file_get_contents($testFile) : null,
 			'output' => '<h2>Coverage-Result</h2>' . $output,
+			'code' => $code,
+			'processOutput' => $commandOutput,
 		];
 	}
 
@@ -96,10 +96,10 @@ HTML;
 		}
 
 		if (file_exists(ROOT . DS . 'phpunit.phar')) {
-			return $this->getPhpBinary() . ' phpunit.phar';
+			return escapeshellarg($this->getPhpBinary()) . ' phpunit.phar';
 		}
 
-		return 'vendor/bin/phpunit';
+		return escapeshellarg($this->getPhpBinary()) . ' vendor/bin/phpunit';
 	}
 
 	/**
@@ -107,6 +107,24 @@ HTML;
 	 */
 	protected function getPhpBinary(): string {
 		return Configure::read('TestHelper.php') ?: 'php';
+	}
+
+	/**
+	 * @param string $command
+	 * @return array{list<string>, int}
+	 */
+	protected function executeCommand(string $command): array {
+		$directory = getcwd();
+		try {
+			chdir(ROOT);
+			exec($command . ' 2>&1', $output, $code);
+
+			return [$output, $code];
+		} finally {
+			if ($directory !== false) {
+				chdir($directory);
+			}
+		}
 	}
 
 }

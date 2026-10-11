@@ -12,6 +12,7 @@ phpunit.xml.dist export-ignore
 .editorconfig export-ignore
 tests/test_app/ export-ignore
 tests/bootstrap.php export-ignore
-.github/
-phpcs.xml
-phpstan.neon
+.github/ export-ignore
+docs/ export-ignore
+phpcs.xml export-ignore
+phpstan.neon export-ignore

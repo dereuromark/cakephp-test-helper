@@ -8,21 +8,14 @@
 [![Total Downloads](https://poser.pugx.org/dereuromark/cakephp-test-helper/d/total)](https://packagist.org/packages/dereuromark/cakephp-test-helper)
 [![Coding Standards](https://img.shields.io/badge/cs-PSR--2--R-purple.svg?style=flat-square)](https://github.com/php-fig-rectified/fig-rectified-standards)
 
-Browser based addons for your test driven development.
+Developer tools for browsing application classes, generating tests and fixtures, running PHPUnit, and checking database associations.
 
-Note: This branch is for **CakePHP 5.1+**. See [version map](https://github.com/dereuromark/cakephp-test-helper/wiki#cakephp-version-map) for details.
+Read the [documentation website](https://dereuromark.github.io/cakephp-test-helper/), starting with [Installation](https://dereuromark.github.io/cakephp-test-helper/installation) and [Getting started](https://dereuromark.github.io/cakephp-test-helper/guide). See the [version map](https://github.com/dereuromark/cakephp-test-helper/wiki#cakephp-version-map) for other CakePHP branches.
 
-## Motivation
-After 2.x=>3.x, the "web-tester" has been removed. It was, for certain cases, however, quite useful.
-This aims to bring back a part of it.
-
-The CLI also doesn't allow a good overview. Even with auto-complete, you have to type almost everything out.
-With a browser backend generating tests or running them is just a simple mouse click.
-
-You have an overview of your classes and the test classes to it. If there is one missing, you can easily "bake" it from this web backend. It internally uses [Bake](https://github.com/cakephp/bake/) plugin as well as your preferred theme.
+The web backend uses its own controller base. Keep it on a private development instance or behind application middleware access controls.
 
 ### Further useful addons
-* **SQL to Query Builder Converter** - Convert raw SQL to CakePHP Query Builder code with full features
+* **SQL to Query Builder Converter** - Convert supported SQL statements to CakePHP Query Builder code
 * URL array generation from string URLs (respects routing, so it is basically also a reverse lookup)
 * Fixture validation tool (compares actual DB with the schema files: fields and attributes, constraints and indexes)
 * Model/entity/table comparison overview.
@@ -30,121 +23,12 @@ You have an overview of your classes and the test classes to it. If there is one
 * Association vs DB foreign-key audit (declared associations compared against actual DB constraints).
 * Custom linter tasks for project-specific code quality checks.
 
-![Dashboard](docs/img/dashboard.png)
+![Dashboard](https://raw.githubusercontent.com/dereuromark/cakephp-test-helper/master/docs/img/dashboard.png)
 
-## Installation
+## Documentation
 
-You can install this plugin into your CakePHP application using [composer](https://getcomposer.org):
-```
-composer require --dev dereuromark/cakephp-test-helper
-```
-
-Note: This is not meant for production, so make sure you use the `--dev` flag and install it as development-only tool.
-
-## Setup
-
-Load the plugin:
-```
-bin/cake plugin load TestHelper --only-debug
-```
-
-This will also load the routes.
-
-### Authorization Plugin
-
-If you are using the [CakePHP Authorization plugin](https://github.com/cakephp/authorization), you need to configure TestHelper to bypass authorization checks. Add this to your `config/bootstrap.php`:
-
-```php
-Configure::write('TestHelper.ignoreAuthorization', true);
-```
-
-This is similar to how DebugKit handles authorization and is necessary to prevent `AuthorizationRequiredException` errors when accessing TestHelper routes.
-
-### non-dev mode
-In certain apps it can be useful to have some of the helper functionality available also for staging and prod.
-Here you must make sure then to not load the routes, though:
-```php
-$this->addPlugin('TestHelper', ['routes' => Configure::read('debug')]);
-```
-And here you must use `composer require` without `--dev` flag then.
-
-## Usage
-Navigate to `/test-helper` backend and select the app or plugin you want to check.
-You can then with a single click
-- check what classes do not yet have a test case
-- generate a test case for them (or copy and paste a generated code into CLI)
-- run test case
-- check coverage on a tested class, as overall and in detail
-
-Supported class types:
-
-* [x] Controllers
-* [x] Models (Tables/Entities)
-* [x] Components
-* [x] Behavior
-* [x] Helpers
-* [x] Commands
-* [x] Tasks
-* [x] Cells
-* [x] CommandHelpers
-* [x] Forms
-* [x] Mailers
-
-Full documentation: https://dereuromark.github.io/cakephp-test-helper/
-
-## Custom Linter Tasks
-
-The plugin includes a flexible linter system for running project-specific code quality checks.
-
-```bash
-bin/cake linter
-```
-
-See [Linter Documentation](docs/linter.md) for details on creating custom tasks, configuration, and included default tasks.
-
-## SQL to Query Builder Converter
-
-Convert raw SQL queries to CakePHP Query Builder code with just a click! Navigate to `/test-helper/query-builder` to access this powerful tool.
-
-**Features:**
-* ✅ **Comprehensive SQL Support**: SELECT, INSERT, UPDATE, DELETE with complex conditions
-* ✅ **String Functions**: CONCAT, SUBSTRING, TRIM, UPPER, LOWER, COALESCE
-* ✅ **Date Functions**: NOW, YEAR, MONTH, DATEDIFF, DATE_FORMAT
-* ✅ **Advanced Features**: CASE expressions, subqueries, window functions, CTEs
-* ✅ **JOINs**: INNER, LEFT, RIGHT with complex ON conditions
-* ✅ **Syntax Highlighting**: Prism.js for SQL and PHP code
-* ✅ **Production Ready**: Generates clean, idiomatic CakePHP code
-
-**Example:**
-```sql
-SELECT CONCAT(first_name, ' ', last_name) AS full_name,
-       COUNT(posts.id) AS post_count
-FROM users
-LEFT JOIN posts ON posts.user_id = users.id
-WHERE users.active = 1
-GROUP BY users.id
-HAVING COUNT(posts.id) > 5
-```
-
-Instantly converts to:
-```php
-$query = $this->find()
-    ->select(function ($query) {
-        return [
-            'full_name' => $query->func()->concat(['first_name', "' '", 'last_name']),
-            'post_count' => $query->func()->count('posts.id')
-        ];
-    })
-    ->leftJoin(['Posts' => 'posts'], 'posts.user_id = users.id')
-    ->where(['users.active' => 1])
-    ->groupBy(['users.id'])
-    ->having(['COUNT(posts.id) >' => 5]);
-```
-
-See [SQL Converter Documentation](docs/sql-converter.md) for complete guide and examples.
-
-## Limitations
-Executing the tests and coverage from the web backend usually can not work for long-running tests due to the timeout issues.
-Make sure you raise the apache/nginx settings here if you want to use this functionality here.
-
-The focus is on providing an overview and quickly generating the desired classes with a single mouse click.
+- [Installation](https://dereuromark.github.io/cakephp-test-helper/installation)
+- [Getting started](https://dereuromark.github.io/cakephp-test-helper/guide)
+- [Configuration](https://dereuromark.github.io/cakephp-test-helper/configuration)
+- [Test runner](https://dereuromark.github.io/cakephp-test-helper/test-runner)
+- [Custom linter tasks](https://dereuromark.github.io/cakephp-test-helper/linter)
