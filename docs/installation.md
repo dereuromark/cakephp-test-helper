@@ -1,10 +1,11 @@
 ---
 
-This development branch requires PHP 8.5 and CakePHP 6. The application must allow development stability for unreleased framework and companion packages. Keep stable packages preferred.
 description: Install and load TestHelper for a CakePHP development application.
 ---
 
 # Installation
+
+This development branch requires PHP 8.5 and CakePHP 6. The application must allow development stability for unreleased framework and companion packages. Keep stable packages preferred.
 
 Install the plugin as a development dependency from your CakePHP application's root:
 
@@ -49,3 +50,7 @@ The backend executes tests as the web-server user. That process needs access to 
 ## CLI use outside development
 
 If you deliberately need CLI functionality in an environment installed without development dependencies, install TestHelper as a regular dependency and register it with `['routes' => false]`. This keeps its web backend disabled. Do not expose developer routes as part of that registration.
+
+## Custom extensions on CakePHP 6
+
+Custom linter tasks implement `run(ConsoleIoInterface $io, array $options = []): int`. Replace the concrete `ConsoleIo` parameter in existing task overrides with the interface. Custom commands implement `execute(): int` and use the inherited argument and console properties. Tests use PHPUnit 13.

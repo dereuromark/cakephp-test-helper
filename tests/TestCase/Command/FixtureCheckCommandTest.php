@@ -4,6 +4,7 @@ namespace TestHelper\Test\TestCase\Command;
 
 use Cake\Console\ConsoleIo;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
+use Cake\Console\TestSuite\StubConsoleOutput;
 use Cake\TestSuite\TestCase;
 use TestHelper\Command\FixtureCheckCommand;
 
