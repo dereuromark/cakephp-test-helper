@@ -280,8 +280,8 @@ class ConditionParser {
 		}
 
 		// String (quoted)
-		if ((str_starts_with($value, "'") && str_ends_with($value, "'")) ||
-			(str_starts_with($value, '"') && str_ends_with($value, '"'))) {
+		if ((str_starts_with($value, "'") && str_ends_with($value, "'"))
+			|| (str_starts_with($value, '"') && str_ends_with($value, '"'))) {
 			return substr($value, 1, -1);
 		}
 

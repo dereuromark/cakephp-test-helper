@@ -752,8 +752,8 @@ class QueryBuilderGenerator {
 			$field2 = $matches[4];
 
 			// Check if one ends with _id and the other is 'id'
-			if ((str_ends_with($field1, '_id') && $field2 === 'id') ||
-				(str_ends_with($field2, '_id') && $field1 === 'id')) {
+			if ((str_ends_with($field1, '_id') && $field2 === 'id')
+				|| (str_ends_with($field2, '_id') && $field1 === 'id')) {
 				return true;
 			}
 		}
